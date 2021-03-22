@@ -17,3 +17,4 @@
 /.idea/modules.xml
 /.idea/ninja-go.iml
 /.idea/vcs.xml
+/go.sum
