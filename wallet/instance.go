@@ -33,19 +33,19 @@ func Inst() Wallet {
 }
 
 func newWallet() Wallet {
-	cw := &ChordWalletV1{
+	cw := &NinjaWallet{
 		keys: make(map[common.Address]*Key),
 	}
 	return cw
 }
 
-type ChordWalletV1 struct {
+type NinjaWallet struct {
 	activeKey *Key
 	sync.RWMutex
 	keys map[common.Address]*Key
 }
 
-func (c *ChordWalletV1) Active(password, addr string) error {
+func (c *NinjaWallet) Active(password, addr string) error {
 	if config == nil {
 		return fmt.Errorf("please init wallet instance config first")
 	}
@@ -81,11 +81,11 @@ func (c *ChordWalletV1) Active(password, addr string) error {
 	return nil
 }
 
-func (c *ChordWalletV1) KeyInUsed() *Key {
+func (c *NinjaWallet) KeyInUsed() *Key {
 	return c.activeKey
 }
 
-func (c *ChordWalletV1) CreateNewKey(auth string) error {
+func (c *NinjaWallet) CreateNewKey(auth string) error {
 	ks := NewKeyStore(config.Dir)
 	key := NewKey()
 	if err := ks.StoreKey(key, auth); err != nil {

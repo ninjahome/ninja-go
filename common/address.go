@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	ChordAddressHRP = "fed"
+	NinjaAddressHRP = "nin"
 	AddressLength   = 20
 	HashLength      = 32
 )
@@ -48,21 +48,21 @@ func decodeAndConvert(addrStr string) (string, []byte, error) {
 
 func IsFedAddress(s string) bool {
 	hrp, bytes, err := decodeAndConvert(s)
-	if err != nil || (hrp != ChordAddressHRP) || len(bytes) != AddressLength {
+	if err != nil || (hrp != NinjaAddressHRP) || len(bytes) != AddressLength {
 		return false
 	}
 	return true
 }
 func HexToAddress(s string) (addr Address, err error) {
 	hrp, bytes, err := decodeAndConvert(s)
-	if err != nil || (hrp != ChordAddressHRP) || len(bytes) != AddressLength {
+	if err != nil || (hrp != NinjaAddressHRP) || len(bytes) != AddressLength {
 		return addr, err
 	}
 	return BytesToAddress(bytes), nil
 }
 
 func (a Address) Hex() string {
-	str, err := convertAndEncode(ChordAddressHRP, a[:])
+	str, err := convertAndEncode(NinjaAddressHRP, a[:])
 	if err != nil {
 		return ""
 	}
