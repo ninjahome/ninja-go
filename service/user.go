@@ -12,6 +12,7 @@ import (
 
 type wsUser struct {
 	UID     string
+	onTime  time.Time
 	conn    *websocket.Conn
 	inChan  chan *pbs.WSCryptoMsg
 	outChan chan *pbs.WSCryptoMsg
@@ -19,7 +20,6 @@ type wsUser struct {
 
 func (u *wsUser) reader(stop chan struct{}) {
 	defer u.conn.Close()
-
 	for {
 		mt, message, err := u.conn.ReadMessage()
 		if err != nil {
@@ -94,50 +94,47 @@ func (u *wsUser) writer(stop chan struct{}) {
 
 }
 
-func newWsUser(conn *websocket.Conn) (*wsUser, error) {
-	conn.SetReadLimit(512)
-	conn.SetReadDeadline(time.Now().Add(pongWait))
-	conn.SetPongHandler(func(string) error { conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
-
-	mt, message, err := conn.ReadMessage()
-	if err != nil {
-		return nil, err
-	}
-	if mt != int(pbs.SrvMsgType_Online) {
-		return nil, fmt.Errorf("first msg must be online noti")
-	}
-	online := &pbs.WSOnline{}
-	if err := proto.UnmarshalMerge(message, online); err != nil {
-		return nil, err
-	}
-
-	//TODO::verify user's account balance
-	wu := &wsUser{
-		conn: conn,
-		UID:  online.UID,
-	}
-	return wu, nil
+func (u *wsUser) write(msg *pbs.WSCryptoMsg) error {
+	u.outChan <- msg
+	return nil
 }
 
 func (ws *WebSocketService) newOnlineUser(conn *websocket.Conn) error {
-	wu, err := newWsUser(conn)
-	if err != nil {
+
+	online := &pbs.WSOnline{}
+	if err := online.FullFill(conn); err != nil {
 		conn.Close()
-		utils.LogInst().Err(err).Send()
 		return err
 	}
-	wu.inChan = ws.msgQueue
 
-	ws.userTable.Add(wu)
-	ws.onlineSet.NotifyPeers(wu)
+	wu := &wsUser{
+		conn:   conn,
+		UID:    online.UID,
+		onTime: time.Unix(online.UnixTime, 0),
+		inChan: ws.msgFromClientQueue,
+	}
 
-	thread.NewThreadWithName(fmt.Sprintf("chat read:%s", wu.UID), func(stop chan struct{}) {
+	ws.msgToOtherPeerQueue <- &pbs.P2PMsg{
+		MsgTyp:  pbs.P2PMsgType_P2pOnline,
+		Payload: &pbs.P2PMsg_Online{Online: online},
+	}
+
+	ws.onlineSet.add(wu.UID)
+	ws.userTable.add(wu)
+
+	tid := fmt.Sprintf("chat read:%s", wu.UID)
+	t := thread.NewThreadWithName(tid, func(stop chan struct{}) {
 		wu.reader(stop)
-	}).Run()
+	})
+	ws.threads[tid] = t
+	t.Run()
 
-	thread.NewThreadWithName(fmt.Sprintf("chat writer:%s", wu.UID), func(stop chan struct{}) {
+	tid = fmt.Sprintf("chat writer:%s", wu.UID)
+	t = thread.NewThreadWithName(tid, func(stop chan struct{}) {
 		wu.writer(stop)
-	}).Run()
+	})
+	ws.threads[tid] = t
+	t.Run()
 
 	return nil
 }

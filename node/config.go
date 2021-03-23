@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	DefaultP2pPort           = 8888
+	DefaultP2pPort           = 9999
 	DefaultMaxMessageSize    = 1 << 21
 	DefaultOutboundQueueSize = 64
 	DefaultValidateQueueSize = 512
@@ -32,8 +32,8 @@ const (
 var (
 	MainChain    = big.NewInt(1)
 	TestChain    = big.NewInt(2)
-	MainP2pBoots = []string{"/ip4/0.0.0.0/tcp/8888/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe"}
-	TestP2pBoots = []string{"/ip4/0.0.0.0/tcp/8888/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe",
+	MainP2pBoots = []string{"/ip4/0.0.0.0/tcp/9999/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe"}
+	TestP2pBoots = []string{"/ip4/0.0.0.0/tcp/9999/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe",
 		"/ip4/0.0.0.0/tcp/8888/p2p/12D3KooWLYfvJ1aeQMdJsLPEHn4U5jvX4jAY4LfAan3YRcXTndZy"}
 )
 

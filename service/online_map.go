@@ -1,21 +1,28 @@
 package service
 
-import "sync"
+import (
+	"sync"
+)
 
 type OnlineMap struct {
 	sync.RWMutex
-	cache map[string]bool
+	lines map[string]bool
 }
 
-func (m *OnlineMap) NotifyPeers(ws *wsUser) {
+func (m *OnlineMap) add(uid string) {
 	m.Lock()
 	defer m.Unlock()
-	m.cache[ws.UID] = true
-	//TODO::
+	m.lines[uid] = true
+}
+
+func (m *OnlineMap) contains(to string) bool {
+	m.RLock()
+	defer m.RUnlock()
+	return m.lines[to]
 }
 
 func newOnlineSet() *OnlineMap {
 	return &OnlineMap{
-		cache: make(map[string]bool),
+		lines: make(map[string]bool),
 	}
 }

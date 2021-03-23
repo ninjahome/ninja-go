@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DefaultWsPort       = 8886
+	DefaultWsPort       = 6666
 	DefaultReadTimeout  = 30 * time.Second
 	DefaultWriteTimeout = 30 * time.Second
 	DefaultIdleTimeout  = 120 * time.Second

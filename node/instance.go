@@ -29,17 +29,20 @@ func (mc MessageChannel) String() string {
 }
 
 const (
-	MSNotify  MessageChannel = "/0.1/Global/notify"
-	MSNodeMsg MessageChannel = "/0.1/Global/NODE"
-	MSDebug   MessageChannel = "/0.1/Global/TEST"
+	MSUserOnline    MessageChannel = "/0.1/Global/user/online"
+	MSCryptoPeerMsg MessageChannel = "/0.1/Global/user/crypto_msg"
+	MSDebug         MessageChannel = "/0.1/Global/TEST"
+
+	THNOuterMsgReader = "outer message reader thread"
 )
 
-var SystemTopics = []MessageChannel{MSNotify, MSNodeMsg, MSDebug}
+var SystemTopics = []MessageChannel{MSUserOnline, MSCryptoPeerMsg, MSDebug}
 
-func notifyMsgValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
+func userOnlineValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
 	return pubsub.ValidationAccept
 }
 
-func nodeMsgValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
+func immediateCryptoMsgValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
+	//service.Inst().InUserTable()//TODO::maybe some easy way to tell the invalid message
 	return pubsub.ValidationAccept
 }

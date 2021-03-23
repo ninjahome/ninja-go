@@ -1,6 +1,9 @@
 package thread
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type Runner func(stop chan struct{})
 type Thread struct {
@@ -13,17 +16,29 @@ type Thread struct {
 
 func (t *Thread) Run() {
 	go func() {
+		if r := recover(); r != nil {
+			t.Stop()
+			fmt.Printf("thread panice by:%s", r)
+		}
 		t.runFunc(t.stop)
 	}()
 }
 
 func (t *Thread) Stop() {
+	_inst.locker.Lock()
+	defer _inst.locker.Unlock()
+	if t.stop == nil {
+		return
+	}
+
+	if _, ok := _inst.queue[t.ID]; !ok {
+		return
+	}
 
 	t.stop <- struct{}{}
 
-	_inst.locker.Lock()
-	defer _inst.locker.Unlock()
-
 	delete(_inst.nameID, t.name)
 	delete(_inst.queue, t.ID)
+	close(t.stop)
+	t.stop = nil
 }

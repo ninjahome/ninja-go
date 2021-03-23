@@ -7,10 +7,17 @@ type UserTable struct {
 	cache map[string]*wsUser
 }
 
-func (u *UserTable) Add(wu *wsUser) {
-	u.Lock()
-	defer u.Unlock()
-	u.cache[wu.UID] = wu
+func (ut *UserTable) add(wu *wsUser) {
+	ut.Lock()
+	defer ut.Unlock()
+	ut.cache[wu.UID] = wu
+}
+
+func (ut *UserTable) get(to string) (*wsUser, bool) {
+	ut.RLock()
+	defer ut.RUnlock()
+	us, ok := ut.cache[to]
+	return us, ok
 }
 
 func newUserTable() *UserTable {

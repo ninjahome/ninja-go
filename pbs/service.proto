@@ -24,4 +24,24 @@ message WSCryptoMsg{
   string From = 1;
   string To = 2;
   bytes PayLoad = 3;
+  int64 UnixTime = 4;
+  bytes Sig = 5;
+}
+
+
+enum P2pMsgType{
+  P2pUnknown = 0;
+  P2pOnline = 1;
+  P2pCryptoMsg = 2;
+}
+
+message P2pMsg{
+
+  P2pMsgType msgTyp = 1;
+
+  oneof payload{
+    WSOnline online = 2;
+    WSCryptoMsg msg = 3;
+  }
+
 }

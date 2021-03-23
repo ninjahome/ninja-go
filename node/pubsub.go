@@ -3,14 +3,15 @@ package node
 import (
 	"context"
 	"fmt"
+	"github.com/golang/protobuf/proto"
 	coreDisc "github.com/libp2p/go-libp2p-core/discovery"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-discovery"
 	"github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-pubsub"
+	pbs "github.com/ninjahome/ninja-go/pbs/service"
 	"github.com/ninjahome/ninja-go/utils"
-	"github.com/ninjahome/ninja-go/utils/thread"
 	"sync"
 	"time"
 )
@@ -33,13 +34,19 @@ func newPubSub(ctx context.Context, h host.Host) (*PubSub, error) {
 	}
 
 	disc := discovery.NewRoutingDiscovery(kademliaDHT)
+
 	psOption := _nodeConfig.pubSubOpts(disc)
+
 	ps, err := pubsub.NewGossipSub(ctx, h, psOption...)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := initSystemTopic(ps); err != nil {
+	if err := kademliaDHT.Bootstrap(ctx); err != nil {
+		return nil, err
+	}
+
+	if err := initTopicValidators(ps); err != nil {
 		return nil, err
 	}
 
@@ -61,10 +68,10 @@ func newPubSub(ctx context.Context, h host.Host) (*PubSub, error) {
 	}, nil
 }
 
-func initSystemTopic(ps *pubsub.PubSub) error {
+func initTopicValidators(ps *pubsub.PubSub) error {
 
-	err := ps.RegisterTopicValidator(MSNotify.String(),
-		notifyMsgValidator,
+	err := ps.RegisterTopicValidator(MSUserOnline.String(),
+		userOnlineValidator,
 		pubsub.WithValidatorTimeout(250*time.Millisecond),
 		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxNotifyTopicThread))
 
@@ -72,30 +79,13 @@ func initSystemTopic(ps *pubsub.PubSub) error {
 		return err
 	}
 
-	err = ps.RegisterTopicValidator(MSNodeMsg.String(),
-		nodeMsgValidator,
+	err = ps.RegisterTopicValidator(MSCryptoPeerMsg.String(),
+		immediateCryptoMsgValidator,
 		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxNodeTopicThread))
 	if err != nil {
 		return err
 	}
 
-	return nil
-}
-
-func (s *PubSub) start() error {
-	if err := s.dht.Bootstrap(s.ctx); err != nil {
-		return err
-	}
-
-	for id, topic := range s.topics {
-		sub, err := topic.Subscribe()
-		if err != nil {
-			return err
-		}
-		thread.NewThreadWithName(id.String(), func(stop chan struct{}) {
-			s.readingMessage(stop, id, sub)
-		}).Run()
-	}
 	return nil
 }
 
@@ -115,14 +105,12 @@ func (s *PubSub) removeTopic(id MessageChannel) {
 	utils.LogInst().Warn().Msgf("remove topic [%s] from system", id)
 }
 
-func (s *PubSub) readingMessage(stop chan struct{}, id MessageChannel, sub *pubsub.Subscription) {
+func (s *PubSub) readingMessage(stop chan struct{}, sub *pubsub.Subscription, queue chan *pbs.P2PMsg) {
 
-	utils.LogInst().Info().Msgf("[pubSub] start reading message for topic[%s]", id)
-	defer s.removeTopic(id)
 	for {
 		msg, err := sub.Next(s.ctx)
 		if err != nil {
-			utils.LogInst().Warn().Err(err)
+			utils.LogInst().Warn().Err(err).Send()
 			return
 		}
 
@@ -131,17 +119,25 @@ func (s *PubSub) readingMessage(stop chan struct{}, id MessageChannel, sub *pubs
 			utils.LogInst().Warn().Msg("topic reading thread exit by outer controller")
 			return
 		default:
-			utils.LogInst().Debug().Msg(msg.String())
+			//if msg.ReceivedFrom == cr.self {
+			//	continue
+			//}
+			p2pMsg := &pbs.P2PMsg{}
+			if err := proto.UnmarshalMerge(msg.Data, p2pMsg); err != nil {
+				utils.LogInst().Warn().Msg("failed parse p2p message")
+				continue
+			}
+			queue <- p2pMsg
 		}
 	}
 }
 
-func (s *PubSub) SendMsg(topic string, msgData []byte) error {
+func (s *PubSub) SendMsg(topic MessageChannel, msgData []byte) error {
 	topics := s.topics
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	t, ok := topics[MessageChannel(topic)]
+	t, ok := topics[topic]
 	if !ok {
 		return fmt.Errorf("no such topic")
 	}
