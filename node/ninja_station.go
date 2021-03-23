@@ -38,8 +38,6 @@ func newStation() *NinjaStation {
 		ctx:        ctx,
 		ctxCancel:  cancel,
 	}
-	n.initRpcApis()
-
 	utils.LogInst().Info().Msgf("p2p with id[%s] created addrs:%s", h.ID(), h.Addrs())
 	return n
 }

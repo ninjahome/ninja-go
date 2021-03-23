@@ -2,11 +2,13 @@ package service
 
 import (
 	"fmt"
+	"github.com/gorilla/websocket"
+	"net/http"
 	"time"
 )
 
 const (
-	DefaultWsPort       = 8888
+	DefaultWsPort       = 8886
 	DefaultReadTimeout  = 30 * time.Second
 	DefaultWriteTimeout = 30 * time.Second
 	DefaultIdleTimeout  = 120 * time.Second
@@ -46,5 +48,28 @@ func DefaultConfig() *Config {
 		IdleTimeout:  DefaultIdleTimeout,
 		WsIP:         DefaultHost,
 		WsPort:       DefaultWsPort,
+	}
+}
+
+func (c *Config) newUpGrader() *websocket.Upgrader {
+
+	return &websocket.Upgrader{
+		HandshakeTimeout: time.Second * 3,
+		ReadBufferSize:   1024,
+		WriteBufferSize:  1024,
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+}
+
+func (c *Config) newWSServer(handler http.Handler) *http.Server {
+	endPoint := fmt.Sprintf("%s:%d", c.WsIP, c.WsPort)
+	return &http.Server{
+		Addr:         endPoint,
+		Handler:      handler,
+		ReadTimeout:  c.ReadTimeout,
+		WriteTimeout: c.WriteTimeout,
+		IdleTimeout:  c.IdleTimeout,
 	}
 }

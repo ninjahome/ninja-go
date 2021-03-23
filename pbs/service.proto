@@ -1,0 +1,27 @@
+syntax = "proto3";
+package pbs;
+option go_package = "./service";
+
+enum SrvMsgType{
+  Unknown = 0;
+  Online = 80;
+  ACK = 81;
+  CryptoMsg = 82;
+}
+
+message WSAck{
+  int32 Code = 1;
+  string MSG = 2;
+}
+
+message WSOnline{
+  string UID = 1;
+  int64 UnixTime = 2;
+  bytes Sig = 3;
+}
+
+message WSCryptoMsg{
+  string From = 1;
+  string To = 2;
+  bytes PayLoad = 3;
+}
