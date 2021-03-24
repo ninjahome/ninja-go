@@ -16,16 +16,26 @@ message WSAck{
 
 message WSOnline{
   string UID = 1;
-  int64 UnixTime = 2;
-  bytes Sig = 3;
+  bytes SubID = 2;
+  int64 UnixTime = 3;
 }
 
 message WSCryptoMsg{
   string From = 1;
-  string To = 2;
-  bytes PayLoad = 3;
-  int64 UnixTime = 4;
-  bytes Sig = 5;
+  bytes FromSub = 2;
+  string To = 3;
+  bytes ToSub = 4;
+  bytes PayLoad = 5;
+  int64 UnixTime = 6;
+}
+
+message ClientChatMsg{
+  bytes Hash = 1;
+  bytes Sig = 2;
+  oneof Payload {
+      WSOnline online= 3;
+      WSCryptoMsg msg = 4;
+  }
 }
 
 
@@ -43,5 +53,4 @@ message P2pMsg{
     WSOnline online = 2;
     WSCryptoMsg msg = 3;
   }
-
 }

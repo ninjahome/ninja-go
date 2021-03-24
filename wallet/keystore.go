@@ -163,7 +163,7 @@ func (ks KeyStore) joinPath(filename string) string {
 }
 
 func EncryptKey(key *Key, auth string, scryptN, scryptP int) ([]byte, error) {
-	keyBytes := key.PrivateKey.Serialize()
+	keyBytes := key.privateKey.Serialize()
 	if len(keyBytes) != PriKeyLen {
 		return nil, fmt.Errorf("invalid private key in Key structure")
 	}
@@ -245,7 +245,7 @@ func DecryptKey(keyJson []byte, auth string) (*Key, error) {
 	return &Key{
 		ID:         keyID,
 		Address:    common.PubKeyToAddr(pub),
-		PrivateKey: &sec,
+		privateKey: &sec,
 	}, nil
 }
 func DecryptData(cj CryptoJSON, auth string) ([]byte, error) {

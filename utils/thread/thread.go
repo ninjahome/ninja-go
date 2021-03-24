@@ -24,6 +24,13 @@ func (t *Thread) Run() {
 	}()
 }
 
+func (t *Thread) IsAlive() bool {
+	_inst.locker.RLock()
+	defer _inst.locker.RUnlock()
+	_, ok := _inst.queue[t.ID]
+	return ok
+}
+
 func (t *Thread) Stop() {
 	_inst.locker.Lock()
 	defer _inst.locker.Unlock()

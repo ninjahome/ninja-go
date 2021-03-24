@@ -46,7 +46,7 @@ func decodeAndConvert(addrStr string) (string, []byte, error) {
 	return hrp, converted, nil
 }
 
-func IsFedAddress(s string) bool {
+func IsNinJaAddress(s string) bool {
 	hrp, bytes, err := decodeAndConvert(s)
 	if err != nil || (hrp != NinjaAddressHRP) || len(bytes) != AddressLength {
 		return false

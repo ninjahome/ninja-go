@@ -144,7 +144,7 @@ func (c *Config) initOptions() []libp2p.Option {
 	if activeKey == nil {
 		panic("no valid key right now")
 	}
-	key, err := activeKey.CastP2pKey()
+	key, err := activeKey.CastEd25519Key()
 	if err != nil {
 		panic(err)
 	}

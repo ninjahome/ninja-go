@@ -3,13 +3,13 @@ package node
 import (
 	"context"
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
 	pbs "github.com/ninjahome/ninja-go/pbs/service"
 	"github.com/ninjahome/ninja-go/service"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
+	"google.golang.org/protobuf/proto"
 )
 
 type NinjaStation struct {

@@ -24,7 +24,7 @@ func TestKeyNew(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println(string(bs))
-	pub := k.PrivateKey.GetPublicKey()
+	pub := k.privateKey.GetPublicKey()
 	fmt.Printf("case 1 success=> pub:%x\n", pub.Serialize())
 }
 
@@ -45,7 +45,7 @@ func TestKeyAuth(t *testing.T) {
 		t.Fatal("address is not same")
 	}
 
-	if !key.PrivateKey.IsEqual(parsedKey.PrivateKey) {
+	if !key.privateKey.IsEqual(parsedKey.privateKey) {
 		t.Fatal("private key is not same")
 	}
 	fmt.Println("case 2 success=>")
@@ -53,7 +53,7 @@ func TestKeyAuth(t *testing.T) {
 
 func TestCastEdKey(t *testing.T) {
 	k := NewKey()
-	pri := k.PrivateKey.Serialize()
+	pri := k.privateKey.Serialize()
 	var edPri = ed25519.NewKeyFromSeed(pri)
 	t.Logf("edkey:%x\n", edPri)
 
@@ -79,7 +79,7 @@ func TestCastEdKey(t *testing.T) {
 
 func TestCastP2PKey(t *testing.T) {
 	k := NewKey()
-	p2pKey, err := k.CastP2pKey()
+	p2pKey, err := k.CastEd25519Key()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,12 +89,12 @@ func TestCastP2PKey(t *testing.T) {
 	}
 	t.Logf("fisrt time get:[%x]\n", bts)
 	for i := 0; i < 20; i++ {
-		_, err = k.CastP2pKey()
+		_, err = k.CastEd25519Key()
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
-	p2pKey, err = k.CastP2pKey()
+	p2pKey, err = k.CastEd25519Key()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,8 +103,8 @@ func TestCastP2PKey(t *testing.T) {
 
 func TestPriKeyToHexStr(t *testing.T) {
 	k := NewKey()
-	t.Log(k.PrivateKey.SerializeToHexStr())
-	t.Log(k.PrivateKey.GetHexString())
+	t.Log(k.privateKey.SerializeToHexStr())
+	t.Log(k.privateKey.GetHexString())
 }
 
 func TestHexStrToPriKey(t *testing.T) {

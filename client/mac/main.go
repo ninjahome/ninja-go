@@ -28,7 +28,6 @@ func main() {
 	online := &pbs.WSOnline{
 		UID:      "111111",
 		UnixTime: time.Now().Unix(),
-		Sig:      nil,
 	}
 	data, err := proto.Marshal(online)
 	if err != nil {
