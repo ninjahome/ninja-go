@@ -16,6 +16,30 @@ func init() {
 		panic(err)
 	}
 }
+
+func TestG1Pub(t *testing.T) {
+	pri_a := GenerateKey()
+	pub_a := pri_a.GetPublicKey()
+
+	pri_b := GenerateKey()
+	pub_b := pri_b.GetPublicKey()
+
+	G1_a := bls.CastFromPublicKey(pub_a)
+	Fr_a := bls.CastFromSecretKey(pri_a)
+
+	G1_b := bls.CastFromPublicKey(pub_b)
+	Fr_b := bls.CastFromSecretKey(pri_b)
+	key_ab := &bls.G1{}
+	bls.G1Mul(key_ab, G1_b, Fr_a)
+
+	key_ba := &bls.G1{}
+	bls.G1Mul(key_ba, G1_a, Fr_b)
+
+	fmt.Printf("key a->b:=>[%x]\n", key_ab.Serialize())
+	fmt.Printf("key b->a:=>[%x]\n", key_ba.Serialize())
+
+}
+
 func TestKeyNew(t *testing.T) {
 	k := NewKey()
 

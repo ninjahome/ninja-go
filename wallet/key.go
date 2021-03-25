@@ -6,7 +6,6 @@ import (
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/ninjahome/ninja-go/common"
 	"github.com/pborman/uuid"
-	"golang.org/x/crypto/curve25519"
 )
 
 const (
@@ -89,19 +88,6 @@ func GenerateKey() *bls.SecretKey {
 	var sec bls.SecretKey
 	sec.SetByCSPRNG()
 	return &sec
-}
-
-type Curve25519Pub []byte
-
-const Curve25519PubSize = 32
-
-func (k *Key) GetCurve25519Public() (Curve25519Pub, error) {
-	pri := k.privateKey.Serialize()
-	curPri, err := curve25519.X25519(pri, curve25519.Basepoint)
-	if err != nil {
-		return nil, err
-	}
-	return curPri, nil
 }
 
 func (k *Key) SignData(msg []byte) []byte {

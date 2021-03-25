@@ -16,15 +16,12 @@ message WSAck{
 
 message WSOnline{
   string UID = 1;
-  bytes SubID = 2;
   int64 UnixTime = 3;
 }
 
 message WSCryptoMsg{
   string From = 1;
-  bytes FromSub = 2;
   string To = 3;
-  bytes ToSub = 4;
   bytes PayLoad = 5;
   int64 UnixTime = 6;
 }
