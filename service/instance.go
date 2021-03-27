@@ -33,15 +33,6 @@ const (
 var (
 	_instance *WebSocketService
 	once      sync.Once
-
-	// Time allowed to write the file to the client.
-	writeWait = 10 * time.Second
-
-	// Time allowed to read the next pong message from the client.
-	pongWait = 60 * time.Second
-
-	// Send pings to client with this period. Must be less than pongWait.
-	pingPeriod = (pongWait * 9) / 10
 )
 
 func Inst() *WebSocketService {
@@ -92,9 +83,9 @@ func (ws *WebSocketService) online(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	webSocket.SetReadLimit(512) //TODO::config
-	webSocket.SetReadDeadline(time.Now().Add(pongWait))
-	webSocket.SetPongHandler(func(string) error { webSocket.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	webSocket.SetReadLimit(int64(_srvConfig.WsBufferSize))
+	webSocket.SetReadDeadline(time.Now().Add(_srvConfig.PongWait))
+	webSocket.SetPongHandler(func(string) error { webSocket.SetReadDeadline(time.Now().Add(_srvConfig.PongWait)); return nil })
 
 	if err := ws.newOnlineUser(webSocket); err != nil {
 		utils.LogInst().Err(err).Send()

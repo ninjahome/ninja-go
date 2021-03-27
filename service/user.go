@@ -11,17 +11,17 @@ import (
 )
 
 type wsUser struct {
-	UID     string
-	onTime  time.Time
-	conn    *websocket.Conn
-	inChan  chan *pbs.WSCryptoMsg
-	outChan chan *pbs.WSCryptoMsg
+	UID       string
+	onTime    time.Time
+	cliWsConn *websocket.Conn
+	inChan    chan *pbs.WSCryptoMsg
+	outChan   chan *pbs.WSCryptoMsg
 }
 
 func (u *wsUser) reader(stop chan struct{}) {
-	defer u.conn.Close()
+	defer u.cliWsConn.Close()
 	for {
-		mt, message, err := u.conn.ReadMessage()
+		mt, message, err := u.cliWsConn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err,
 				websocket.CloseGoingAway,
@@ -54,10 +54,10 @@ func (u *wsUser) reader(stop chan struct{}) {
 
 func (u *wsUser) writer(stop chan struct{}) {
 
-	pingTicker := time.NewTicker(pingPeriod)
+	pingTicker := time.NewTicker(_srvConfig.PingPeriod)
 	defer func() {
 		pingTicker.Stop()
-		u.conn.Close()
+		u.cliWsConn.Close()
 	}()
 
 	for {
@@ -65,33 +65,38 @@ func (u *wsUser) writer(stop chan struct{}) {
 		case <-stop:
 			utils.LogInst().Warn().Msg("web socket writer thread exit")
 			return
+
 		case message, ok := <-u.outChan:
-			u.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			u.cliWsConn.SetWriteDeadline(time.Now().Add(_srvConfig.WriteWait))
 			if !ok {
-				u.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				u.cliWsConn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 
-			w, err := u.conn.NextWriter(websocket.TextMessage)
+			w, err := u.cliWsConn.NextWriter(websocket.TextMessage)
 			if err != nil {
+				utils.LogInst().Err(err)
 				return
 			}
 
 			data, _ := proto.Marshal(message)
 			w.Write(data)
 			if err := w.Close(); err != nil {
+				utils.LogInst().Err(err)
 				return
 			}
+
 		case <-pingTicker.C:
-			if err := u.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+			if err := u.cliWsConn.SetWriteDeadline(time.Now().Add(_srvConfig.WriteWait)); err != nil {
+				utils.LogInst().Err(err)
 				return
 			}
-			if err := u.conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+			if err := u.cliWsConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+				utils.LogInst().Err(err)
 				return
 			}
 		}
 	}
-
 }
 
 func (u *wsUser) write(msg *pbs.WSCryptoMsg) error {
@@ -101,17 +106,17 @@ func (u *wsUser) write(msg *pbs.WSCryptoMsg) error {
 
 func (ws *WebSocketService) newOnlineUser(conn *websocket.Conn) error {
 
-	online := &pbs.WSOnline{}
-	if err := online.ReadOnlineFromCli(conn); err != nil {
+	msg := &pbs.ClientChatMsg{}
+	online, err := msg.ReadOnlineFromCli(conn)
+	if err != nil {
 		conn.Close()
 		return err
 	}
-
 	wu := &wsUser{
-		conn:   conn,
-		UID:    online.UID,
-		onTime: time.Unix(online.UnixTime, 0),
-		inChan: ws.msgFromClientQueue,
+		cliWsConn: conn,
+		UID:       online.UID,
+		onTime:    time.Now(),
+		inChan:    ws.msgFromClientQueue,
 	}
 
 	ws.msgToOtherPeerQueue <- &pbs.P2PMsg{

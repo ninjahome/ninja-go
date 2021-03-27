@@ -11,6 +11,7 @@ enum SrvMsgType{
 
 message WSAck{
   int32 Code = 1;
+  int64 Seq = 3;
   string MSG = 2;
 }
 
@@ -45,7 +46,6 @@ enum P2pMsgType{
 message P2pMsg{
 
   P2pMsgType msgTyp = 1;
-
   oneof payload{
     WSOnline online = 2;
     WSCryptoMsg msg = 3;

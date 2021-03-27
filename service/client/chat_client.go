@@ -14,7 +14,7 @@ type InputFunc func([]byte) error
 
 type ChatClient struct {
 	endpoint       string
-	conn           *websocket.Conn
+	wsConn         *websocket.Conn
 	key            *wallet.Key
 	reader, writer *thread.Thread
 	in             InputFunc
@@ -52,7 +52,7 @@ func (cc *ChatClient) Online() error {
 	if err := onlineMsg.Online(wsConn, cc.key); err != nil {
 		return err
 	}
-	cc.conn = wsConn
+	cc.wsConn = wsConn
 	return nil
 }
 
@@ -65,7 +65,7 @@ func (cc *ChatClient) reading(stop chan struct{}) {
 	defer cc.ShutDown()
 
 	for {
-		_, message, err := cc.conn.ReadMessage()
+		mt, message, err := cc.wsConn.ReadMessage()
 		if err != nil {
 			fmt.Println("read:", err)
 			return
@@ -78,6 +78,16 @@ func (cc *ChatClient) reading(stop chan struct{}) {
 		default:
 			if cc.in == nil {
 				continue
+			}
+
+			if mt == websocket.PingMessage {
+				cc.wsConn.WriteMessage(websocket.PongMessage, []byte{})
+				continue
+			}
+
+			switch mt {
+			case int(pbs.SrvMsgType_ACK):
+			case int(pbs.SrvMsgType_CryptoMsg):
 			}
 			err := cc.in(message)
 			if err != nil {
@@ -97,7 +107,7 @@ func (cc *ChatClient) writing(stop chan struct{}) {
 
 		case <-stop:
 			fmt.Println("write thread exit")
-			_ = cc.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			_ = cc.wsConn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 		}
 	}
 }
@@ -105,5 +115,5 @@ func (cc *ChatClient) writing(stop chan struct{}) {
 func (cc *ChatClient) ShutDown() {
 	cc.reader.Stop()
 	cc.writer.Stop()
-	cc.conn.Close()
+	cc.wsConn.Close()
 }

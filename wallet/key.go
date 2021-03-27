@@ -95,6 +95,10 @@ func (k *Key) SignData(msg []byte) []byte {
 	return sig.Serialize()
 }
 
+func VerifyByte(sig *bls.Sign, pub *bls.PublicKey, msg []byte) bool {
+	return sig.VerifyByte(pub, msg)
+}
+
 func (k *Key) IsOpen() bool {
 	return k.privateKey != nil
 }
