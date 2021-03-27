@@ -42,13 +42,13 @@ var (
 )
 
 func init() {
-	pushCmd.Flags().StringVarP(&topic, "topic", "t", string(node.MSDebug),
+	pushCmd.Flags().StringVarP(&topic, "topic", "t", string(node.P2pChanDebug),
 		"ninja debug push -t [TOPIC]")
 	pushCmd.Flags().StringVarP(&msgBody, "message", "m", "",
 		"ninja debug push -t [TOPIC] -m \"[MESSAGE]\"")
 	DebugCmd.AddCommand(pushCmd)
 
-	showPeerCmd.Flags().StringVarP(&topic, "topic", "t", string(node.MSDebug),
+	showPeerCmd.Flags().StringVarP(&topic, "topic", "t", string(node.P2pChanDebug),
 		"ninja debug peers -t [TOPIC]")
 	DebugCmd.AddCommand(showPeerCmd)
 

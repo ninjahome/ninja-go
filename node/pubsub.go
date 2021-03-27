@@ -70,7 +70,7 @@ func newPubSub(ctx context.Context, h host.Host) (*PubSub, error) {
 
 func initTopicValidators(ps *pubsub.PubSub) error {
 
-	err := ps.RegisterTopicValidator(MSUserOnline.String(),
+	err := ps.RegisterTopicValidator(P2pChanUserOnline.String(),
 		userOnlineValidator,
 		pubsub.WithValidatorTimeout(250*time.Millisecond),
 		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxNotifyTopicThread))
@@ -79,7 +79,7 @@ func initTopicValidators(ps *pubsub.PubSub) error {
 		return err
 	}
 
-	err = ps.RegisterTopicValidator(MSCryptoPeerMsg.String(),
+	err = ps.RegisterTopicValidator(P2pChanCryptoMsg.String(),
 		immediateCryptoMsgValidator,
 		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxNodeTopicThread))
 	if err != nil {

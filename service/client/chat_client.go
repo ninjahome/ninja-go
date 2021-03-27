@@ -42,8 +42,8 @@ func (cc *ChatClient) Register(in InputFunc, out <-chan []byte) {
 }
 
 func (cc *ChatClient) Online() error {
-	url := url.URL{Scheme: "ws", Host: cc.endpoint, Path: service.CPUserOnline}
-	wsConn, _, err := websocket.DefaultDialer.Dial(url.String(), nil)
+	u := url.URL{Scheme: "ws", Host: cc.endpoint, Path: service.CPUserOnline}
+	wsConn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		return err
 	}

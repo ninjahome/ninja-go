@@ -116,10 +116,10 @@ func (nt *NinjaStation) procOuterChMsg(msg *pbs.P2PMsg) error {
 
 	switch msg.MsgTyp {
 	case pbs.P2PMsgType_P2pCryptoMsg:
-		return nt.pubSub.SendMsg(MSCryptoPeerMsg, data)
+		return nt.pubSub.SendMsg(P2pChanCryptoMsg, data)
 
 	case pbs.P2PMsgType_P2pOnline:
-		return nt.pubSub.SendMsg(MSUserOnline, data)
+		return nt.pubSub.SendMsg(P2pChanUserOnline, data)
 	default:
 		utils.LogInst().Warn().Msgf("unknown to output peer to peer msg type:[%d]", msg.MsgTyp)
 	}

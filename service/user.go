@@ -102,7 +102,7 @@ func (u *wsUser) write(msg *pbs.WSCryptoMsg) error {
 func (ws *WebSocketService) newOnlineUser(conn *websocket.Conn) error {
 
 	online := &pbs.WSOnline{}
-	if err := online.FullFill(conn); err != nil {
+	if err := online.ReadOnlineFromCli(conn); err != nil {
 		conn.Close()
 		return err
 	}

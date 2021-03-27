@@ -29,14 +29,14 @@ func (mc MessageChannel) String() string {
 }
 
 const (
-	MSUserOnline    MessageChannel = "/0.1/Global/user/online"
-	MSCryptoPeerMsg MessageChannel = "/0.1/Global/user/crypto_msg"
-	MSDebug         MessageChannel = "/0.1/Global/TEST"
+	P2pChanUserOnline MessageChannel = "/0.1/Global/user/online"
+	P2pChanCryptoMsg  MessageChannel = "/0.1/Global/user/crypto_msg"
+	P2pChanDebug      MessageChannel = "/0.1/Global/TEST"
 
 	THNOuterMsgReader = "outer message reader thread"
 )
 
-var SystemTopics = []MessageChannel{MSUserOnline, MSCryptoPeerMsg, MSDebug}
+var SystemTopics = []MessageChannel{P2pChanUserOnline, P2pChanCryptoMsg, P2pChanDebug}
 
 func userOnlineValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
 	return pubsub.ValidationAccept
