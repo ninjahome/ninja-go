@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/herumi/bls-eth-go-binary/bls"
+	"github.com/ninjahome/ninja-go/common"
 	"testing"
 )
 
@@ -16,7 +17,21 @@ func init() {
 		panic(err)
 	}
 }
+func TestPublicKey(t *testing.T) {
 
+	key := NewLightKey(false)
+	fmt.Println(key.Address)
+	strAddr := key.Address.String()
+	fmt.Println(strAddr)
+
+	pub2, err := common.HexToAddress(strAddr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pub2 != key.Address {
+		t.Fatal("failed to convert address")
+	}
+}
 func TestG1Pub(t *testing.T) {
 	pri_a := GenerateKey()
 	pub_a := pri_a.GetPublicKey()
