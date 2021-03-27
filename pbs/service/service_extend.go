@@ -30,7 +30,7 @@ func (x *WSOnline) Verify(sig []byte) bool {
 	return wallet.VerifyByte(s, p, data)
 }
 
-func (x *ClientChatMsg) ReadOnlineFromCli(conn *websocket.Conn) (*WSOnline, error) {
+func (x *CliOnlineMsg) ReadOnlineFromCli(conn *websocket.Conn) (*WSOnline, error) {
 	mt, message, err := conn.ReadMessage()
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (x *ClientChatMsg) ReadOnlineFromCli(conn *websocket.Conn) (*WSOnline, erro
 		return nil, err
 	}
 
-	online, ok := x.Payload.(*ClientChatMsg_Online)
+	online, ok := x.Payload.(*CliOnlineMsg_Online)
 	if !ok {
 		return nil, fmt.Errorf("convert to online msg failed")
 	}
@@ -54,7 +54,7 @@ func (x *ClientChatMsg) ReadOnlineFromCli(conn *websocket.Conn) (*WSOnline, erro
 	return online.Online, nil
 }
 
-func (x *ClientChatMsg) Online(conn *websocket.Conn, key *wallet.Key) error {
+func (x *CliOnlineMsg) Online(conn *websocket.Conn, key *wallet.Key) error {
 	online := &WSOnline{
 		UID:      key.Address.String(),
 		UnixTime: time.Now().Unix(),
@@ -65,7 +65,7 @@ func (x *ClientChatMsg) Online(conn *websocket.Conn, key *wallet.Key) error {
 	}
 	x.Hash = nil
 	x.Sig = key.SignData(data)
-	x.Payload = &ClientChatMsg_Online{
+	x.Payload = &CliOnlineMsg_Online{
 		Online: online,
 	}
 

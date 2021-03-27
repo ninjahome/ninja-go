@@ -7,6 +7,12 @@ enum SrvMsgType{
   Online = 80;
   ACK = 81;
   CryptoMsg = 82;
+  OnlineACK = 83;
+}
+
+message WSOnlineAck{
+  bool Success = 1;
+  int64 Seq = 2;
 }
 
 message WSAck{
@@ -27,12 +33,12 @@ message WSCryptoMsg{
   int64 UnixTime = 6;
 }
 
-message ClientChatMsg{
+message CliOnlineMsg{
   bytes Hash = 1;
   bytes Sig = 2;
   oneof Payload {
       WSOnline online= 3;
-      WSCryptoMsg msg = 4;
+      WSOnlineAck olAck = 4;
   }
 }
 
