@@ -1,9 +1,14 @@
 package utils
 
 import (
+	"crypto/aes"
+	"crypto/rand"
 	"golang.org/x/crypto/sha3"
 	"hash"
+	"io"
 )
+
+type Salt [aes.BlockSize]byte
 
 type KeccakState interface {
 	hash.Hash
@@ -19,4 +24,13 @@ func Keccak256(data ...[]byte) []byte {
 	}
 	_, _ = d.Read(b)
 	return b
+}
+
+func NewSalt() (s Salt, err error) {
+	iv := make([]byte, aes.BlockSize) //[:]
+	if _, err = io.ReadFull(rand.Reader, iv); err != nil {
+		return
+	}
+	copy(s[:], iv)
+	return
 }

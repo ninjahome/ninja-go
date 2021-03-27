@@ -102,3 +102,16 @@ func VerifyByte(sig *bls.Sign, pub *bls.PublicKey, msg []byte) bool {
 func (k *Key) IsOpen() bool {
 	return k.privateKey != nil
 }
+
+func (k *Key) SharedKey(to string) ([]byte, error) {
+
+	frKey := bls.CastFromSecretKey(k.privateKey)
+	pubTo := &bls.PublicKey{}
+	if err := pubTo.DeserializeHexStr(to); err != nil {
+		return nil, err
+	}
+	toG1 := bls.CastFromPublicKey(pubTo)
+	aesKey := &bls.G1{}
+	bls.G1Mul(aesKey, toG1, frKey)
+	return aesKey.Serialize()[:32], nil
+}
