@@ -2,25 +2,20 @@ syntax = "proto3";
 package pbs;
 option go_package = "./service";
 
-enum SrvMsgType{
-  Unknown = 0;
-  Online = 80;
-  ACK = 81;
-  CryptoMsg = 82;
-  OnlineACK = 83;
+enum WsMsgType{
+  Online = 0;
+  OnlineACK = 1;
+  CryptoMsg = 2;
+  PullUnread = 3;
 }
 
-
-
-message WSAck{
-  int32 Code = 1;
-  int64 Seq = 3;
-  string MSG = 2;
-}
-
-message WSOnlineData{
+message WSOnline{
   string UID = 1;
   int64 UnixTime = 3;
+}
+message WSOnlineAck{
+  bool Success = 1;
+  int64 Seq = 2;
 }
 
 message WSCryptoMsg{
@@ -30,29 +25,19 @@ message WSCryptoMsg{
   int64 UnixTime = 6;
 }
 
-message WSOnline{
+message WSPullUnread{
+  string Receiver = 1;
+  int64 FromUnixTime = 2;
+}
+
+message WsMsg{
   bytes Hash = 1;
   bytes Sig = 2;
-  WSOnlineData payload = 3;
-}
-
-message WSOnlineAck{
-  bool Success = 1;
-  int64 Seq = 2;
-}
-
-enum P2pMsgType{
-  P2pUnknown = 0;
-  P2pOnline = 1;
-  P2pCryptoMsg = 2;
-  P2pOffline = 3;
-}
-
-message P2pMsg{
-  P2pMsgType msgTyp = 1;
+  WsMsgType typ = 3;
   oneof payload{
-    WSOnline online = 2;
-    WSCryptoMsg msg = 3;
-    WSOnline offline = 4;
-  }
+      WSOnline online = 4;
+    WSOnlineAck olAck = 5;
+    WSCryptoMsg message = 6;
+    WSPullUnread unread = 7;
+  };
 }

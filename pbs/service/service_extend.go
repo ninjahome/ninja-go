@@ -14,7 +14,7 @@ const (
 	MSGPatternEnd  = "TempCachedMsg_%s_ffffffffffffffff"
 )
 
-func (x *WSOnlineData) Verify(sig []byte) bool {
+func (x *WSOnline) Verify(sig []byte) bool {
 	s := &bls.Sign{}
 	if err := s.Deserialize(sig); err != nil {
 		fmt.Println(err)
@@ -35,41 +35,44 @@ func (x *WSOnlineData) Verify(sig []byte) bool {
 	return wallet.VerifyByte(s, p, data)
 }
 
-func (x *WSOnline) ReadOnlineFromCli(conn *websocket.Conn) (*WSOnlineData, error) {
-	mt, message, err := conn.ReadMessage()
+func (x *WsMsg) ReadOnlineFromCli(conn *websocket.Conn) error {
+	_, message, err := conn.ReadMessage()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if mt != int(SrvMsgType_Online) {
-		return nil, fmt.Errorf("first msg must be online noti")
-	}
+
 	if err := proto.Unmarshal(message, x); err != nil {
-		return nil, err
+		return err
 	}
-
-	online := x.Payload
-
-	if success := online.Verify(x.Sig); !success {
-		return nil, fmt.Errorf("verfiy signature failed")
+	if x.Typ != WsMsgType_Online {
+		return fmt.Errorf("invalid online msg type")
+	}
+	online, ok := x.Payload.(*WsMsg_Online)
+	if !ok {
+		return fmt.Errorf("cast to online message failed")
+	}
+	if success := online.Online.Verify(x.Sig); !success {
+		return fmt.Errorf("verfiy signature failed")
 	}
 
 	ack := &WSOnlineAck{
 		Success: true,
-		Seq:     online.UnixTime,
+		Seq:     online.Online.UnixTime,
+	}
+	ackWrap := &WsMsg{
+		Typ:     WsMsgType_OnlineACK,
+		Payload: &WsMsg_OlAck{ack},
+	}
+	ackData, err := proto.Marshal(ackWrap)
+	if err != nil {
+		return err
 	}
 
-	ackData, err := proto.Marshal(ack)
-	if err != nil {
-		return nil, err
-	}
-	if err := conn.WriteMessage(int(SrvMsgType_OnlineACK), ackData); err != nil {
-		return nil, err
-	}
-	return online, nil
+	return conn.WriteMessage(websocket.TextMessage, ackData)
 }
 
-func (x *WSOnline) Online(conn *websocket.Conn, key *wallet.Key) error {
-	online := &WSOnlineData{
+func (x *WsMsg) Online(conn *websocket.Conn, key *wallet.Key) error {
+	online := &WSOnline{
 		UID:      key.Address.String(),
 		UnixTime: time.Now().Unix(),
 	}
@@ -79,14 +82,15 @@ func (x *WSOnline) Online(conn *websocket.Conn, key *wallet.Key) error {
 	}
 	x.Hash = nil
 	x.Sig = key.SignData(data)
-	x.Payload = online
+	x.Payload = &WsMsg_Online{online}
+	x.Typ = WsMsgType_Online
 
 	xData, err := proto.Marshal(x)
 	if err != nil {
 		return err
 	}
 
-	err = conn.WriteMessage(int(SrvMsgType_Online), xData)
+	err = conn.WriteMessage(websocket.TextMessage, xData)
 	if err != nil {
 		return err
 	}

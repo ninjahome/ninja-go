@@ -19,13 +19,14 @@ type WSClient struct {
 	key             *wallet.Key
 	reader, writer  *thread.Thread
 	callback        CliCallBack
-	msgChanToServer chan *pbs.WSCryptoMsg
+	msgChanToServer chan *pbs.WsMsg
 	peerKeys        map[string][]byte
 }
 
 type CliCallBack interface {
 	InputMsg(*pbs.WSCryptoMsg) error
 	DidClosed()
+	UnreadMsg([]*pbs.WSCryptoMsg) error
 }
 
 func NewWSClient(addr string, key *wallet.Key, cb CliCallBack) (*WSClient, error) {
@@ -37,7 +38,7 @@ func NewWSClient(addr string, key *wallet.Key, cb CliCallBack) (*WSClient, error
 		endpoint:        addr,
 		key:             key,
 		isOnline:        false,
-		msgChanToServer: make(chan *pbs.WSCryptoMsg, 1024),
+		msgChanToServer: make(chan *pbs.WsMsg, 1024),
 		peerKeys:        make(map[string][]byte),
 		callback:        cb,
 	}
@@ -54,14 +55,32 @@ func (cc *WSClient) Online() error {
 		return err
 	}
 
-	onlineMsg := &pbs.WSOnline{}
+	onlineMsg := &pbs.WsMsg{}
 	if err := onlineMsg.Online(wsConn, cc.key); err != nil {
 		return err
 	}
 	cc.wsConn = wsConn
+	wsConn.SetPingHandler(func(appData string) error { return wsConn.WriteMessage(websocket.PongMessage, []byte{}) })
 	cc.reader.Run()
 	cc.writer.Run()
 	return nil
+}
+
+func (cc *WSClient) PullMsg(startSeq int64) error {
+	request := &pbs.WSPullUnread{
+		Receiver:     cc.key.Address.String(),
+		FromUnixTime: startSeq,
+	}
+
+	msgWrap := &pbs.WsMsg{
+		Typ:     pbs.WsMsgType_PullUnread,
+		Payload: &pbs.WsMsg_Unread{Unread: request},
+	}
+	data, err := proto.Marshal(msgWrap)
+	if err != nil {
+		return err
+	}
+	return cc.wsConn.WriteMessage(websocket.TextMessage, data)
 }
 
 func (cc *WSClient) getAesKey(to string) ([]byte, error) {
@@ -88,42 +107,47 @@ func (cc *WSClient) Write(msg *pbs.WSCryptoMsg) error {
 	}
 	dst, _ := openssl.AesECBEncrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
 	msg.PayLoad = dst
-	cc.msgChanToServer <- msg
+	msgWrap := &pbs.WsMsg{
+		Typ:     pbs.WsMsgType_CryptoMsg,
+		Payload: &pbs.WsMsg_Message{Message: msg},
+	}
+	cc.msgChanToServer <- msgWrap
 	return nil
 }
 
 func (cc *WSClient) procMsgFromServer() error {
-	mt, message, err := cc.wsConn.ReadMessage()
+	_, message, err := cc.wsConn.ReadMessage()
 	if err != nil {
 		fmt.Println("read:", err)
 		return err
 	}
+	wsMsg := &pbs.WsMsg{}
+	if err := proto.Unmarshal(message, wsMsg); err != nil {
+		return err
+	}
 
-	switch mt {
-	case websocket.PingMessage:
-		return cc.wsConn.WriteMessage(websocket.PongMessage, []byte{})
-
-	case int(pbs.SrvMsgType_OnlineACK):
-		ack := &pbs.WSOnlineAck{}
-		if err := proto.Unmarshal(message, ack); err != nil {
+	switch wsMsg.Typ {
+	case pbs.WsMsgType_OnlineACK:
+		ack, ok := wsMsg.Payload.(*pbs.WsMsg_OlAck)
+		if !ok {
 			return fmt.Errorf("unknown websocket message:%s", err)
 		}
-		if !ack.Success {
+		if !ack.OlAck.Success {
 			return fmt.Errorf("online failed")
 		}
 		cc.isOnline = true
 
-	case int(pbs.SrvMsgType_CryptoMsg):
+	case pbs.WsMsgType_CryptoMsg:
 		if cc.callback == nil {
 			fmt.Println("no input message callback")
 			return nil
 		}
 
-		msg := &pbs.WSCryptoMsg{}
-		if err := proto.Unmarshal(message, msg); err != nil {
+		msgWrap, ok := wsMsg.Payload.(*pbs.WsMsg_Message)
+		if !ok {
 			return fmt.Errorf("unknown websocket message:%s", err)
 		}
-
+		msg := msgWrap.Message
 		key, err := cc.getAesKey(msg.From)
 		if err != nil {
 			return err
@@ -156,7 +180,6 @@ func (cc *WSClient) reading(stop chan struct{}) {
 
 func (cc *WSClient) writing(stop chan struct{}) {
 	defer cc.ShutDown()
-
 	for {
 		select {
 		case outMsg := <-cc.msgChanToServer:
@@ -165,7 +188,7 @@ func (cc *WSClient) writing(stop chan struct{}) {
 				fmt.Println("invalid crypto message", err)
 				continue
 			}
-			if err := cc.wsConn.WriteMessage(int(pbs.SrvMsgType_CryptoMsg), data); err != nil {
+			if err := cc.wsConn.WriteMessage(websocket.TextMessage, data); err != nil {
 				fmt.Println("write crypto message", err)
 				return
 			}
