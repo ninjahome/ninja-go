@@ -5,8 +5,10 @@ option go_package = "./service";
 enum WsMsgType{
   Online = 0;
   OnlineACK = 1;
-  CryptoMsg = 2;
+  ImmediateMsg = 2;
   PullUnread = 3;
+  Offline = 4;
+    UnreadAck = 5;
 }
 
 message WSOnline{
@@ -30,6 +32,11 @@ message WSPullUnread{
   int64 FromUnixTime = 2;
 }
 
+message WSUnreadAck{
+  string nodeID = 1;
+  repeated  WSCryptoMsg payload = 2;
+}
+
 message WsMsg{
   bytes Hash = 1;
   bytes Sig = 2;
@@ -39,5 +46,6 @@ message WsMsg{
     WSOnlineAck olAck = 5;
     WSCryptoMsg message = 6;
     WSPullUnread unread = 7;
+    WSUnreadAck unreadAck = 8;
   };
 }

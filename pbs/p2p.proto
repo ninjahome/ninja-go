@@ -1,0 +1,7 @@
+syntax = "proto3";
+package pbs;
+option go_package = "./p2p";
+
+enum P2pMsgType{
+  Debug = 0;
+}

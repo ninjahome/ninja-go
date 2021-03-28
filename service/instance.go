@@ -15,15 +15,16 @@ import (
 )
 
 type WebSocketService struct {
+	id       string
 	apis     *http.ServeMux
 	upGrader *websocket.Upgrader
 	server   *http.Server
 
 	userTable           *UserTable
 	onlineSet           *OnlineMap
-	msgFromClientQueue  chan *pbs.WSCryptoMsg
+	msgFromClientQueue  chan *pbs.WsMsg
 	threads             map[string]*thread.Thread
-	msgToOtherPeerQueue chan *pbs.P2PMsg
+	msgToOtherPeerQueue chan *pbs.WsMsg
 	dataBase            *leveldb.DB
 }
 type ChatHandler func(http.ResponseWriter, *http.Request)
@@ -68,7 +69,7 @@ func newWebSocket() *WebSocketService {
 		server:             server,
 		userTable:          newUserTable(),
 		onlineSet:          newOnlineSet(),
-		msgFromClientQueue: make(chan *pbs.WSCryptoMsg, _srvConfig.WsMsgQueueSize),
+		msgFromClientQueue: make(chan *pbs.WsMsg, _srvConfig.WsMsgQueueSize),
 		threads:            make(map[string]*thread.Thread),
 		dataBase:           db,
 	}
@@ -105,10 +106,10 @@ func (ws *WebSocketService) online(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (ws *WebSocketService) StartService(omq chan *pbs.P2PMsg) {
+func (ws *WebSocketService) StartService(nodeID string, omq chan *pbs.WsMsg) {
 
 	ws.msgToOtherPeerQueue = omq
-
+	ws.id = nodeID
 	t := thread.NewThreadWithName(DispatchThreadName, func(stop chan struct{}) {
 		ws.msgDispatch(stop)
 		ws.ShutDown()
@@ -134,26 +135,40 @@ func (ws *WebSocketService) ShutDown() {
 	_ = ws.server.Close()
 }
 
-func (ws *WebSocketService) OnlineFromOtherPeer(online *pbs.WSOnline) error {
-	if !online.Payload.Verify(online.Sig) {
+func (ws *WebSocketService) OnlineFromOtherPeer(msg *pbs.WsMsg) error {
+	body, ok := msg.Payload.(*pbs.WsMsg_Online)
+	if !ok {
+		return fmt.Errorf("this is not a valid online p2p message")
+	}
+
+	if !body.Online.Verify(msg.Sig) {
 		return fmt.Errorf("this is an attack")
 	}
-	ws.onlineSet.add(online.Payload.UID)
+	ws.onlineSet.add(body.Online.UID)
 	return nil
 }
 
-func (ws *WebSocketService) OfflineFromOtherPeer(online *pbs.WSOnline) error {
+func (ws *WebSocketService) OfflineFromOtherPeer(msg *pbs.WsMsg) error {
+	body, ok := msg.Payload.(*pbs.WsMsg_Online)
+	if !ok {
+		return fmt.Errorf("this is not a valid offline p2p message")
+	}
 	//TODO:: verify peer's authorization
-	ws.onlineSet.del(online.Payload.UID)
-	ws.userTable.del(online.Payload.UID)
+	ws.onlineSet.del(body.Online.UID)
+	ws.userTable.del(body.Online.UID)
 	return nil
 }
 
-func (ws *WebSocketService) PeerImmediateCryptoMsg(msg *pbs.WSCryptoMsg) error {
-	u, ok := ws.userTable.get(msg.To)
+func (ws *WebSocketService) PeerImmediateCryptoMsg(msg *pbs.WsMsg) error {
+	body, ok := msg.Payload.(*pbs.WsMsg_Message)
+	if !ok {
+		return fmt.Errorf("this is not a valid p2p crypto message")
+	}
+
+	u, ok := ws.userTable.get(body.Message.To)
 	if !ok {
 		return nil
 	}
-	utils.LogInst().Debug().Msgf("found to peer[%s] in my table", msg.To)
+	utils.LogInst().Debug().Msgf("found to peer[%s] in my table", body.Message.To)
 	return u.writeToCli(msg)
 }

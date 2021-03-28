@@ -14,8 +14,8 @@ type wsUser struct {
 	UID            string
 	onLineTime     time.Time
 	cliWsConn      *websocket.Conn
-	msgFromCliChan chan *pbs.WSCryptoMsg
-	msgToCliChan   chan *pbs.WSCryptoMsg
+	msgFromCliChan chan *pbs.WsMsg
+	msgToCliChan   chan *pbs.WsMsg
 	kaTimer        *time.Ticker
 }
 
@@ -38,7 +38,7 @@ func (u *wsUser) reader(stop chan struct{}) {
 			utils.LogInst().Warn().Msg("web socket reader thread exit")
 			return
 		default:
-			mt, message, err := u.cliWsConn.ReadMessage()
+			_, message, err := u.cliWsConn.ReadMessage()
 			if err != nil {
 				if websocket.IsUnexpectedCloseError(err,
 					websocket.CloseGoingAway,
@@ -48,13 +48,7 @@ func (u *wsUser) reader(stop chan struct{}) {
 				break
 			}
 
-			if mt != int(pbs.SrvMsgType_CryptoMsg) {
-				utils.LogInst().Warn().Int("web socket read invalid msg type", mt).Send()
-				continue
-			}
-
-			msg := &pbs.WSCryptoMsg{}
-
+			msg := &pbs.WsMsg{}
 			if err := proto.Unmarshal(message, msg); err != nil {
 				utils.LogInst().Warn().Msgf("web socket read invalid:%x", message)
 				continue
@@ -106,14 +100,14 @@ func (u *wsUser) writer(stop chan struct{}) {
 	}
 }
 
-func (u *wsUser) writeToCli(msg *pbs.WSCryptoMsg) error {
+func (u *wsUser) writeToCli(msg *pbs.WsMsg) error {
 	u.msgToCliChan <- msg
 	return nil
 }
 
 func (ws *WebSocketService) newOnlineUser(conn *websocket.Conn) error {
 
-	msg := &pbs.WSOnline{}
+	msg := &pbs.WsMsg{}
 	online, err := msg.ReadOnlineFromCli(conn)
 	if err != nil {
 		conn.Close()
@@ -125,14 +119,10 @@ func (ws *WebSocketService) newOnlineUser(conn *websocket.Conn) error {
 		onLineTime:     time.Now(),
 		msgFromCliChan: ws.msgFromClientQueue,
 		kaTimer:        time.NewTicker(_srvConfig.PingPeriod),
-		msgToCliChan:   make(chan *pbs.WSCryptoMsg, _srvConfig.WsMsgSizePerUser),
+		msgToCliChan:   make(chan *pbs.WsMsg, _srvConfig.WsMsgSizePerUser),
 	}
 
-	ws.msgToOtherPeerQueue <- &pbs.P2PMsg{
-		MsgTyp:  pbs.P2PMsgType_P2pOnline,
-		Payload: &pbs.P2PMsg_Online{Online: msg},
-	}
-
+	ws.msgToOtherPeerQueue <- msg
 	ws.onlineSet.add(wu.UID)
 	ws.userTable.add(wu)
 
@@ -155,7 +145,7 @@ func (ws *WebSocketService) newOnlineUser(conn *websocket.Conn) error {
 	return nil
 }
 
-func (ws *WebSocketService) OfflineUser(threadId string, user *wsUser, msg *pbs.WSOnline) {
+func (ws *WebSocketService) OfflineUser(threadId string, user *wsUser, msg *pbs.WsMsg) {
 	delete(ws.threads, threadId)
 	ws.onlineSet.del(user.UID)
 	ws.userTable.del(user.UID)
@@ -166,8 +156,6 @@ func (ws *WebSocketService) OfflineUser(threadId string, user *wsUser, msg *pbs.
 	//	Offline:msg,
 	//}
 	//TODO:: add signature for offline message
-	ws.msgToOtherPeerQueue <- &pbs.P2PMsg{
-		MsgTyp:  pbs.P2PMsgType_P2pOffline,
-		Payload: &pbs.P2PMsg_Offline{Offline: msg},
-	}
+	msg.Typ = pbs.WsMsgType_Offline
+	ws.msgToOtherPeerQueue <- msg
 }

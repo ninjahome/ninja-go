@@ -18,8 +18,8 @@ const (
 	DefaultPingPeriod       = (DefaultPongWait * 9) / 10
 	DefaultWriteWait        = 10 * time.Second
 	DefaultWsBuffer         = 1 << 21
-	DefaultWsMsgQueue       = 1 << 16
-	DefaultWsMsgSizePerUser = 1 << 6
+	DefaultWsMsgQueue       = 1 << 26
+	DefaultWsMsgSizePerUser = 1 << 16
 	DefaultHandShakeTimeOut = time.Second * 3
 	DefaultDataBaseDir      = "msg"
 )

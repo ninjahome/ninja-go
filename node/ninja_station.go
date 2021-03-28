@@ -2,7 +2,6 @@ package node
 
 import (
 	"context"
-	"fmt"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
 	pbs "github.com/ninjahome/ninja-go/pbs/service"
@@ -13,13 +12,14 @@ import (
 )
 
 type NinjaStation struct {
+	nodeID                 string
 	p2pHost                host.Host
 	pubSub                 *PubSub
 	ctxCancel              context.CancelFunc
 	ctx                    context.Context
 	threads                map[string]*thread.Thread
-	readInFromPeerMsgQueue chan *pbs.P2PMsg
-	outToPeerMsgQueue      chan *pbs.P2PMsg
+	readInFromPeerMsgQueue chan *pbs.WsMsg
+	outToPeerMsgQueue      chan *pbs.WsMsg
 }
 
 func newStation() *NinjaStation {
@@ -40,19 +40,20 @@ func newStation() *NinjaStation {
 		panic(err)
 	}
 	n := &NinjaStation{
+		nodeID:                 h.ID().String(),
 		p2pHost:                h,
 		pubSub:                 ps,
 		ctx:                    ctx,
 		ctxCancel:              cancel,
-		readInFromPeerMsgQueue: make(chan *pbs.P2PMsg, _nodeConfig.MaxMsgQueueSize),
-		outToPeerMsgQueue:      make(chan *pbs.P2PMsg, _nodeConfig.MaxMsgQueueSize),
+		readInFromPeerMsgQueue: make(chan *pbs.WsMsg, _nodeConfig.MaxMsgQueueSize),
+		outToPeerMsgQueue:      make(chan *pbs.WsMsg, _nodeConfig.MaxMsgQueueSize),
 	}
 	utils.LogInst().Info().Msgf("p2p with id[%s] created addrs:%s", h.ID(), h.Addrs())
 	return n
 }
 
 func (nt *NinjaStation) Start() error {
-	service.Inst().StartService(nt.outToPeerMsgQueue)
+	service.Inst().StartService(nt.nodeID, nt.outToPeerMsgQueue)
 
 	t := thread.NewThreadWithName(THNOuterMsgReader, func(stop chan struct{}) {
 		nt.waitMsgWork(stop)
@@ -103,52 +104,45 @@ func (nt *NinjaStation) waitMsgWork(stop chan struct{}) {
 	}
 }
 
-func (nt *NinjaStation) procOuterChMsg(msg *pbs.P2PMsg) error {
+func (nt *NinjaStation) procOuterChMsg(msg *pbs.WsMsg) error {
 	data, err := proto.Marshal(msg)
 	if err != nil {
 		return err
 	}
 
-	switch msg.MsgTyp {
-	case pbs.P2PMsgType_P2pCryptoMsg:
-		return nt.pubSub.SendMsg(P2pChanCryptoMsg, data)
+	switch msg.Typ {
+	case pbs.WsMsgType_ImmediateMsg:
+		return nt.pubSub.SendMsg(P2pChanImmediateMsg, data)
 
-	case pbs.P2PMsgType_P2pOnline:
+	case pbs.WsMsgType_Online:
 		return nt.pubSub.SendMsg(P2pChanUserOnline, data)
 
-	case pbs.P2PMsgType_P2pOffline:
+	case pbs.WsMsgType_Offline:
 		return nt.pubSub.SendMsg(P2pChanUserOffline, data)
+
+	case pbs.WsMsgType_PullUnread:
+		return nt.pubSub.SendMsg(P2pChanUnreadMsg, data)
+
 	default:
-		utils.LogInst().Warn().Msgf("unknown to output peer to peer msg type:[%d]", msg.MsgTyp)
+		utils.LogInst().Warn().Msgf("unknown to output peer to peer msg type:[%d]", msg.Typ)
 	}
 	return nil
 }
 
-func (nt *NinjaStation) procInputChMsg(msg *pbs.P2PMsg) error {
+func (nt *NinjaStation) procInputChMsg(msg *pbs.WsMsg) error {
 
-	switch msg.MsgTyp {
+	switch msg.Typ {
 
-	case pbs.P2PMsgType_P2pOnline:
-		body, ok := msg.Payload.(*pbs.P2PMsg_Online)
-		if !ok {
-			return fmt.Errorf("this is not a valid online p2p message")
-		}
-		return service.Inst().OnlineFromOtherPeer(body.Online)
-	case pbs.P2PMsgType_P2pOffline:
-		body, ok := msg.Payload.(*pbs.P2PMsg_Online)
-		if !ok {
-			return fmt.Errorf("this is not a valid offline p2p message")
-		}
-		return service.Inst().OfflineFromOtherPeer(body.Online)
-	case pbs.P2PMsgType_P2pCryptoMsg:
-		body, ok := msg.Payload.(*pbs.P2PMsg_Msg)
-		if !ok {
-			return fmt.Errorf("this is not a valid p2p crypto message")
-		}
-		return service.Inst().PeerImmediateCryptoMsg(body.Msg)
+	case pbs.WsMsgType_Online:
+		return service.Inst().OnlineFromOtherPeer(msg)
+	case pbs.WsMsgType_Offline:
+
+		return service.Inst().OfflineFromOtherPeer(msg)
+	case pbs.WsMsgType_ImmediateMsg:
+		return service.Inst().PeerImmediateCryptoMsg(msg)
 
 	default:
-		utils.LogInst().Warn().Msgf("unknown read in peer to peer msg type:[%d]", msg.MsgTyp)
+		utils.LogInst().Warn().Msgf("unknown read in peer to peer msg type:[%d]", msg.Typ)
 	}
 
 	return nil

@@ -79,7 +79,7 @@ func initTopicValidators(ps *pubsub.PubSub) error {
 		return err
 	}
 
-	err = ps.RegisterTopicValidator(P2pChanCryptoMsg.String(),
+	err = ps.RegisterTopicValidator(P2pChanImmediateMsg.String(),
 		immediateCryptoMsgValidator,
 		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxNodeTopicThread))
 	if err != nil {
@@ -105,7 +105,7 @@ func (s *PubSub) removeTopic(id MessageChannel) {
 	utils.LogInst().Warn().Msgf("remove topic [%s] from system", id)
 }
 
-func (s *PubSub) readingMessage(stop chan struct{}, sub *pubsub.Subscription, id MessageChannel, queue chan *pbs.P2PMsg) {
+func (s *PubSub) readingMessage(stop chan struct{}, sub *pubsub.Subscription, id MessageChannel, queue chan *pbs.WsMsg) {
 	utils.LogInst().Info().Msgf("[pubSub] start reading message for topic[%s]", id)
 	defer s.removeTopic(id)
 
@@ -124,7 +124,7 @@ func (s *PubSub) readingMessage(stop chan struct{}, sub *pubsub.Subscription, id
 			//if msg.ReceivedFrom == cr.self {
 			//	continue
 			//}
-			p2pMsg := &pbs.P2PMsg{}
+			p2pMsg := &pbs.WsMsg{}
 			if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
 				utils.LogInst().Warn().Msg("failed parse p2p message")
 				continue

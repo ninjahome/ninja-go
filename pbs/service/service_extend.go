@@ -9,11 +9,6 @@ import (
 	"time"
 )
 
-const (
-	MSGPatternHead = "TempCachedMsg_%s_%d"
-	MSGPatternEnd  = "TempCachedMsg_%s_ffffffffffffffff"
-)
-
 func (x *WSOnline) Verify(sig []byte) bool {
 	s := &bls.Sign{}
 	if err := s.Deserialize(sig); err != nil {
@@ -35,24 +30,28 @@ func (x *WSOnline) Verify(sig []byte) bool {
 	return wallet.VerifyByte(s, p, data)
 }
 
-func (x *WsMsg) ReadOnlineFromCli(conn *websocket.Conn) error {
+func (x *WsMsg) ReadOnlineFromCli(conn *websocket.Conn) (olMsg *WSOnline, err error) {
 	_, message, err := conn.ReadMessage()
 	if err != nil {
-		return err
+		return
 	}
 
 	if err := proto.Unmarshal(message, x); err != nil {
-		return err
+		return
 	}
 	if x.Typ != WsMsgType_Online {
-		return fmt.Errorf("invalid online msg type")
+		err = fmt.Errorf("invalid online msg type")
+		return
 	}
 	online, ok := x.Payload.(*WsMsg_Online)
 	if !ok {
-		return fmt.Errorf("cast to online message failed")
+		err = fmt.Errorf("cast to online message failed")
+		return
 	}
-	if success := online.Online.Verify(x.Sig); !success {
-		return fmt.Errorf("verfiy signature failed")
+	olMsg = online.Online
+	if success := olMsg.Verify(x.Sig); !success {
+		err = fmt.Errorf("verfiy signature failed")
+		return
 	}
 
 	ack := &WSOnlineAck{
@@ -65,10 +64,9 @@ func (x *WsMsg) ReadOnlineFromCli(conn *websocket.Conn) error {
 	}
 	ackData, err := proto.Marshal(ackWrap)
 	if err != nil {
-		return err
+		return
 	}
-
-	return conn.WriteMessage(websocket.TextMessage, ackData)
+	return olMsg, conn.WriteMessage(websocket.TextMessage, ackData)
 }
 
 func (x *WsMsg) Online(conn *websocket.Conn, key *wallet.Key) error {
@@ -101,9 +99,4 @@ func (x *WsMsg) Online(conn *websocket.Conn, key *wallet.Key) error {
 func (x *WSCryptoMsg) MustData() []byte {
 	data, _ := proto.Marshal(x)
 	return data
-}
-
-func (x *WSCryptoMsg) DBKey() []byte {
-	key := fmt.Sprintf(MSGPatternHead, x.To, x.UnixTime)
-	return []byte(key)
 }

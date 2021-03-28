@@ -108,7 +108,7 @@ func (cc *WSClient) Write(msg *pbs.WSCryptoMsg) error {
 	dst, _ := openssl.AesECBEncrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
 	msg.PayLoad = dst
 	msgWrap := &pbs.WsMsg{
-		Typ:     pbs.WsMsgType_CryptoMsg,
+		Typ:     pbs.WsMsgType_ImmediateMsg,
 		Payload: &pbs.WsMsg_Message{Message: msg},
 	}
 	cc.msgChanToServer <- msgWrap
@@ -137,7 +137,7 @@ func (cc *WSClient) procMsgFromServer() error {
 		}
 		cc.isOnline = true
 
-	case pbs.WsMsgType_CryptoMsg:
+	case pbs.WsMsgType_ImmediateMsg:
 		if cc.callback == nil {
 			fmt.Println("no input message callback")
 			return nil
