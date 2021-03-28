@@ -158,7 +158,7 @@ func (ws *WebSocketService) newOnlineUser(conn *websocket.Conn) error {
 func (ws *WebSocketService) OfflineUser(threadId string, user *wsUser, msg *pbs.WSOnline) {
 	delete(ws.threads, threadId)
 	ws.onlineSet.del(user.UID)
-	ws.userTable.del(user)
+	ws.userTable.del(user.UID)
 
 	//key := wallet.Inst().KeyInUsed()
 	//key.SignData(msg.Payload)

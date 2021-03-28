@@ -132,6 +132,7 @@ func (ws *WebSocketService) OnlineFromOtherPeer(online *pbs.WSOnline) error {
 func (ws *WebSocketService) OfflineFromOtherPeer(online *pbs.WSOnline) error {
 	//TODO:: verify peer's authorization
 	ws.onlineSet.del(online.Payload.UID)
+	ws.userTable.del(online.Payload.UID)
 	return nil
 }
 

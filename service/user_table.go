@@ -20,10 +20,10 @@ func (ut *UserTable) get(to string) (*wsUser, bool) {
 	return us, ok
 }
 
-func (ut *UserTable) del(user *wsUser) {
+func (ut *UserTable) del(uid string) {
 	ut.Lock()
 	defer ut.Unlock()
-	delete(ut.cache, user.UID)
+	delete(ut.cache, uid)
 }
 
 func newUserTable() *UserTable {
