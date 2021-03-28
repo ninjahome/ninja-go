@@ -10,10 +10,7 @@ enum SrvMsgType{
   OnlineACK = 83;
 }
 
-message WSOnlineAck{
-  bool Success = 1;
-  int64 Seq = 2;
-}
+
 
 message WSAck{
   int32 Code = 1;
@@ -21,7 +18,7 @@ message WSAck{
   string MSG = 2;
 }
 
-message WSOnline{
+message WSOnlineData{
   string UID = 1;
   int64 UnixTime = 3;
 }
@@ -29,19 +26,21 @@ message WSOnline{
 message WSCryptoMsg{
   string From = 1;
   string To = 3;
+bytes Salt = 4;
   bytes PayLoad = 5;
   int64 UnixTime = 6;
 }
 
-message CliOnlineMsg{
+message WSOnline{
   bytes Hash = 1;
   bytes Sig = 2;
-  oneof Payload {
-      WSOnline online= 3;
-      WSOnlineAck olAck = 4;
-  }
+  WSOnlineData payload = 3;
 }
 
+message WSOnlineAck{
+  bool Success = 1;
+  int64 Seq = 2;
+}
 
 enum P2pMsgType{
   P2pUnknown = 0;

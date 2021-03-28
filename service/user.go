@@ -106,7 +106,7 @@ func (u *wsUser) write(msg *pbs.WSCryptoMsg) error {
 
 func (ws *WebSocketService) newOnlineUser(conn *websocket.Conn) error {
 
-	msg := &pbs.ClientChatMsg{}
+	msg := &pbs.WSOnline{}
 	online, err := msg.ReadOnlineFromCli(conn)
 	if err != nil {
 		conn.Close()
@@ -121,23 +121,19 @@ func (ws *WebSocketService) newOnlineUser(conn *websocket.Conn) error {
 
 	ws.msgToOtherPeerQueue <- &pbs.P2PMsg{
 		MsgTyp:  pbs.P2PMsgType_P2pOnline,
-		Payload: &pbs.P2PMsg_Online{Online: online},
+		Payload: &pbs.P2PMsg_Online{Online: msg},
 	}
 
 	ws.onlineSet.add(wu.UID)
 	ws.userTable.add(wu)
 
 	tid := fmt.Sprintf("chat read:%s", wu.UID)
-	t := thread.NewThreadWithName(tid, func(stop chan struct{}) {
-		wu.reader(stop)
-	})
+	t := thread.NewThreadWithName(tid, wu.reader)
 	ws.threads[tid] = t
 	t.Run()
 
 	tid = fmt.Sprintf("chat writer:%s", wu.UID)
-	t = thread.NewThreadWithName(tid, func(stop chan struct{}) {
-		wu.writer(stop)
-	})
+	t = thread.NewThreadWithName(tid, wu.writer)
 	ws.threads[tid] = t
 	t.Run()
 

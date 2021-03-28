@@ -122,7 +122,8 @@ func (ws *WebSocketService) ShutDown() {
 }
 
 func (ws *WebSocketService) OnlineFromOtherPeer(online *pbs.WSOnline) error {
-	ws.onlineSet.add(online.UID)
+	//TODO::verify msg signature
+	ws.onlineSet.add(online.Payload.UID)
 	return nil
 }
 

@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (x *WSOnline) Verify(sig []byte) bool {
+func (x *WSOnlineData) Verify(sig []byte) bool {
 	s := &bls.Sign{}
 	if err := s.Deserialize(sig); err != nil {
 		fmt.Println(err)
@@ -30,7 +30,7 @@ func (x *WSOnline) Verify(sig []byte) bool {
 	return wallet.VerifyByte(s, p, data)
 }
 
-func (x *CliOnlineMsg) ReadOnlineFromCli(conn *websocket.Conn) (*WSOnline, error) {
+func (x *WSOnline) ReadOnlineFromCli(conn *websocket.Conn) (*WSOnlineData, error) {
 	mt, message, err := conn.ReadMessage()
 	if err != nil {
 		return nil, err
@@ -42,20 +42,29 @@ func (x *CliOnlineMsg) ReadOnlineFromCli(conn *websocket.Conn) (*WSOnline, error
 		return nil, err
 	}
 
-	online, ok := x.Payload.(*CliOnlineMsg_Online)
-	if !ok {
-		return nil, fmt.Errorf("convert to online msg failed")
-	}
+	online := x.Payload
 
-	if success := online.Online.Verify(x.Sig); !success {
+	if success := online.Verify(x.Sig); !success {
 		return nil, fmt.Errorf("verfiy signature failed")
 	}
 
-	return online.Online, nil
+	ack := &WSOnlineAck{
+		Success: true,
+		Seq:     online.UnixTime,
+	}
+
+	ackData, err := proto.Marshal(ack)
+	if err != nil {
+		return nil, err
+	}
+	if err := conn.WriteMessage(int(SrvMsgType_OnlineACK), ackData); err != nil {
+		return nil, err
+	}
+	return online, nil
 }
 
-func (x *CliOnlineMsg) Online(conn *websocket.Conn, key *wallet.Key) error {
-	online := &WSOnline{
+func (x *WSOnline) Online(conn *websocket.Conn, key *wallet.Key) error {
+	online := &WSOnlineData{
 		UID:      key.Address.String(),
 		UnixTime: time.Now().Unix(),
 	}
@@ -65,9 +74,7 @@ func (x *CliOnlineMsg) Online(conn *websocket.Conn, key *wallet.Key) error {
 	}
 	x.Hash = nil
 	x.Sig = key.SignData(data)
-	x.Payload = &CliOnlineMsg_Online{
-		Online: online,
-	}
+	x.Payload = online
 
 	xData, err := proto.Marshal(x)
 	if err != nil {

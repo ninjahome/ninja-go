@@ -1,25 +1,18 @@
 package client
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"fmt"
+	"github.com/forgoer/openssl"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	pbs "github.com/ninjahome/ninja-go/pbs/service"
 	"github.com/ninjahome/ninja-go/service"
-	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
 	"github.com/ninjahome/ninja-go/wallet"
 	"net/url"
 )
 
 type InputFunc func(*pbs.WSCryptoMsg) error
-
-type cryptoWorker struct {
-	decoder cipher.BlockMode
-	encoder cipher.BlockMode
-}
 
 type WSClient struct {
 	isOnline             bool
@@ -29,8 +22,7 @@ type WSClient struct {
 	reader, writer       *thread.Thread
 	callbackForServerMsg InputFunc
 	msgChanToServer      chan *pbs.WSCryptoMsg
-	peerKeys             map[string]*cryptoWorker
-	salt                 utils.Salt
+	peerKeys             map[string][]byte
 }
 
 func NewWSClient(addr string, key *wallet.Key) (*WSClient, error) {
@@ -38,17 +30,12 @@ func NewWSClient(addr string, key *wallet.Key) (*WSClient, error) {
 		return nil, fmt.Errorf("ivnalid key")
 	}
 
-	s, err := utils.NewSalt()
-	if err != nil {
-		return nil, err
-	}
 	cc := &WSClient{
 		endpoint:        addr,
 		key:             key,
 		isOnline:        false,
 		msgChanToServer: make(chan *pbs.WSCryptoMsg, 1024),
-		peerKeys:        make(map[string]*cryptoWorker),
-		salt:            s,
+		peerKeys:        make(map[string][]byte),
 	}
 
 	cc.reader = thread.NewThread(cc.reading)
@@ -67,14 +54,14 @@ func (cc *WSClient) Online() error {
 		return err
 	}
 
-	onlineMsg := &pbs.CliOnlineMsg{}
+	onlineMsg := &pbs.WSOnline{}
 	if err := onlineMsg.Online(wsConn, cc.key); err != nil {
 		return err
 	}
 	cc.wsConn = wsConn
 	return nil
 }
-func (cc *WSClient) getAesKey(to string) (*cryptoWorker, error) {
+func (cc *WSClient) getAesKey(to string) ([]byte, error) {
 	worker, ok := cc.peerKeys[to]
 	if ok {
 		return worker, nil
@@ -84,32 +71,19 @@ func (cc *WSClient) getAesKey(to string) (*cryptoWorker, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	encoder := cipher.NewCBCEncrypter(block, cc.salt[:])
-	decoder := cipher.NewCBCDecrypter(block, cc.salt[:])
-	worker = &cryptoWorker{
-		decoder: decoder,
-		encoder: encoder,
-	}
-
-	cc.peerKeys[to] = worker
-	return worker, nil
+	return key, nil
 }
 
 func (cc *WSClient) Write(msg *pbs.WSCryptoMsg) error {
 	if !cc.isOnline {
 		return fmt.Errorf("please online yourself first")
 	}
-	worker, err := cc.getAesKey(msg.To)
+	key, err := cc.getAesKey(msg.To)
 	if err != nil {
 		return err
 	}
-
-	worker.encoder.CryptBlocks(msg.PayLoad, msg.PayLoad)
+	dst, _ := openssl.AesECBEncrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
+	msg.PayLoad = dst
 
 	cc.msgChanToServer <- msg
 	return nil
@@ -127,15 +101,11 @@ func (cc *WSClient) procMsgFromServer() error {
 		return cc.wsConn.WriteMessage(websocket.PongMessage, []byte{})
 
 	case int(pbs.SrvMsgType_OnlineACK):
-		cliMsg := &pbs.CliOnlineMsg{}
-		if err := proto.Unmarshal(message, cliMsg); err != nil {
+		ack := &pbs.WSOnlineAck{}
+		if err := proto.Unmarshal(message, ack); err != nil {
 			return fmt.Errorf("unknown websocket message:%s", err)
 		}
-		ack, ok := cliMsg.Payload.(*pbs.CliOnlineMsg_OlAck)
-		if !ok {
-			return fmt.Errorf("convert to online ack failed")
-		}
-		if !ack.OlAck.Success {
+		if !ack.Success {
 			return fmt.Errorf("online failed")
 		}
 		cc.isOnline = true
@@ -151,11 +121,12 @@ func (cc *WSClient) procMsgFromServer() error {
 			return fmt.Errorf("unknown websocket message:%s", err)
 		}
 
-		worker, err := cc.getAesKey(msg.From)
+		key, err := cc.getAesKey(msg.From)
 		if err != nil {
 			return err
 		}
-		worker.decoder.CryptBlocks(msg.PayLoad, msg.PayLoad)
+		dst, _ := openssl.AesECBDecrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
+		msg.PayLoad = dst
 		if err := cc.callbackForServerMsg(msg); err != nil {
 			return fmt.Errorf("process input message err:%s", err)
 		}
