@@ -129,6 +129,12 @@ func (ws *WebSocketService) OnlineFromOtherPeer(online *pbs.WSOnline) error {
 	return nil
 }
 
+func (ws *WebSocketService) OfflineFromOtherPeer(online *pbs.WSOnline) error {
+	//TODO:: verify peer's authorization
+	ws.onlineSet.del(online.Payload.UID)
+	return nil
+}
+
 func (ws *WebSocketService) PeerImmediateCryptoMsg(msg *pbs.WSCryptoMsg) error {
 	u, ok := ws.userTable.get(msg.To)
 	if !ok {

@@ -115,6 +115,9 @@ func (nt *NinjaStation) procOuterChMsg(msg *pbs.P2PMsg) error {
 
 	case pbs.P2PMsgType_P2pOnline:
 		return nt.pubSub.SendMsg(P2pChanUserOnline, data)
+
+	case pbs.P2PMsgType_P2pOffline:
+		return nt.pubSub.SendMsg(P2pChanUserOffline, data)
 	default:
 		utils.LogInst().Warn().Msgf("unknown to output peer to peer msg type:[%d]", msg.MsgTyp)
 	}
@@ -131,7 +134,12 @@ func (nt *NinjaStation) procInputChMsg(msg *pbs.P2PMsg) error {
 			return fmt.Errorf("this is not a valid online p2p message")
 		}
 		return service.Inst().OnlineFromOtherPeer(body.Online)
-
+	case pbs.P2PMsgType_P2pOffline:
+		body, ok := msg.Payload.(*pbs.P2PMsg_Online)
+		if !ok {
+			return fmt.Errorf("this is not a valid offline p2p message")
+		}
+		return service.Inst().OfflineFromOtherPeer(body.Online)
 	case pbs.P2PMsgType_P2pCryptoMsg:
 		body, ok := msg.Payload.(*pbs.P2PMsg_Msg)
 		if !ok {
