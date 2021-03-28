@@ -105,7 +105,9 @@ func (s *PubSub) removeTopic(id MessageChannel) {
 	utils.LogInst().Warn().Msgf("remove topic [%s] from system", id)
 }
 
-func (s *PubSub) readingMessage(stop chan struct{}, sub *pubsub.Subscription, queue chan *pbs.P2PMsg) {
+func (s *PubSub) readingMessage(stop chan struct{}, sub *pubsub.Subscription, id MessageChannel, queue chan *pbs.P2PMsg) {
+	utils.LogInst().Info().Msgf("[pubSub] start reading message for topic[%s]", id)
+	defer s.removeTopic(id)
 
 	for {
 		msg, err := sub.Next(s.ctx)

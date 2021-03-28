@@ -66,12 +66,7 @@ func (nt *NinjaStation) Start() error {
 			return err
 		}
 		t := thread.NewThreadWithName(id.String(), func(stop chan struct{}) {
-			utils.LogInst().Info().Msgf("[pubSub] start reading message for topic[%s]", id)
-
-			nt.pubSub.readingMessage(stop, sub, nt.readInFromPeerMsgQueue)
-
-			defer nt.pubSub.removeTopic(id)
-
+			nt.pubSub.readingMessage(stop, sub, id, nt.readInFromPeerMsgQueue)
 		})
 		nt.threads[id.String()] = t
 		t.Run()
