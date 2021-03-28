@@ -12,20 +12,23 @@ import (
 	"net/url"
 )
 
-type InputFunc func(*pbs.WSCryptoMsg) error
-
 type WSClient struct {
-	isOnline             bool
-	endpoint             string
-	wsConn               *websocket.Conn
-	key                  *wallet.Key
-	reader, writer       *thread.Thread
-	callbackForServerMsg InputFunc
-	msgChanToServer      chan *pbs.WSCryptoMsg
-	peerKeys             map[string][]byte
+	isOnline        bool
+	endpoint        string
+	wsConn          *websocket.Conn
+	key             *wallet.Key
+	reader, writer  *thread.Thread
+	callback        CliCallBack
+	msgChanToServer chan *pbs.WSCryptoMsg
+	peerKeys        map[string][]byte
 }
 
-func NewWSClient(addr string, key *wallet.Key) (*WSClient, error) {
+type CliCallBack interface {
+	InputMsg(*pbs.WSCryptoMsg) error
+	DidClosed()
+}
+
+func NewWSClient(addr string, key *wallet.Key, cb CliCallBack) (*WSClient, error) {
 	if key == nil || !key.IsOpen() {
 		return nil, fmt.Errorf("ivnalid key")
 	}
@@ -36,15 +39,12 @@ func NewWSClient(addr string, key *wallet.Key) (*WSClient, error) {
 		isOnline:        false,
 		msgChanToServer: make(chan *pbs.WSCryptoMsg, 1024),
 		peerKeys:        make(map[string][]byte),
+		callback:        cb,
 	}
 
 	cc.reader = thread.NewThread(cc.reading)
 	cc.writer = thread.NewThread(cc.writing)
 	return cc, nil
-}
-
-func (cc *WSClient) Register(in InputFunc) {
-	cc.callbackForServerMsg = in
 }
 
 func (cc *WSClient) Online() error {
@@ -74,6 +74,7 @@ func (cc *WSClient) getAesKey(to string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	cc.peerKeys[to] = key
 	return key, nil
 }
 
@@ -113,7 +114,7 @@ func (cc *WSClient) procMsgFromServer() error {
 		cc.isOnline = true
 
 	case int(pbs.SrvMsgType_CryptoMsg):
-		if cc.callbackForServerMsg == nil {
+		if cc.callback == nil {
 			fmt.Println("no input message callback")
 			return nil
 		}
@@ -129,7 +130,7 @@ func (cc *WSClient) procMsgFromServer() error {
 		}
 		dst, _ := openssl.AesECBDecrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
 		msg.PayLoad = dst
-		if err := cc.callbackForServerMsg(msg); err != nil {
+		if err := cc.callback.InputMsg(msg); err != nil {
 			return fmt.Errorf("process input message err:%s", err)
 		}
 	}
@@ -181,7 +182,7 @@ func (cc *WSClient) ShutDown() {
 	if cc.msgChanToServer != nil {
 		return
 	}
-
+	cc.callback.DidClosed()
 	cc.reader.Stop()
 	cc.writer.Stop()
 	cc.wsConn.Close()

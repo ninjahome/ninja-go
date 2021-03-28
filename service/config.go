@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"path/filepath"
 	"time"
 )
 
@@ -20,6 +21,7 @@ const (
 	DefaultWsMsgQueue       = 1 << 16
 	DefaultWsMsgSizePerUser = 1 << 6
 	DefaultHandShakeTimeOut = time.Second * 3
+	DefaultDataBaseDir      = "msg"
 )
 
 type Config struct {
@@ -35,6 +37,7 @@ type Config struct {
 	WsMsgSizePerUser int           `json:"ws.user_msg.size"`
 	WsIP             string        `json:"ws.ip"`
 	WsPort           int16         `json:"ws.port"`
+	DataBaseDir      string        `json:"ws.msg.database"`
 }
 
 func (c Config) String() string {
@@ -50,6 +53,7 @@ func (c Config) String() string {
 	s += fmt.Sprintf("\nws msg queue size:%20d", c.WsMsgQueueSize)
 	s += fmt.Sprintf("\nws msg size/user:%20d", c.WsMsgSizePerUser)
 	s += fmt.Sprintf("\nws ip:%20s", c.WsIP)
+	s += fmt.Sprintf("\nmessage database dir:%20s", c.DataBaseDir)
 	s += fmt.Sprintf("\nws port:%20d", c.WsPort)
 	s += fmt.Sprintf("\n----------------------------------->\n")
 	return s
@@ -61,7 +65,14 @@ func InitConfig(c *Config) {
 	_srvConfig = c
 }
 
-func DefaultConfig() *Config {
+func DefaultConfig(isMain bool, base string) *Config {
+
+	var dir string
+	if isMain {
+		dir = filepath.Join(base, string(filepath.Separator), DefaultDataBaseDir)
+	} else {
+		dir = filepath.Join(base, string(filepath.Separator), DefaultDataBaseDir+"_test")
+	}
 
 	return &Config{
 		ReadTimeout:      DefaultReadTimeout,
@@ -76,6 +87,7 @@ func DefaultConfig() *Config {
 		HsTimeout:        DefaultHandShakeTimeOut,
 		WsIP:             DefaultHost,
 		WsPort:           DefaultWsPort,
+		DataBaseDir:      dir,
 	}
 }
 

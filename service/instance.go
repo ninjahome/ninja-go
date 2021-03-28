@@ -6,6 +6,9 @@ import (
 	pbs "github.com/ninjahome/ninja-go/pbs/service"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/filter"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 	"net/http"
 	"sync"
 	"time"
@@ -21,6 +24,7 @@ type WebSocketService struct {
 	msgFromClientQueue  chan *pbs.WSCryptoMsg
 	threads             map[string]*thread.Thread
 	msgToOtherPeerQueue chan *pbs.P2PMsg
+	dataBase            *leveldb.DB
 }
 type ChatHandler func(http.ResponseWriter, *http.Request)
 
@@ -50,7 +54,14 @@ func newWebSocket() *WebSocketService {
 
 	apis := http.NewServeMux()
 	server := _srvConfig.newWSServer(apis)
-
+	db, err := leveldb.OpenFile(_srvConfig.DataBaseDir, &opt.Options{
+		Strict:      opt.DefaultStrict,
+		Compression: opt.NoCompression,
+		Filter:      filter.NewBloomFilter(10),
+	})
+	if err != nil {
+		return nil
+	}
 	ws := &WebSocketService{
 		upGrader:           _srvConfig.newUpGrader(),
 		apis:               apis,
@@ -59,6 +70,7 @@ func newWebSocket() *WebSocketService {
 		onlineSet:          newOnlineSet(),
 		msgFromClientQueue: make(chan *pbs.WSCryptoMsg, _srvConfig.WsMsgQueueSize),
 		threads:            make(map[string]*thread.Thread),
+		dataBase:           db,
 	}
 
 	ws.RegisterService(CPUserOnline, ws.online)
@@ -73,7 +85,7 @@ func (ws *WebSocketService) online(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if r := recover(); r != nil {
-			utils.LogInst().Warn().Msgf("websocket service panic by one server =>", r)
+			utils.LogInst().Warn().Msgf("websocket service panic by one server :=>%s", r)
 		}
 	}()
 
@@ -118,6 +130,7 @@ func (ws *WebSocketService) ShutDown() {
 		t.Stop()
 	}
 	ws.threads = nil
+	_ = ws.dataBase.Close()
 	_ = ws.server.Close()
 }
 
@@ -139,7 +152,8 @@ func (ws *WebSocketService) OfflineFromOtherPeer(online *pbs.WSOnline) error {
 func (ws *WebSocketService) PeerImmediateCryptoMsg(msg *pbs.WSCryptoMsg) error {
 	u, ok := ws.userTable.get(msg.To)
 	if !ok {
-		return fmt.Errorf("there is no such user in my table")
+		return nil
 	}
+	utils.LogInst().Debug().Msgf("found to peer[%s] in my table", msg.To)
 	return u.writeToCli(msg)
 }

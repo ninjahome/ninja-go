@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+const (
+	MSGPatternHead = "TempCachedMsg_%s_%d"
+	MSGPatternEnd  = "TempCachedMsg_%s_ffffffffffffffff"
+)
+
 func (x *WSOnlineData) Verify(sig []byte) bool {
 	s := &bls.Sign{}
 	if err := s.Deserialize(sig); err != nil {
@@ -38,7 +43,7 @@ func (x *WSOnline) ReadOnlineFromCli(conn *websocket.Conn) (*WSOnlineData, error
 	if mt != int(SrvMsgType_Online) {
 		return nil, fmt.Errorf("first msg must be online noti")
 	}
-	if err := proto.UnmarshalMerge(message, x); err != nil {
+	if err := proto.Unmarshal(message, x); err != nil {
 		return nil, err
 	}
 
@@ -87,4 +92,14 @@ func (x *WSOnline) Online(conn *websocket.Conn, key *wallet.Key) error {
 	}
 
 	return nil
+}
+
+func (x *WSCryptoMsg) MustData() []byte {
+	data, _ := proto.Marshal(x)
+	return data
+}
+
+func (x *WSCryptoMsg) DBKey() []byte {
+	key := fmt.Sprintf(MSGPatternHead, x.To, x.UnixTime)
+	return []byte(key)
 }

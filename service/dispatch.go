@@ -5,13 +5,9 @@ import (
 	"github.com/ninjahome/ninja-go/utils"
 )
 
-func (ws *WebSocketService) saveDB(msg *pbs.WSCryptoMsg) error {
-	return nil
-}
-
 func (ws *WebSocketService) sendOffline(msg *pbs.WSCryptoMsg) error {
-	utils.LogInst().Debug().Msgf("save message [%s->%s]", msg.From, msg.To)
-	return ws.saveDB(msg)
+	utils.LogInst().Debug().Msgf("save message [%s->%s]_%x", msg.From, msg.To, msg.UnixTime)
+	return ws.dataBase.Put(msg.DBKey(), msg.MustData(), nil)
 }
 
 func (ws *WebSocketService) relayMsg(msg *pbs.WSCryptoMsg) error {
@@ -23,15 +19,12 @@ func (ws *WebSocketService) relayMsg(msg *pbs.WSCryptoMsg) error {
 }
 
 func (ws *WebSocketService) sendToPeer(msg *pbs.WSCryptoMsg) error {
-
 	if !ws.onlineSet.contains(msg.To) {
 		return ws.sendOffline(msg)
 	}
-
 	if user, ok := ws.userTable.get(msg.To); ok {
 		return user.writeToCli(msg)
 	}
-
 	return ws.relayMsg(msg)
 }
 

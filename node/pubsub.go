@@ -125,7 +125,7 @@ func (s *PubSub) readingMessage(stop chan struct{}, sub *pubsub.Subscription, id
 			//	continue
 			//}
 			p2pMsg := &pbs.P2PMsg{}
-			if err := proto.UnmarshalMerge(msg.Data, p2pMsg); err != nil {
+			if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
 				utils.LogInst().Warn().Msg("failed parse p2p message")
 				continue
 			}
