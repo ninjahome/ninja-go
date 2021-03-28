@@ -44,8 +44,8 @@ func newStation() *NinjaStation {
 		pubSub:                 ps,
 		ctx:                    ctx,
 		ctxCancel:              cancel,
-		readInFromPeerMsgQueue: make(chan *pbs.P2PMsg, 1024), //TODO::config
-		outToPeerMsgQueue:      make(chan *pbs.P2PMsg, 1024),
+		readInFromPeerMsgQueue: make(chan *pbs.P2PMsg, _nodeConfig.MaxMsgQueueSize),
+		outToPeerMsgQueue:      make(chan *pbs.P2PMsg, _nodeConfig.MaxMsgQueueSize),
 	}
 	utils.LogInst().Info().Msgf("p2p with id[%s] created addrs:%s", h.ID(), h.Addrs())
 	return n

@@ -72,7 +72,7 @@ func initTopicValidators(ps *pubsub.PubSub) error {
 
 	err := ps.RegisterTopicValidator(P2pChanUserOnline.String(),
 		userOnlineValidator,
-		pubsub.WithValidatorTimeout(250*time.Millisecond),
+		pubsub.WithValidatorTimeout(250*time.Millisecond), //TODO::config
 		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxNotifyTopicThread))
 
 	if err != nil {

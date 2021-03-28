@@ -26,7 +26,6 @@ message WSOnlineData{
 message WSCryptoMsg{
   string From = 1;
   string To = 3;
-bytes Salt = 4;
   bytes PayLoad = 5;
   int64 UnixTime = 6;
 }
@@ -46,13 +45,14 @@ enum P2pMsgType{
   P2pUnknown = 0;
   P2pOnline = 1;
   P2pCryptoMsg = 2;
+  P2pOffline = 3;
 }
 
 message P2pMsg{
-
   P2pMsgType msgTyp = 1;
   oneof payload{
     WSOnline online = 2;
     WSCryptoMsg msg = 3;
+    WSOnline offline = 4;
   }
 }

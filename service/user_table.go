@@ -20,6 +20,12 @@ func (ut *UserTable) get(to string) (*wsUser, bool) {
 	return us, ok
 }
 
+func (ut *UserTable) del(user *wsUser) {
+	ut.Lock()
+	defer ut.Unlock()
+	delete(ut.cache, user.UID)
+}
+
 func newUserTable() *UserTable {
 	return &UserTable{
 		cache: make(map[string]*wsUser),

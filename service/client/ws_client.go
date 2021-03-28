@@ -59,8 +59,11 @@ func (cc *WSClient) Online() error {
 		return err
 	}
 	cc.wsConn = wsConn
+	cc.reader.Run()
+	cc.writer.Run()
 	return nil
 }
+
 func (cc *WSClient) getAesKey(to string) ([]byte, error) {
 	worker, ok := cc.peerKeys[to]
 	if ok {
@@ -84,7 +87,6 @@ func (cc *WSClient) Write(msg *pbs.WSCryptoMsg) error {
 	}
 	dst, _ := openssl.AesECBEncrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
 	msg.PayLoad = dst
-
 	cc.msgChanToServer <- msg
 	return nil
 }

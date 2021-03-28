@@ -21,6 +21,12 @@ func (m *OnlineMap) contains(to string) bool {
 	return m.lines[to]
 }
 
+func (m *OnlineMap) del(uid string) {
+	m.RLock()
+	defer m.RUnlock()
+	delete(m.lines, uid)
+}
+
 func newOnlineSet() *OnlineMap {
 	return &OnlineMap{
 		lines: make(map[string]bool),

@@ -57,7 +57,7 @@ func newWebSocket() *WebSocketService {
 		server:             server,
 		userTable:          newUserTable(),
 		onlineSet:          newOnlineSet(),
-		msgFromClientQueue: make(chan *pbs.WSCryptoMsg, 1024),
+		msgFromClientQueue: make(chan *pbs.WSCryptoMsg, _srvConfig.WsMsgQueueSize),
 		threads:            make(map[string]*thread.Thread),
 	}
 
@@ -122,7 +122,9 @@ func (ws *WebSocketService) ShutDown() {
 }
 
 func (ws *WebSocketService) OnlineFromOtherPeer(online *pbs.WSOnline) error {
-	//TODO::verify msg signature
+	if !online.Payload.Verify(online.Sig) {
+		return fmt.Errorf("this is an attack")
+	}
 	ws.onlineSet.add(online.Payload.UID)
 	return nil
 }
@@ -132,5 +134,5 @@ func (ws *WebSocketService) PeerImmediateCryptoMsg(msg *pbs.WSCryptoMsg) error {
 	if !ok {
 		return fmt.Errorf("there is no such user in my table")
 	}
-	return u.write(msg)
+	return u.writeToCli(msg)
 }

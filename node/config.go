@@ -23,8 +23,9 @@ const (
 	DefaultOutboundQueueSize = 64
 	DefaultValidateQueueSize = 512
 
-	DefaultConsensusTopicThreadSize = 1 << 13
-	DefaultNodeTopicThreadSize      = 1 << 11
+	DefaultNotifyTopicThreadSize = 1 << 13
+	DefaultNodeTopicThreadSize   = 1 << 11
+	DefaultMsqQueueSize          = 1 << 16
 
 	DHTPrefix = "ninja"
 )
@@ -73,17 +74,19 @@ func (c *dhtConfig) String() string {
 }
 
 type Config struct {
-	Port     int16 `json:"port"`
-	ChainID  *big.Int
-	LogLevel log.LogLevel  `json:"log_level"`
-	PsConf   *pubSubConfig `json:"pub_sub"`
-	DHTConf  *dhtConfig    `json:"dht"`
+	Port            int16 `json:"port"`
+	ChainID         *big.Int
+	MaxMsgQueueSize int           `json:"max_msg_queue_size"`
+	LogLevel        log.LogLevel  `json:"log_level"`
+	PsConf          *pubSubConfig `json:"pub_sub"`
+	DHTConf         *dhtConfig    `json:"dht"`
 }
 
 func (c Config) String() string {
 	s := fmt.Sprintf("\n<-------------Node Config------------")
 	s += fmt.Sprintf("\n*chord id:			%s", c.ChainID.String())
 	s += fmt.Sprintf("\nport:		%d", c.Port)
+	s += fmt.Sprintf("\nmax msg queue sieze:		%d", c.MaxMsgQueueSize)
 	s += fmt.Sprintf("\nloglevl:	%d", c.LogLevel)
 	s += fmt.Sprintf(c.PsConf.String())
 	s += fmt.Sprintf(c.DHTConf.String())
@@ -113,14 +116,15 @@ func DefaultConfig(isMain bool, base string) *Config {
 	}
 
 	return &Config{
-		Port:     DefaultP2pPort,
-		LogLevel: level,
-		ChainID:  chainID,
+		Port:            DefaultP2pPort,
+		LogLevel:        level,
+		ChainID:         chainID,
+		MaxMsgQueueSize: DefaultMsqQueueSize,
 		PsConf: &pubSubConfig{
 			MaxMsgSize:           DefaultMaxMessageSize,
 			MaxValidateQueue:     DefaultValidateQueueSize,
 			MaxOutQueue:          DefaultOutboundQueueSize,
-			MaxNotifyTopicThread: DefaultConsensusTopicThreadSize,
+			MaxNotifyTopicThread: DefaultNotifyTopicThreadSize,
 			MaxNodeTopicThread:   DefaultNodeTopicThreadSize,
 		},
 		DHTConf: &dhtConfig{

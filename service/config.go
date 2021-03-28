@@ -17,20 +17,24 @@ const (
 	DefaultPingPeriod       = (DefaultPongWait * 9) / 10
 	DefaultWriteWait        = 10 * time.Second
 	DefaultWsBuffer         = 1 << 21
+	DefaultWsMsgQueue       = 1 << 16
+	DefaultWsMsgSizePerUser = 1 << 6
 	DefaultHandShakeTimeOut = time.Second * 3
 )
 
 type Config struct {
-	ReadTimeout  time.Duration `json:"http.r.timeout"`
-	WriteTimeout time.Duration `json:"http.w.timeout"`
-	IdleTimeout  time.Duration `json:"http.i.timeout"`
-	PingPeriod   time.Duration `json:"ws.ping.timeout"`
-	PongWait     time.Duration `json:"ws.pong.timeout"`
-	WriteWait    time.Duration `json:"ws.w.timeout"`
-	HsTimeout    time.Duration `json:"ws.hs.timeout"`
-	WsBufferSize int           `json:"ws.buffer.size"`
-	WsIP         string        `json:"ws.ip"`
-	WsPort       int16         `json:"ws.port"`
+	ReadTimeout      time.Duration `json:"http.r.timeout"`
+	WriteTimeout     time.Duration `json:"http.w.timeout"`
+	IdleTimeout      time.Duration `json:"http.i.timeout"`
+	PingPeriod       time.Duration `json:"ws.ping.timeout"`
+	PongWait         time.Duration `json:"ws.pong.timeout"`
+	WriteWait        time.Duration `json:"ws.w.timeout"`
+	HsTimeout        time.Duration `json:"ws.hs.timeout"`
+	WsBufferSize     int           `json:"ws.buffer.size"`
+	WsMsgQueueSize   int           `json:"ws.msg.size"`
+	WsMsgSizePerUser int           `json:"ws.user_msg.size"`
+	WsIP             string        `json:"ws.ip"`
+	WsPort           int16         `json:"ws.port"`
 }
 
 func (c Config) String() string {
@@ -43,6 +47,8 @@ func (c Config) String() string {
 	s += fmt.Sprintf("\nws wait timeout:%20d", c.WriteWait)
 	s += fmt.Sprintf("\nws handshake timeout:%20d", c.HsTimeout)
 	s += fmt.Sprintf("\nws buffer size:%20d", c.WsBufferSize)
+	s += fmt.Sprintf("\nws msg queue size:%20d", c.WsMsgQueueSize)
+	s += fmt.Sprintf("\nws msg size/user:%20d", c.WsMsgSizePerUser)
 	s += fmt.Sprintf("\nws ip:%20s", c.WsIP)
 	s += fmt.Sprintf("\nws port:%20d", c.WsPort)
 	s += fmt.Sprintf("\n----------------------------------->\n")
@@ -58,16 +64,18 @@ func InitConfig(c *Config) {
 func DefaultConfig() *Config {
 
 	return &Config{
-		ReadTimeout:  DefaultReadTimeout,
-		WriteTimeout: DefaultWriteTimeout,
-		IdleTimeout:  DefaultIdleTimeout,
-		PingPeriod:   DefaultPingPeriod,
-		PongWait:     DefaultPongWait,
-		WriteWait:    DefaultWriteWait,
-		WsBufferSize: DefaultWsBuffer,
-		HsTimeout:    DefaultHandShakeTimeOut,
-		WsIP:         DefaultHost,
-		WsPort:       DefaultWsPort,
+		ReadTimeout:      DefaultReadTimeout,
+		WriteTimeout:     DefaultWriteTimeout,
+		IdleTimeout:      DefaultIdleTimeout,
+		PingPeriod:       DefaultPingPeriod,
+		PongWait:         DefaultPongWait,
+		WriteWait:        DefaultWriteWait,
+		WsBufferSize:     DefaultWsBuffer,
+		WsMsgQueueSize:   DefaultWsMsgQueue,
+		WsMsgSizePerUser: DefaultWsMsgSizePerUser,
+		HsTimeout:        DefaultHandShakeTimeOut,
+		WsIP:             DefaultHost,
+		WsPort:           DefaultWsPort,
 	}
 }
 

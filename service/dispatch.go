@@ -22,14 +22,14 @@ func (ws *WebSocketService) relayMsg(msg *pbs.WSCryptoMsg) error {
 	return nil
 }
 
-func (ws *WebSocketService) sendTo(msg *pbs.WSCryptoMsg) error {
+func (ws *WebSocketService) sendToPeer(msg *pbs.WSCryptoMsg) error {
 
 	if !ws.onlineSet.contains(msg.To) {
 		return ws.sendOffline(msg)
 	}
 
 	if user, ok := ws.userTable.get(msg.To); ok {
-		return user.write(msg)
+		return user.writeToCli(msg)
 	}
 
 	return ws.relayMsg(msg)
@@ -44,7 +44,7 @@ func (ws *WebSocketService) msgDispatch(stop chan struct{}) {
 			return
 
 		case msg := <-ws.msgFromClientQueue:
-			if err := ws.sendTo(msg); err != nil {
+			if err := ws.sendToPeer(msg); err != nil {
 				utils.LogInst().Warn().Msgf("send ws message failed:%s", err)
 			}
 		}
