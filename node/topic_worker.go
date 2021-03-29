@@ -16,23 +16,23 @@ var SystemTopics = map[string]TopicReader{
 	P2pChanImmediateMsg:  websocket.Inst().ImmediateMsgForP2pNetwork,
 	P2pChanUnreadMsg:     websocket.Inst().UnreadMsgFromP2pNetwork,
 	P2pChanContactOps:    contact.Inst().ContactOperationToP2pNetwork,
-	P2pChanContactQuery: contact.Inst().ContactQueryFromP2pNetwork,
+	P2pChanContactQuery:  contact.Inst().ContactQueryFromP2pNetwork,
 	P2pChanDebug:         nil,
 }
 
 type TopicReader func(stop chan struct{}, r *pubsub.Subscription, w *pubsub.Topic)
 
 type TopicWorker struct {
-	tid string
-	tWriter  *pubsub.Topic
+	tid     string
+	tWriter *pubsub.Topic
 	tReader TopicReader
-	sub *pubsub.Subscription
-	thread *thread.Thread
+	sub     *pubsub.Subscription
+	thread  *thread.Thread
 }
 
 type WorkGroup map[string]*TopicWorker
 
-func (tw *TopicWorker)startWork() error{
+func (tw *TopicWorker) startWork() error {
 	sub, err := tw.tWriter.Subscribe()
 	if err != nil {
 		return err
@@ -79,15 +79,15 @@ func newWorkGroup(ctx context.Context, h host.Host) (WorkGroup, error) {
 	}
 
 	topics := make(WorkGroup)
-	for topID,  r:= range SystemTopics {
+	for topID, r := range SystemTopics {
 		topic, err := ps.Join(topID)
 		if err != nil {
 			return nil, err
 		}
 
 		topics[topID] = &TopicWorker{
-			tid:topID,
-			tWriter:  topic,
+			tid:     topID,
+			tWriter: topic,
 			tReader: r,
 		}
 	}

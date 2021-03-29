@@ -11,11 +11,11 @@ import (
 )
 
 type NinjaStation struct {
-	nodeID           string
-	p2pHost          host.Host
-	workers	      		WorkGroup
-	ctxCancel        context.CancelFunc
-	ctx              context.Context
+	nodeID    string
+	p2pHost   host.Host
+	workers   WorkGroup
+	ctxCancel context.CancelFunc
+	ctx       context.Context
 }
 
 func newStation() *NinjaStation {
@@ -36,11 +36,11 @@ func newStation() *NinjaStation {
 		panic(err)
 	}
 	n := &NinjaStation{
-		nodeID:           h.ID().String(),
-		p2pHost:          h,
-		workers:           ps,
-		ctx:              ctx,
-		ctxCancel:        cancel,
+		nodeID:    h.ID().String(),
+		p2pHost:   h,
+		workers:   ps,
+		ctx:       ctx,
+		ctxCancel: cancel,
 	}
 	utils.LogInst().Info().Msgf("p2p with id[%s] created addrs:%s", h.ID(), h.Addrs())
 	return n
@@ -51,7 +51,7 @@ func (nt *NinjaStation) Start() error {
 	contact.Inst().StartService(nt.nodeID, nt.ctx)
 
 	for _, worker := range nt.workers {
-		if err := worker.startWork(); err != nil{
+		if err := worker.startWork(); err != nil {
 			return err
 		}
 	}
@@ -60,7 +60,7 @@ func (nt *NinjaStation) Start() error {
 }
 
 func (nt *NinjaStation) ShutDown() {
-	if nt.workers == nil{
+	if nt.workers == nil {
 		return
 	}
 	for _, t := range nt.workers {
@@ -71,7 +71,6 @@ func (nt *NinjaStation) ShutDown() {
 	_ = nt.p2pHost.Close()
 }
 
-
 func (nt *NinjaStation) PeersOfTopic(topic string) []peer.ID {
 	worker, ok := nt.workers[(topic)]
 	if !ok {
@@ -79,5 +78,3 @@ func (nt *NinjaStation) PeersOfTopic(topic string) []peer.ID {
 	}
 	return worker.tWriter.ListPeers()
 }
-
-

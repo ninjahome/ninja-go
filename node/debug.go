@@ -8,7 +8,7 @@ import (
 func (nt *NinjaStation) DebugWorker(topic, msg string) string {
 
 	worker, ok := nt.workers[topic]
-	if !ok{
+	if !ok {
 		return "no such topic"
 	}
 	if err := worker.tWriter.Publish(nt.ctx, []byte(msg)); err != nil {

@@ -23,13 +23,12 @@ func Inst() NinjaNetwork {
 	return _instance
 }
 
-
 const (
 	P2pChanUserOnOffLine = "/0.1/Global/user/on_offline"
 	P2pChanImmediateMsg  = "/0.1/Global/message/immediate"
 	P2pChanUnreadMsg     = "/0.1/Global/message/unread"
 	P2pChanContactOps    = "/0.1/Global/contact/operation"
-	P2pChanContactQuery    = "/0.1/Global/contact/query"
+	P2pChanContactQuery  = "/0.1/Global/contact/query"
 	P2pChanDebug         = "/0.1/Global/TEST"
 )
 
