@@ -10,7 +10,7 @@ import (
 	"github.com/libp2p/go-libp2p-discovery"
 	"github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-pubsub"
-	pbs "github.com/ninjahome/ninja-go/pbs/service"
+	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"sync"
 	"time"

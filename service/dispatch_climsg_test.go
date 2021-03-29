@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
-	pbs "github.com/ninjahome/ninja-go/pbs/service"
+	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"testing"
 	"time"
 )

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
-	pbs "github.com/ninjahome/ninja-go/pbs/service"
+	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/service"
 	"google.golang.org/protobuf/proto"
 	"net/url"
@@ -34,7 +34,7 @@ func main() {
 		panic(err)
 	}
 
-	err = c.WriteMessage(int(pbs.SrvMsgType_Online), data)
+	err = c.WriteMessage(websocket.TextMessage, data)
 	if err != nil {
 		panic(err)
 	}
