@@ -31,12 +31,11 @@ message ContactList{
 message ContactMsg{
 
     bytes sig = 1;
-    bytes hash = 2;
+    string from = 2;
     ContactMsgType typ = 3;
 
     oneof PayLoad{
-      ContactItem addC =4;
-      ContactItem updateC = 5;
+      ContactItem addOrUpdate =4;
       string delC = 6;
       string block = 7;
       string undoBlock = 8;

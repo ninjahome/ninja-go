@@ -76,15 +76,11 @@ func (cc *ContactCli) AddContact(cid, nickName, remarks string) error {
 		Remarks:  remarks,
 	}
 
-	itemData, err := proto.Marshal(item)
-	if err != nil {
-		return err
-	}
-	sig := cc.key.SignData(itemData)
-
+	sig := cc.key.SignData(item.Data())
 	request := &pbs.ContactMsg{
 		Sig:     sig,
-		PayLoad: &pbs.ContactMsg_AddC{AddC: item},
+		From:    cc.key.Address.String(),
+		PayLoad: &pbs.ContactMsg_AddOrUpdate{AddOrUpdate: item},
 	}
 
 	return cc.makeOpRequest(request)
@@ -94,12 +90,12 @@ func (cc *ContactCli) UpdateContact(cid, nickName, remarks string) error {
 	return cc.AddContact(cid, nickName, remarks)
 }
 
-func (cc *ContactCli) DelContact(cid, nickName, remarks string) error {
-	queryID := cc.key.Address
-	sig := cc.key.SignData(queryID[:])
+func (cc *ContactCli) DelContact(cid string) error {
+	sig := cc.key.SignData([]byte(cid))
 	request := &pbs.ContactMsg{
 		Sig:     sig,
-		PayLoad: &pbs.ContactMsg_DelC{DelC: queryID.String()},
+		From:    cc.key.Address.String(),
+		PayLoad: &pbs.ContactMsg_DelC{DelC: cid},
 	}
 	return cc.makeOpRequest(request)
 }
