@@ -1,0 +1,47 @@
+syntax = "proto3";
+package pbs;
+option go_package = "./contact";
+
+enum ContactMsgType{
+  MTAddContact = 0;
+  MTUpdateContact = 1;
+  MTDeleteContact = 2;
+  MTAddBlackList = 3;
+  MTRemoveBlackList = 4;
+  MTAck = 5;
+  MTQueryContact = 6;
+  MTContactList= 7;
+}
+
+message ContactItem{
+  string CID = 1;
+  string NickName = 2;
+  string Remarks = 3;
+}
+
+message OperateAck{
+  bool success = 1;
+  string msg = 2;
+}
+
+message ContactList{
+  repeated    ContactItem contacts = 1;
+}
+
+message ContactMsg{
+
+    bytes sig = 1;
+    bytes hash = 2;
+    ContactMsgType typ = 3;
+
+    oneof PayLoad{
+      ContactItem addC =4;
+      ContactItem updateC = 5;
+      string delC = 6;
+      string block = 7;
+      string undoBlock = 8;
+      OperateAck opAck = 9;
+      string query = 10;
+      ContactList contacts = 11;
+    }
+}

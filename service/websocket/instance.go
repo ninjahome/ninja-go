@@ -1,4 +1,4 @@
-package service
+package websocket
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-type WebSocketService struct {
+type Service struct {
 	id       string
 	apis     *http.ServeMux
 	upGrader *websocket.Upgrader
@@ -36,26 +36,26 @@ const (
 )
 
 var (
-	_instance *WebSocketService
+	_instance *Service
 	once      sync.Once
 )
 
-func Inst() *WebSocketService {
+func Inst() *Service {
 	once.Do(func() {
 		_instance = newWebSocket()
 	})
 	return _instance
 }
 
-func newWebSocket() *WebSocketService {
+func newWebSocket() *Service {
 
-	if _srvConfig == nil {
+	if _wsConfig == nil {
 		panic("init service config first")
 	}
 
 	apis := http.NewServeMux()
-	server := _srvConfig.newWSServer(apis)
-	db, err := leveldb.OpenFile(_srvConfig.DataBaseDir, &opt.Options{
+	server := _wsConfig.newWSServer(apis)
+	db, err := leveldb.OpenFile(_wsConfig.DataBaseDir, &opt.Options{
 		Strict:      opt.DefaultStrict,
 		Compression: opt.NoCompression,
 		Filter:      filter.NewBloomFilter(10),
@@ -63,13 +63,13 @@ func newWebSocket() *WebSocketService {
 	if err != nil {
 		return nil
 	}
-	ws := &WebSocketService{
-		upGrader:           _srvConfig.newUpGrader(),
+	ws := &Service{
+		upGrader:           _wsConfig.newUpGrader(),
 		apis:               apis,
 		server:             server,
 		userTable:          newUserTable(),
 		onlineSet:          newOnlineSet(),
-		msgFromClientQueue: make(chan *pbs.WsMsg, _srvConfig.WsMsgQueueSize),
+		msgFromClientQueue: make(chan *pbs.WsMsg, _wsConfig.WsMsgQueueSize),
 		threads:            make(map[string]*thread.Thread),
 		dataBase:           db,
 	}
@@ -78,11 +78,11 @@ func newWebSocket() *WebSocketService {
 	return ws
 }
 
-func (ws *WebSocketService) RegisterService(path string, handler ChatHandler) {
+func (ws *Service) RegisterService(path string, handler ChatHandler) {
 	ws.apis.HandleFunc(path, handler)
 }
 
-func (ws *WebSocketService) online(w http.ResponseWriter, r *http.Request) {
+func (ws *Service) online(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -96,9 +96,9 @@ func (ws *WebSocketService) online(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	webSocket.SetReadLimit(int64(_srvConfig.WsBufferSize))
-	webSocket.SetReadDeadline(time.Now().Add(_srvConfig.PongWait))
-	webSocket.SetPongHandler(func(string) error { webSocket.SetReadDeadline(time.Now().Add(_srvConfig.PongWait)); return nil })
+	webSocket.SetReadLimit(int64(_wsConfig.WsBufferSize))
+	webSocket.SetReadDeadline(time.Now().Add(_wsConfig.PongWait))
+	webSocket.SetPongHandler(func(string) error { webSocket.SetReadDeadline(time.Now().Add(_wsConfig.PongWait)); return nil })
 
 	if err := ws.newOnlineUser(webSocket); err != nil {
 		utils.LogInst().Err(err).Send()
@@ -106,7 +106,7 @@ func (ws *WebSocketService) online(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (ws *WebSocketService) StartService(nodeID string, omq chan *pbs.WsMsg) {
+func (ws *Service) StartService(nodeID string, omq chan *pbs.WsMsg) {
 
 	ws.msgToOtherPeerQueue = omq
 	ws.id = nodeID
@@ -126,7 +126,7 @@ func (ws *WebSocketService) StartService(nodeID string, omq chan *pbs.WsMsg) {
 	t.Run()
 }
 
-func (ws *WebSocketService) ShutDown() {
+func (ws *Service) ShutDown() {
 	for _, t := range ws.threads {
 		t.Stop()
 	}
@@ -135,7 +135,7 @@ func (ws *WebSocketService) ShutDown() {
 	_ = ws.server.Close()
 }
 
-func (ws *WebSocketService) OnlineFromOtherPeer(msg *pbs.WsMsg) error {
+func (ws *Service) OnlineFromOtherPeer(msg *pbs.WsMsg) error {
 	body, ok := msg.Payload.(*pbs.WsMsg_Online)
 	if !ok {
 		return fmt.Errorf("this is not a valid online p2p message")
@@ -148,7 +148,7 @@ func (ws *WebSocketService) OnlineFromOtherPeer(msg *pbs.WsMsg) error {
 	return nil
 }
 
-func (ws *WebSocketService) OfflineFromOtherPeer(msg *pbs.WsMsg) error {
+func (ws *Service) OfflineFromOtherPeer(msg *pbs.WsMsg) error {
 	body, ok := msg.Payload.(*pbs.WsMsg_Online)
 	if !ok {
 		return fmt.Errorf("this is not a valid offline p2p message")
@@ -159,7 +159,7 @@ func (ws *WebSocketService) OfflineFromOtherPeer(msg *pbs.WsMsg) error {
 	return nil
 }
 
-func (ws *WebSocketService) PeerImmediateCryptoMsg(msg *pbs.WsMsg) error {
+func (ws *Service) PeerImmediateCryptoMsg(msg *pbs.WsMsg) error {
 	body, ok := msg.Payload.(*pbs.WsMsg_Message)
 	if !ok {
 		return fmt.Errorf("this is not a valid p2p crypto message")
@@ -173,7 +173,7 @@ func (ws *WebSocketService) PeerImmediateCryptoMsg(msg *pbs.WsMsg) error {
 	return u.writeToCli(msg)
 }
 
-func (ws *WebSocketService) PeerUnreadMsg(msg *pbs.WsMsg) error {
+func (ws *Service) PeerUnreadMsg(msg *pbs.WsMsg) error {
 
 	unBody, ok := msg.Payload.(*pbs.WsMsg_Unread)
 	if !ok {
@@ -211,7 +211,7 @@ LoadMore:
 	return nil
 }
 
-func (ws *WebSocketService) PeerUnreadAckMsg(msg *pbs.WsMsg) error {
+func (ws *Service) PeerUnreadAckMsg(msg *pbs.WsMsg) error {
 	body, ok := msg.Payload.(*pbs.WsMsg_UnreadAck)
 	if !ok {
 		return fmt.Errorf("cast to unread ack message body failed")

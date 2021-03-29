@@ -1,4 +1,4 @@
-package service
+package websocket
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ func IMDBEnd(receiver string) []byte {
 	return []byte(key)
 }
 
-func (ws *WebSocketService) procIM(msg *pbs.WsMsg) error {
+func (ws *Service) procIM(msg *pbs.WsMsg) error {
 	body, ok := msg.Payload.(*pbs.WsMsg_Message)
 	if !ok {
 		return fmt.Errorf("cast immediate message failed")
@@ -42,7 +42,7 @@ func (ws *WebSocketService) procIM(msg *pbs.WsMsg) error {
 	return nil
 }
 
-func (ws *WebSocketService) loadDbUnread(unread *pbs.WSPullUnread) ([]*pbs.WSCryptoMsg, bool) {
+func (ws *Service) loadDbUnread(unread *pbs.WSPullUnread) ([]*pbs.WSCryptoMsg, bool) {
 
 	buf := make([]*pbs.WSCryptoMsg, 0)
 	var counter = 0
@@ -61,7 +61,7 @@ func (ws *WebSocketService) loadDbUnread(unread *pbs.WSPullUnread) ([]*pbs.WSCry
 		buf = append(buf, msgV)
 		k := iter.Key()
 		_ = ws.dataBase.Delete(k, nil)
-		if counter > _srvConfig.WsMsgSizePerUser {
+		if counter > _wsConfig.WsMsgSizePerUser {
 			hasMore = true
 			break
 		}
@@ -71,7 +71,7 @@ func (ws *WebSocketService) loadDbUnread(unread *pbs.WSPullUnread) ([]*pbs.WSCry
 	return buf, hasMore
 }
 
-func (ws *WebSocketService) findLocalUnread(request *pbs.WsMsg) error {
+func (ws *Service) findLocalUnread(request *pbs.WsMsg) error {
 
 	unBody, ok := request.Payload.(*pbs.WsMsg_Unread)
 	if !ok {
@@ -106,7 +106,7 @@ LoadMore:
 	return nil
 }
 
-func (ws *WebSocketService) wsCliMsgDispatch(stop chan struct{}) {
+func (ws *Service) wsCliMsgDispatch(stop chan struct{}) {
 
 	for {
 		select {

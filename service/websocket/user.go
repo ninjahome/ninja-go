@@ -1,4 +1,4 @@
-package service
+package websocket
 
 import (
 	"fmt"
@@ -68,7 +68,7 @@ func (u *wsUser) writer(stop chan struct{}) {
 			return
 
 		case message, ok := <-u.msgToCliChan:
-			u.cliWsConn.SetWriteDeadline(time.Now().Add(_srvConfig.WriteWait))
+			u.cliWsConn.SetWriteDeadline(time.Now().Add(_wsConfig.WriteWait))
 			if !ok {
 				u.cliWsConn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
@@ -88,7 +88,7 @@ func (u *wsUser) writer(stop chan struct{}) {
 			}
 
 		case <-u.kaTimer.C:
-			if err := u.cliWsConn.SetWriteDeadline(time.Now().Add(_srvConfig.WriteWait)); err != nil {
+			if err := u.cliWsConn.SetWriteDeadline(time.Now().Add(_wsConfig.WriteWait)); err != nil {
 				utils.LogInst().Err(err)
 				return
 			}
@@ -105,7 +105,7 @@ func (u *wsUser) writeToCli(msg *pbs.WsMsg) error {
 	return nil
 }
 
-func (ws *WebSocketService) newOnlineUser(conn *websocket.Conn) error {
+func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 
 	msg := &pbs.WsMsg{}
 	online, err := msg.ReadOnlineFromCli(conn)
@@ -118,8 +118,8 @@ func (ws *WebSocketService) newOnlineUser(conn *websocket.Conn) error {
 		UID:            online.UID,
 		onLineTime:     time.Now(),
 		msgFromCliChan: ws.msgFromClientQueue,
-		kaTimer:        time.NewTicker(_srvConfig.PingPeriod),
-		msgToCliChan:   make(chan *pbs.WsMsg, _srvConfig.WsMsgSizePerUser),
+		kaTimer:        time.NewTicker(_wsConfig.PingPeriod),
+		msgToCliChan:   make(chan *pbs.WsMsg, _wsConfig.WsMsgSizePerUser),
 	}
 
 	ws.msgToOtherPeerQueue <- msg
@@ -145,7 +145,7 @@ func (ws *WebSocketService) newOnlineUser(conn *websocket.Conn) error {
 	return nil
 }
 
-func (ws *WebSocketService) OfflineUser(threadId string, user *wsUser, msg *pbs.WsMsg) {
+func (ws *Service) OfflineUser(threadId string, user *wsUser, msg *pbs.WsMsg) {
 	delete(ws.threads, threadId)
 	ws.onlineSet.del(user.UID)
 	ws.userTable.del(user.UID)

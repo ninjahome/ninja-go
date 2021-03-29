@@ -6,7 +6,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
-	"github.com/ninjahome/ninja-go/service"
+	websocket2 "github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils/thread"
 	"github.com/ninjahome/ninja-go/wallet"
 	"net/url"
@@ -49,7 +49,7 @@ func NewWSClient(addr string, key *wallet.Key, cb CliCallBack) (*WSClient, error
 }
 
 func (cc *WSClient) Online() error {
-	u := url.URL{Scheme: "ws", Host: cc.endpoint, Path: service.CPUserOnline}
+	u := url.URL{Scheme: "ws", Host: cc.endpoint, Path: websocket2.CPUserOnline}
 	wsConn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		return err

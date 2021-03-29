@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
-	"github.com/ninjahome/ninja-go/service"
+	websocket2 "github.com/ninjahome/ninja-go/service/websocket"
 	"google.golang.org/protobuf/proto"
 	"net/url"
 	"os"
@@ -16,7 +16,7 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	u := url.URL{Scheme: "ws", Host: fmt.Sprintf("localhost:%d", service.DefaultWsPort), Path: service.CPUserOnline}
+	u := url.URL{Scheme: "ws", Host: fmt.Sprintf("localhost:%d", websocket2.DefaultWsPort), Path: websocket2.CPUserOnline}
 	fmt.Printf("connecting to %s", u.String())
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)

@@ -5,7 +5,7 @@ import (
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
-	"github.com/ninjahome/ninja-go/service"
+	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
 	"google.golang.org/protobuf/proto"
@@ -53,7 +53,7 @@ func newStation() *NinjaStation {
 }
 
 func (nt *NinjaStation) Start() error {
-	service.Inst().StartService(nt.nodeID, nt.outToPeerMsgQueue)
+	websocket.Inst().StartService(nt.nodeID, nt.outToPeerMsgQueue)
 
 	t := thread.NewThreadWithName(THNOuterMsgReader, func(stop chan struct{}) {
 		nt.waitMsgWork(stop)
@@ -131,15 +131,15 @@ func (nt *NinjaStation) procInputChMsg(msg *pbs.WsMsg) error {
 	switch msg.Typ {
 
 	case pbs.WsMsgType_Online:
-		return service.Inst().OnlineFromOtherPeer(msg)
+		return websocket.Inst().OnlineFromOtherPeer(msg)
 	case pbs.WsMsgType_Offline:
-		return service.Inst().OfflineFromOtherPeer(msg)
+		return websocket.Inst().OfflineFromOtherPeer(msg)
 	case pbs.WsMsgType_ImmediateMsg:
-		return service.Inst().PeerImmediateCryptoMsg(msg)
+		return websocket.Inst().PeerImmediateCryptoMsg(msg)
 	case pbs.WsMsgType_PullUnread:
-		return service.Inst().PeerUnreadMsg(msg)
+		return websocket.Inst().PeerUnreadMsg(msg)
 	case pbs.WsMsgType_UnreadAck:
-		return service.Inst().PeerUnreadAckMsg(msg)
+		return websocket.Inst().PeerUnreadAckMsg(msg)
 	default:
 		utils.LogInst().Warn().Msgf("unknown read in peer to peer msg type:[%d]", msg.Typ)
 	}

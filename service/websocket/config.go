@@ -1,4 +1,4 @@
-package service
+package websocket
 
 import (
 	"fmt"
@@ -59,10 +59,10 @@ func (c Config) String() string {
 	return s
 }
 
-var _srvConfig *Config = nil
+var _wsConfig *Config = nil
 
 func InitConfig(c *Config) {
-	_srvConfig = c
+	_wsConfig = c
 }
 
 func DefaultConfig(isMain bool, base string) *Config {
@@ -94,9 +94,9 @@ func DefaultConfig(isMain bool, base string) *Config {
 func (c *Config) newUpGrader() *websocket.Upgrader {
 
 	return &websocket.Upgrader{
-		HandshakeTimeout: _srvConfig.HsTimeout,
-		ReadBufferSize:   _srvConfig.WsBufferSize,
-		WriteBufferSize:  _srvConfig.WsBufferSize,
+		HandshakeTimeout: _wsConfig.HsTimeout,
+		ReadBufferSize:   _wsConfig.WsBufferSize,
+		WriteBufferSize:  _wsConfig.WsBufferSize,
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},

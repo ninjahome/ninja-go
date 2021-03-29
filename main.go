@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/ninjahome/ninja-go/cmd"
 	"github.com/ninjahome/ninja-go/node"
-	"github.com/ninjahome/ninja-go/service"
+	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/fdlimit"
 	"github.com/ninjahome/ninja-go/utils/thread"
@@ -123,7 +123,7 @@ func initNinjaConfig() (err error) {
 		result.RCfg.WsIP = param.wsIP
 	}
 
-	service.InitConfig(result.RCfg)
+	websocket.InitConfig(result.RCfg)
 
 	return
 }

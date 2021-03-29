@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ninjahome/ninja-go/node"
-	"github.com/ninjahome/ninja-go/service"
+	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/wallet"
 	"github.com/rs/zerolog"
@@ -24,11 +24,11 @@ const (
 type StoreCfg map[string]*CfgPerNetwork
 
 type CfgPerNetwork struct {
-	Name string          `json:"name"`
-	PCfg *node.Config    `json:"node"`
-	UCfg *utils.Config   `json:"utils"`
-	WCfg *wallet.Config  `json:"wallet"`
-	RCfg *service.Config `json:"service"`
+	Name string            `json:"name"`
+	PCfg *node.Config      `json:"node"`
+	UCfg *utils.Config     `json:"utils"`
+	WCfg *wallet.Config    `json:"wallet"`
+	RCfg *websocket.Config `json:"service"`
 }
 
 func (sc StoreCfg) DebugPrint() {
@@ -96,7 +96,7 @@ func initDefault(baseDir string) error {
 			LogLevel: zerolog.ErrorLevel,
 		},
 		WCfg: wallet.DefaultConfig(true, baseDir),
-		RCfg: service.DefaultConfig(true, baseDir),
+		RCfg: websocket.DefaultConfig(true, baseDir),
 	}
 	conf[MainNet] = mainConf
 
@@ -107,7 +107,7 @@ func initDefault(baseDir string) error {
 			LogLevel: zerolog.DebugLevel,
 		},
 		WCfg: wallet.DefaultConfig(false, baseDir),
-		RCfg: service.DefaultConfig(false, baseDir),
+		RCfg: websocket.DefaultConfig(false, baseDir),
 	}
 	conf[TestNet] = testConf
 
