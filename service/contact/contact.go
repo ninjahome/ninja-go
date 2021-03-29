@@ -1,6 +1,9 @@
 package contact
 
-const DefaultSrvPort = 6667
+import "net/http"
 
-type Service struct {
+func (s *Service) operateContact(w http.ResponseWriter, r *http.Request) {
+}
+
+func (s *Service) queryContact(w http.ResponseWriter, r *http.Request) {
 }

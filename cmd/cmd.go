@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ninjahome/ninja-go/node"
+	"github.com/ninjahome/ninja-go/service/contact"
 	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/wallet"
@@ -28,7 +29,8 @@ type CfgPerNetwork struct {
 	PCfg *node.Config      `json:"node"`
 	UCfg *utils.Config     `json:"utils"`
 	WCfg *wallet.Config    `json:"wallet"`
-	RCfg *websocket.Config `json:"service"`
+	RCfg *websocket.Config `json:"websocket"`
+	CCfg *contact.Config   `json:"contact"`
 }
 
 func (sc StoreCfg) DebugPrint() {
@@ -43,6 +45,7 @@ func (c CfgPerNetwork) String() string {
 	s += c.UCfg.String()
 	s += c.WCfg.String()
 	s += c.RCfg.String()
+	s += c.CCfg.String()
 	s += fmt.Sprintf("\n======================================================================>>>")
 	return s
 }
@@ -97,6 +100,7 @@ func initDefault(baseDir string) error {
 		},
 		WCfg: wallet.DefaultConfig(true, baseDir),
 		RCfg: websocket.DefaultConfig(true, baseDir),
+		CCfg: contact.DefaultConfig(true, baseDir),
 	}
 	conf[MainNet] = mainConf
 
@@ -108,7 +112,9 @@ func initDefault(baseDir string) error {
 		},
 		WCfg: wallet.DefaultConfig(false, baseDir),
 		RCfg: websocket.DefaultConfig(false, baseDir),
+		CCfg: contact.DefaultConfig(false, baseDir),
 	}
+
 	conf[TestNet] = testConf
 
 	bts, err := json.MarshalIndent(conf, "", "\t")

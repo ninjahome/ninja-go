@@ -21,7 +21,7 @@ const (
 	DefaultWsMsgQueue       = 1 << 26
 	DefaultWsMsgSizePerUser = 1 << 16
 	DefaultHandShakeTimeOut = time.Second * 3
-	DefaultDataBaseDir      = "msg"
+	DefaultDataBaseDir      = "Msg"
 )
 
 type Config struct {
@@ -41,7 +41,7 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	s := fmt.Sprintf("\n<-------------service Config------------")
+	s := fmt.Sprintf("\n<-------------websocket Config------------")
 	s += fmt.Sprintf("\nhttp read timeout:%20d", c.ReadTimeout)
 	s += fmt.Sprintf("\nhttp writ timeout:%20d", c.WriteTimeout)
 	s += fmt.Sprintf("\nhttp idle timeout:%20d", c.IdleTimeout)

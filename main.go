@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ninjahome/ninja-go/cmd"
 	"github.com/ninjahome/ninja-go/node"
+	"github.com/ninjahome/ninja-go/service/contact"
 	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/fdlimit"
@@ -111,9 +112,7 @@ func initNinjaConfig() (err error) {
 	fmt.Println(result.String())
 
 	wallet.InitConfig(result.WCfg)
-
 	node.InitConfig(result.PCfg)
-
 	utils.InitConfig(result.UCfg)
 
 	if param.wsPort != -1 {
@@ -122,9 +121,9 @@ func initNinjaConfig() (err error) {
 	if param.wsIP != "" {
 		result.RCfg.WsIP = param.wsIP
 	}
-
 	websocket.InitConfig(result.RCfg)
-
+	//TODO:: configure contact service dynamically
+	contact.InitConfig(result.CCfg)
 	return
 }
 

@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
+	pbs2 "github.com/ninjahome/ninja-go/pbs/contact"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
+	"github.com/ninjahome/ninja-go/service/contact"
 	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
@@ -20,6 +22,7 @@ type NinjaStation struct {
 	threads                map[string]*thread.Thread
 	readInFromPeerMsgQueue chan *pbs.WsMsg
 	outToPeerMsgQueue      chan *pbs.WsMsg
+	contactMsgQueue        chan *pbs2.ContactMsg
 }
 
 func newStation() *NinjaStation {
@@ -47,6 +50,7 @@ func newStation() *NinjaStation {
 		ctxCancel:              cancel,
 		readInFromPeerMsgQueue: make(chan *pbs.WsMsg, _nodeConfig.MaxMsgQueueSize),
 		outToPeerMsgQueue:      make(chan *pbs.WsMsg, _nodeConfig.MaxMsgQueueSize),
+		contactMsgQueue:        make(chan *pbs2.ContactMsg, _nodeConfig.MaxMsgQueueSize),
 	}
 	utils.LogInst().Info().Msgf("p2p with id[%s] created addrs:%s", h.ID(), h.Addrs())
 	return n
@@ -54,10 +58,9 @@ func newStation() *NinjaStation {
 
 func (nt *NinjaStation) Start() error {
 	websocket.Inst().StartService(nt.nodeID, nt.outToPeerMsgQueue)
+	contact.Inst().StartService(nt.nodeID, nt.contactMsgQueue)
 
-	t := thread.NewThreadWithName(THNOuterMsgReader, func(stop chan struct{}) {
-		nt.waitMsgWork(stop)
-	})
+	t := thread.NewThreadWithName(THNOuterMsgReader, nt.waitMsgWork)
 	nt.threads[THNOuterMsgReader] = t
 	t.Run()
 
@@ -94,6 +97,11 @@ func (nt *NinjaStation) waitMsgWork(stop chan struct{}) {
 
 		case msg := <-nt.outToPeerMsgQueue:
 			if err := nt.procOuterChMsg(msg); err != nil {
+				utils.LogInst().Warn().Err(err).Send()
+			}
+
+		case msg := <-nt.contactMsgQueue:
+			if err := nt.procContactMsg(msg); err != nil {
 				utils.LogInst().Warn().Err(err).Send()
 			}
 
@@ -144,5 +152,8 @@ func (nt *NinjaStation) procInputChMsg(msg *pbs.WsMsg) error {
 		utils.LogInst().Warn().Msgf("unknown read in peer to peer msg type:[%d]", msg.Typ)
 	}
 
+	return nil
+}
+func (nt *NinjaStation) procContactMsg(msg *pbs2.ContactMsg) error {
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	pbs "github.com/ninjahome/ninja-go/pbs/contact"
+	"github.com/ninjahome/ninja-go/service/contact"
 	"github.com/ninjahome/ninja-go/wallet"
 	"io"
 	"net/http"
@@ -35,7 +36,7 @@ func (cc *ContactCli) makeOpRequest(msg *pbs.ContactMsg) error {
 	}
 
 	r := bytes.NewReader(reqData)
-	request, err := http.NewRequest("GET", cc.endpoint, r)
+	request, err := http.NewRequest("GET", cc.endpoint+"/"+contact.PathOperateContact, r)
 	if err != nil {
 		return err
 	}

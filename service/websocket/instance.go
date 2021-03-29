@@ -73,13 +73,8 @@ func newWebSocket() *Service {
 		threads:            make(map[string]*thread.Thread),
 		dataBase:           db,
 	}
-
-	ws.RegisterService(CPUserOnline, ws.online)
+	ws.apis.HandleFunc(CPUserOnline, ws.online)
 	return ws
-}
-
-func (ws *Service) RegisterService(path string, handler ChatHandler) {
-	ws.apis.HandleFunc(path, handler)
 }
 
 func (ws *Service) online(w http.ResponseWriter, r *http.Request) {
@@ -129,6 +124,9 @@ func (ws *Service) StartService(nodeID string, omq chan *pbs.WsMsg) {
 func (ws *Service) ShutDown() {
 	for _, t := range ws.threads {
 		t.Stop()
+	}
+	if ws.threads == nil {
+		return
 	}
 	ws.threads = nil
 	_ = ws.dataBase.Close()

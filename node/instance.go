@@ -32,12 +32,19 @@ const (
 	P2pChanUserOnOffLine MessageChannel = "/0.1/Global/user/on_offline"
 	P2pChanImmediateMsg  MessageChannel = "/0.1/Global/message/immediate"
 	P2pChanUnreadMsg     MessageChannel = "/0.1/Global/message/unread"
+	P2pChanContactMsg    MessageChannel = "/0.1/Global/message/unread"
 	P2pChanDebug         MessageChannel = "/0.1/Global/TEST"
 
 	THNOuterMsgReader = "outer message reader thread"
 )
 
-var SystemTopics = []MessageChannel{P2pChanUserOnOffLine, P2pChanImmediateMsg, P2pChanUnreadMsg, P2pChanDebug}
+var SystemTopics = []MessageChannel{
+	P2pChanUserOnOffLine,
+	P2pChanImmediateMsg,
+	P2pChanUnreadMsg,
+	P2pChanContactMsg,
+	P2pChanDebug,
+}
 
 //TODO:: check the peer id's token balance
 func userOnlineValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
