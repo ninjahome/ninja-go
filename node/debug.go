@@ -5,8 +5,7 @@ import (
 	"github.com/ninjahome/ninja-go/utils"
 )
 
-func (nt *NinjaStation) DebugWorker(topic, msg string) string {
-
+func (nt *NinjaStation) DebugTopicMsg(topic, msg string) string {
 	worker, ok := nt.workers[topic]
 	if !ok {
 		return "no such topic"
