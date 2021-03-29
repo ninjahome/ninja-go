@@ -34,7 +34,8 @@ message WSPullUnread{
 
 message WSUnreadAck{
   string nodeID = 1;
-  repeated  WSCryptoMsg payload = 2;
+  string receiver = 2;
+  repeated  WSCryptoMsg payload = 3;
 }
 
 message WsMsg{

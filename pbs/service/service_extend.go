@@ -36,7 +36,7 @@ func (x *WsMsg) ReadOnlineFromCli(conn *websocket.Conn) (olMsg *WSOnline, err er
 		return
 	}
 
-	if err := proto.Unmarshal(message, x); err != nil {
+	if err = proto.Unmarshal(message, x); err != nil {
 		return
 	}
 	if x.Typ != WsMsgType_Online {

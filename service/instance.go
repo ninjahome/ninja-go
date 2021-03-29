@@ -111,7 +111,7 @@ func (ws *WebSocketService) StartService(nodeID string, omq chan *pbs.WsMsg) {
 	ws.msgToOtherPeerQueue = omq
 	ws.id = nodeID
 	t := thread.NewThreadWithName(DispatchThreadName, func(stop chan struct{}) {
-		ws.msgDispatch(stop)
+		ws.wsCliMsgDispatch(stop)
 		ws.ShutDown()
 	})
 	ws.threads[DispatchThreadName] = t
@@ -171,4 +171,55 @@ func (ws *WebSocketService) PeerImmediateCryptoMsg(msg *pbs.WsMsg) error {
 	}
 	utils.LogInst().Debug().Msgf("found to peer[%s] in my table", body.Message.To)
 	return u.writeToCli(msg)
+}
+
+func (ws *WebSocketService) PeerUnreadMsg(msg *pbs.WsMsg) error {
+
+	unBody, ok := msg.Payload.(*pbs.WsMsg_Unread)
+	if !ok {
+		return fmt.Errorf("cast to unread message body failed")
+	}
+	unread := unBody.Unread
+
+LoadMore:
+	unreadMsg, hasMore := ws.loadDbUnread(unread)
+	if len(unreadMsg) == 0 {
+		return nil
+	}
+
+	result := &pbs.WsMsg{
+		Typ: pbs.WsMsgType_UnreadAck,
+		Payload: &pbs.WsMsg_UnreadAck{UnreadAck: &pbs.WSUnreadAck{
+			NodeID:   ws.id,
+			Receiver: unread.Receiver,
+			Payload:  unreadMsg,
+		}},
+	}
+
+	ws.msgToOtherPeerQueue <- result
+
+	user, ok := ws.userTable.get(unread.Receiver)
+	if ok {
+		if err := user.writeToCli(result); err != nil {
+			return err
+		}
+	}
+
+	if hasMore {
+		goto LoadMore
+	}
+	return nil
+}
+
+func (ws *WebSocketService) PeerUnreadAckMsg(msg *pbs.WsMsg) error {
+	body, ok := msg.Payload.(*pbs.WsMsg_UnreadAck)
+	if !ok {
+		return fmt.Errorf("cast to unread ack message body failed")
+	}
+	receiver := body.UnreadAck.Receiver
+	user, ok := ws.userTable.get(receiver)
+	if !ok {
+		return nil
+	}
+	return user.writeToCli(msg)
 }

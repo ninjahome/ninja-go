@@ -114,13 +114,10 @@ func (nt *NinjaStation) procOuterChMsg(msg *pbs.WsMsg) error {
 	case pbs.WsMsgType_ImmediateMsg:
 		return nt.pubSub.SendMsg(P2pChanImmediateMsg, data)
 
-	case pbs.WsMsgType_Online:
-		return nt.pubSub.SendMsg(P2pChanUserOnline, data)
+	case pbs.WsMsgType_Online, pbs.WsMsgType_Offline:
+		return nt.pubSub.SendMsg(P2pChanUserOnOffLine, data)
 
-	case pbs.WsMsgType_Offline:
-		return nt.pubSub.SendMsg(P2pChanUserOffline, data)
-
-	case pbs.WsMsgType_PullUnread:
+	case pbs.WsMsgType_PullUnread, pbs.WsMsgType_UnreadAck:
 		return nt.pubSub.SendMsg(P2pChanUnreadMsg, data)
 
 	default:
@@ -136,11 +133,13 @@ func (nt *NinjaStation) procInputChMsg(msg *pbs.WsMsg) error {
 	case pbs.WsMsgType_Online:
 		return service.Inst().OnlineFromOtherPeer(msg)
 	case pbs.WsMsgType_Offline:
-
 		return service.Inst().OfflineFromOtherPeer(msg)
 	case pbs.WsMsgType_ImmediateMsg:
 		return service.Inst().PeerImmediateCryptoMsg(msg)
-
+	case pbs.WsMsgType_PullUnread:
+		return service.Inst().PeerUnreadMsg(msg)
+	case pbs.WsMsgType_UnreadAck:
+		return service.Inst().PeerUnreadAckMsg(msg)
 	default:
 		utils.LogInst().Warn().Msgf("unknown read in peer to peer msg type:[%d]", msg.Typ)
 	}

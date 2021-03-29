@@ -41,23 +41,15 @@ func (ws *WebSocketService) procIM(msg *pbs.WsMsg) error {
 	ws.msgToOtherPeerQueue <- msg
 	return nil
 }
-func (ws *WebSocketService) findUnread(msg *pbs.WsMsg) error {
-	unBody, ok := msg.Payload.(*pbs.WsMsg_Unread)
-	if !ok {
-		return fmt.Errorf("cast to unread message body failed")
-	}
-	unread := unBody.Unread
-	//TODO::need to have a deep think, from local ,from peer , from network
-	if !ws.onlineSet.contains(unread.Receiver) {
-	}
+
+func (ws *WebSocketService) loadDbUnread(unread *pbs.WSPullUnread) ([]*pbs.WSCryptoMsg, bool) {
+
+	buf := make([]*pbs.WSCryptoMsg, 0)
+	var counter = 0
 	sKey := IMDBKey(unread.Receiver, unread.FromUnixTime)
 	eKey := IMDBEnd(unread.Receiver)
 	iter := ws.dataBase.NewIterator(&util.Range{Start: sKey, Limit: eKey}, nil)
-	unreadAck := &pbs.WSUnreadAck{
-		NodeID:  ws.id,
-		Payload: make([]*pbs.WSCryptoMsg, 0),
-	}
-	var counter = 0
+	hasMore := false
 	for iter.Next() {
 		v := iter.Value()
 		msgV := &pbs.WSCryptoMsg{}
@@ -66,35 +58,55 @@ func (ws *WebSocketService) findUnread(msg *pbs.WsMsg) error {
 			continue
 		}
 		counter++
-		unreadAck.Payload = append(unreadAck.Payload, msgV)
+		buf = append(buf, msgV)
 		k := iter.Key()
 		_ = ws.dataBase.Delete(k, nil)
 		if counter > _srvConfig.WsMsgSizePerUser {
+			hasMore = true
 			break
 		}
 	}
+
 	iter.Release()
+	return buf, hasMore
+}
+
+func (ws *WebSocketService) findLocalUnread(request *pbs.WsMsg) error {
+
+	unBody, ok := request.Payload.(*pbs.WsMsg_Unread)
+	if !ok {
+		return fmt.Errorf("cast to unread message body failed")
+	}
+	unread := unBody.Unread
+	user, ok := ws.userTable.get(unread.Receiver)
+	if !ok {
+		return nil
+	}
+
+LoadMore:
+	unreadMsg, hasMore := ws.loadDbUnread(unread)
+	if len(unreadMsg) == 0 {
+		return nil
+	}
+
 	result := &pbs.WsMsg{
-		Typ:     pbs.WsMsgType_UnreadAck,
-		Payload: &pbs.WsMsg_UnreadAck{UnreadAck: unreadAck},
+		Typ: pbs.WsMsgType_UnreadAck,
+		Payload: &pbs.WsMsg_UnreadAck{UnreadAck: &pbs.WSUnreadAck{
+			NodeID:   ws.id,
+			Receiver: unread.Receiver,
+			Payload:  unreadMsg,
+		}},
 	}
-
-	ws.msgToOtherPeerQueue <- result
-	return iter.Error()
+	if err := user.writeToCli(result); err != nil {
+		return err
+	}
+	if hasMore {
+		goto LoadMore
+	}
+	return nil
 }
 
-func (ws *WebSocketService) sendToPeer(msg *pbs.WsMsg) error {
-	switch msg.Typ {
-	case pbs.WsMsgType_ImmediateMsg:
-		return ws.procIM(msg)
-	case pbs.WsMsgType_PullUnread:
-		return ws.findUnread(msg)
-	}
-
-	return fmt.Errorf("unknown message type:%s", msg.Typ)
-}
-
-func (ws *WebSocketService) msgDispatch(stop chan struct{}) {
+func (ws *WebSocketService) wsCliMsgDispatch(stop chan struct{}) {
 
 	for {
 		select {
@@ -103,8 +115,19 @@ func (ws *WebSocketService) msgDispatch(stop chan struct{}) {
 			return
 
 		case msg := <-ws.msgFromClientQueue:
-			if err := ws.sendToPeer(msg); err != nil {
-				utils.LogInst().Warn().Msgf("send ws message failed:%s", err)
+			switch msg.Typ {
+			case pbs.WsMsgType_ImmediateMsg:
+				if err := ws.procIM(msg); err != nil {
+					utils.LogInst().Warn().Msgf("dispatch ws message failed:%s", err)
+				}
+			case pbs.WsMsgType_PullUnread:
+				ws.msgToOtherPeerQueue <- msg
+
+				if err := ws.findLocalUnread(msg); err != nil {
+					utils.LogInst().Warn().Msgf("dispatch ws message failed:%s", err)
+				}
+			default:
+				utils.LogInst().Warn().Msgf("unknown message type:%s", msg.Typ)
 			}
 		}
 	}

@@ -70,7 +70,7 @@ func newPubSub(ctx context.Context, h host.Host) (*PubSub, error) {
 
 func initTopicValidators(ps *pubsub.PubSub) error {
 
-	err := ps.RegisterTopicValidator(P2pChanUserOnline.String(),
+	err := ps.RegisterTopicValidator(P2pChanUserOnOffLine.String(),
 		userOnlineValidator,
 		pubsub.WithValidatorTimeout(250*time.Millisecond), //TODO::config
 		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxNotifyTopicThread))

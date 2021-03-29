@@ -96,7 +96,7 @@ func initDefault(baseDir string) error {
 			LogLevel: zerolog.ErrorLevel,
 		},
 		WCfg: wallet.DefaultConfig(true, baseDir),
-		RCfg: service.DefaultConfig(),
+		RCfg: service.DefaultConfig(true, baseDir),
 	}
 	conf[MainNet] = mainConf
 
@@ -107,7 +107,7 @@ func initDefault(baseDir string) error {
 			LogLevel: zerolog.DebugLevel,
 		},
 		WCfg: wallet.DefaultConfig(false, baseDir),
-		RCfg: service.DefaultConfig(),
+		RCfg: service.DefaultConfig(false, baseDir),
 	}
 	conf[TestNet] = testConf
 
