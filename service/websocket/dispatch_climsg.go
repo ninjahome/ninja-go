@@ -2,10 +2,10 @@ package websocket
 
 import (
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/syndtr/goleveldb/leveldb/util"
+	"google.golang.org/protobuf/proto"
 )
 
 const (

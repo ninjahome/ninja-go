@@ -4,8 +4,6 @@ go 1.16
 
 require (
 	github.com/forgoer/openssl v0.0.0-20201023062029-c3112b0c8700
-	github.com/gogo/protobuf v1.3.1
-	github.com/golang/protobuf v1.5.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/herumi/bls-eth-go-binary v0.0.0-20210226112520-435ed8c04ddd
 	github.com/ipfs/go-ds-badger v0.2.4

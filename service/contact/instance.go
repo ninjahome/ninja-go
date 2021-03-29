@@ -1,7 +1,7 @@
 package contact
 
 import (
-	"github.com/ninjahome/ninja-go/pbs/contact"
+	pbs "github.com/ninjahome/ninja-go/pbs/contact"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -55,14 +55,14 @@ func newContactServer() *Service {
 
 type Service struct {
 	id       string
-	p2pChan  chan *contact.ContactMsg
+	p2pChan  chan *pbs.ContactMsg
 	apis     *http.ServeMux
 	server   *http.Server
 	threads  map[string]*thread.Thread
 	dataBase *leveldb.DB
 }
 
-func (s *Service) StartService(id string, queue chan *contact.ContactMsg) {
+func (s *Service) StartService(id string, queue chan *pbs.ContactMsg) {
 	s.id = id
 	s.p2pChan = queue
 

@@ -2,8 +2,8 @@ package websocket
 
 import (
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
+	"google.golang.org/protobuf/proto"
 	"testing"
 	"time"
 )

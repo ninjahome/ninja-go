@@ -2,10 +2,10 @@ package websocket
 
 import (
 	"fmt"
-	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"github.com/herumi/bls-eth-go-binary/bls"
 	"github.com/ninjahome/ninja-go/wallet"
+	"google.golang.org/protobuf/proto"
 	"time"
 )
 

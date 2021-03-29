@@ -3,7 +3,6 @@ package node
 import (
 	"context"
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	coreDisc "github.com/libp2p/go-libp2p-core/discovery"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -12,6 +11,7 @@ import (
 	"github.com/libp2p/go-libp2p-pubsub"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/utils"
+	"google.golang.org/protobuf/proto"
 	"sync"
 	"time"
 )
