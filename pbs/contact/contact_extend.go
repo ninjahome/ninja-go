@@ -50,3 +50,8 @@ func (x *ContactItem) Data() []byte {
 	itemData, _ := proto.Marshal(x)
 	return itemData
 }
+
+func (x *ContactMsg) Data() []byte {
+	data, _ := proto.Marshal(x)
+	return data
+}

@@ -5,6 +5,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-pubsub"
 	"sync"
+	"time"
 )
 
 type NinjaNetwork interface {
@@ -22,29 +23,15 @@ func Inst() NinjaNetwork {
 	return _instance
 }
 
-type MessageChannel string
-
-func (mc MessageChannel) String() string {
-	return string(mc)
-}
 
 const (
-	P2pChanUserOnOffLine MessageChannel = "/0.1/Global/user/on_offline"
-	P2pChanImmediateMsg  MessageChannel = "/0.1/Global/message/immediate"
-	P2pChanUnreadMsg     MessageChannel = "/0.1/Global/message/unread"
-	P2pChanContactMsg    MessageChannel = "/0.1/Global/message/unread"
-	P2pChanDebug         MessageChannel = "/0.1/Global/TEST"
-
-	THNOuterMsgReader = "outer message reader thread"
+	P2pChanUserOnOffLine = "/0.1/Global/user/on_offline"
+	P2pChanImmediateMsg  = "/0.1/Global/message/immediate"
+	P2pChanUnreadMsg     = "/0.1/Global/message/unread"
+	P2pChanContactOps    = "/0.1/Global/contact/operation"
+	P2pChanContactQuery    = "/0.1/Global/contact/query"
+	P2pChanDebug         = "/0.1/Global/TEST"
 )
-
-var SystemTopics = []MessageChannel{
-	P2pChanUserOnOffLine,
-	P2pChanImmediateMsg,
-	P2pChanUnreadMsg,
-	P2pChanContactMsg,
-	P2pChanDebug,
-}
 
 //TODO:: check the peer id's token balance
 func userOnlineValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
@@ -55,4 +42,26 @@ func userOnlineValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message)
 func immediateCryptoMsgValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
 	//service.Inst().InUserTable()//TODO::maybe some easy way to tell the invalid message
 	return pubsub.ValidationAccept
+}
+
+//TODO:: to be discussed
+func initTopicValidators(ps *pubsub.PubSub) error {
+
+	err := ps.RegisterTopicValidator(P2pChanUserOnOffLine,
+		userOnlineValidator,
+		pubsub.WithValidatorTimeout(250*time.Millisecond), //TODO::config
+		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxNotifyTopicThread))
+
+	if err != nil {
+		return err
+	}
+
+	err = ps.RegisterTopicValidator(P2pChanImmediateMsg,
+		immediateCryptoMsgValidator,
+		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxNodeTopicThread))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

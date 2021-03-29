@@ -5,9 +5,13 @@ import (
 	"github.com/ninjahome/ninja-go/utils"
 )
 
-//---service debug
-func (nt *NinjaStation) DebugTopicMsg(topic, msg string) string {
-	if err := nt.pubSub.SendMsg(MessageChannel(topic), []byte(msg)); err != nil {
+func (nt *NinjaStation) DebugWorker(topic, msg string) string {
+
+	worker, ok := nt.workers[topic]
+	if !ok{
+		return "no such topic"
+	}
+	if err := worker.tWriter.Publish(nt.ctx, []byte(msg)); err != nil {
 		return err.Error()
 	}
 	return "publish success!"
@@ -15,7 +19,7 @@ func (nt *NinjaStation) DebugTopicMsg(topic, msg string) string {
 
 func (nt *NinjaStation) DebugTopicPeers(topic string) string {
 	utils.LogInst().Debug().Msgf("p2p cmd service query for topic[%s]", topic)
-	peers := nt.pubSub.PeersOfTopic(topic)
+	peers := nt.PeersOfTopic(topic)
 	bts, _ := json.Marshal(peers)
 	return string(bts)
 }

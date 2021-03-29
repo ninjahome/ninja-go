@@ -1,8 +1,9 @@
 package websocket
 
 import (
-	"fmt"
+	"context"
 	"github.com/gorilla/websocket"
+	"github.com/libp2p/go-libp2p-pubsub"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
@@ -16,16 +17,19 @@ import (
 
 type Service struct {
 	id       string
+	ctx      context.Context
 	apis     *http.ServeMux
 	upGrader *websocket.Upgrader
 	server   *http.Server
 
-	userTable           *UserTable
-	onlineSet           *OnlineMap
-	msgFromClientQueue  chan *pbs.WsMsg
-	threads             map[string]*thread.Thread
-	msgToOtherPeerQueue chan *pbs.WsMsg
-	dataBase            *leveldb.DB
+	userTable          *UserTable
+	onlineSet          *OnlineMap
+	msgFromClientQueue chan *pbs.WsMsg
+	threads            map[string]*thread.Thread
+	p2pOnOffWriter     *pubsub.Topic
+	p2pIMWriter        *pubsub.Topic
+	p2pUnreadQuery     *pubsub.Topic
+	dataBase           *leveldb.DB
 }
 type ChatHandler func(http.ResponseWriter, *http.Request)
 
@@ -76,35 +80,9 @@ func newWebSocket() *Service {
 	ws.apis.HandleFunc(CPUserOnline, ws.online)
 	return ws
 }
-
-func (ws *Service) online(w http.ResponseWriter, r *http.Request) {
-
-	defer func() {
-		if r := recover(); r != nil {
-			utils.LogInst().Warn().Msgf("websocket service panic by one server :=>%s", r)
-		}
-	}()
-
-	webSocket, err := ws.upGrader.Upgrade(w, r, nil)
-	if err != nil {
-		utils.LogInst().Err(err).Send()
-		return
-	}
-
-	webSocket.SetReadLimit(int64(_wsConfig.WsBufferSize))
-	webSocket.SetReadDeadline(time.Now().Add(_wsConfig.PongWait))
-	webSocket.SetPongHandler(func(string) error { webSocket.SetReadDeadline(time.Now().Add(_wsConfig.PongWait)); return nil })
-
-	if err := ws.newOnlineUser(webSocket); err != nil {
-		utils.LogInst().Err(err).Send()
-		return
-	}
-}
-
-func (ws *Service) StartService(nodeID string, omq chan *pbs.WsMsg) {
-
-	ws.msgToOtherPeerQueue = omq
+func (ws *Service) StartService(nodeID string, ctx context.Context) {
 	ws.id = nodeID
+	ws.ctx = ctx
 	t := thread.NewThreadWithName(DispatchThreadName, func(stop chan struct{}) {
 		ws.wsCliMsgDispatch(stop)
 		ws.ShutDown()
@@ -133,91 +111,58 @@ func (ws *Service) ShutDown() {
 	_ = ws.server.Close()
 }
 
-func (ws *Service) OnlineFromOtherPeer(msg *pbs.WsMsg) error {
-	body, ok := msg.Payload.(*pbs.WsMsg_Online)
-	if !ok {
-		return fmt.Errorf("this is not a valid online p2p message")
+func (ws *Service) online(w http.ResponseWriter, r *http.Request) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			utils.LogInst().Warn().Msgf("websocket service panic by one server :=>%s", r)
+		}
+	}()
+
+	webSocket, err := ws.upGrader.Upgrade(w, r, nil)
+	if err != nil {
+		utils.LogInst().Err(err).Send()
+		return
 	}
 
-	if !body.Online.Verify(msg.Sig) {
-		return fmt.Errorf("this is an attack")
+	webSocket.SetReadLimit(int64(_wsConfig.WsBufferSize))
+	webSocket.SetReadDeadline(time.Now().Add(_wsConfig.PongWait))
+	webSocket.SetPongHandler(func(string) error { webSocket.SetReadDeadline(time.Now().Add(_wsConfig.PongWait)); return nil })
+
+	if err := ws.newOnlineUser(webSocket); err != nil {
+		utils.LogInst().Err(err).Send()
+		return
 	}
-	ws.onlineSet.add(body.Online.UID)
-	return nil
 }
 
-func (ws *Service) OfflineFromOtherPeer(msg *pbs.WsMsg) error {
-	body, ok := msg.Payload.(*pbs.WsMsg_Online)
-	if !ok {
-		return fmt.Errorf("this is not a valid offline p2p message")
-	}
-	//TODO:: verify peer's authorization
-	ws.onlineSet.del(body.Online.UID)
-	ws.userTable.del(body.Online.UID)
-	return nil
-}
+func (ws *Service) wsCliMsgDispatch(stop chan struct{}) {
 
-func (ws *Service) PeerImmediateCryptoMsg(msg *pbs.WsMsg) error {
-	body, ok := msg.Payload.(*pbs.WsMsg_Message)
-	if !ok {
-		return fmt.Errorf("this is not a valid p2p crypto message")
-	}
+	for {
+		select {
+		case <-stop:
+			utils.LogInst().Warn().Msg("websocket dispatch thread exit")
+			return
 
-	u, ok := ws.userTable.get(body.Message.To)
-	if !ok {
-		return nil
-	}
-	utils.LogInst().Debug().Msgf("found to peer[%s] in my table", body.Message.To)
-	return u.writeToCli(msg)
-}
+		case msg := <-ws.msgFromClientQueue:
+			switch msg.Typ {
+			case pbs.WsMsgType_ImmediateMsg:
+				if err := ws.procIM(msg); err != nil {
+					utils.LogInst().Warn().Msgf("dispatch ws message failed:%s", err)
+				}
+			case pbs.WsMsgType_PullUnread:
 
-func (ws *Service) PeerUnreadMsg(msg *pbs.WsMsg) error {
+				if err := ws.p2pUnreadQuery.Publish(ws.ctx, msg.Data()); err != nil {
+					utils.LogInst().Warn().Msgf("broadcast unread message request failed:%s", err)
+					continue
+				}
 
-	unBody, ok := msg.Payload.(*pbs.WsMsg_Unread)
-	if !ok {
-		return fmt.Errorf("cast to unread message body failed")
-	}
-	unread := unBody.Unread
+				if err := ws.findLocalUnread(msg); err != nil {
+					utils.LogInst().Warn().Msgf("dispatch ws message failed:%s", err)
+				}
 
-LoadMore:
-	unreadMsg, hasMore := ws.loadDbUnread(unread)
-	if len(unreadMsg) == 0 {
-		return nil
-	}
-
-	result := &pbs.WsMsg{
-		Typ: pbs.WsMsgType_UnreadAck,
-		Payload: &pbs.WsMsg_UnreadAck{UnreadAck: &pbs.WSUnreadAck{
-			NodeID:   ws.id,
-			Receiver: unread.Receiver,
-			Payload:  unreadMsg,
-		}},
-	}
-
-	ws.msgToOtherPeerQueue <- result
-
-	user, ok := ws.userTable.get(unread.Receiver)
-	if ok {
-		if err := user.writeToCli(result); err != nil {
-			return err
+			default:
+				utils.LogInst().Warn().Msgf("unknown message type:%s from websocket client", msg.Typ)
+			}
 		}
 	}
-
-	if hasMore {
-		goto LoadMore
-	}
-	return nil
-}
-
-func (ws *Service) PeerUnreadAckMsg(msg *pbs.WsMsg) error {
-	body, ok := msg.Payload.(*pbs.WsMsg_UnreadAck)
-	if !ok {
-		return fmt.Errorf("cast to unread ack message body failed")
-	}
-	receiver := body.UnreadAck.Receiver
-	user, ok := ws.userTable.get(receiver)
-	if !ok {
-		return nil
-	}
-	return user.writeToCli(msg)
 }

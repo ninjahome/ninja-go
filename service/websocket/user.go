@@ -3,6 +3,7 @@ package websocket
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/libp2p/go-libp2p-pubsub"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
@@ -108,11 +109,12 @@ func (u *wsUser) writeToCli(msg *pbs.WsMsg) error {
 func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 
 	msg := &pbs.WsMsg{}
-	online, err := msg.ReadOnlineFromCli(conn)
+	online, rawData, err := msg.ReadOnlineFromCli(conn)
 	if err != nil {
 		conn.Close()
 		return err
 	}
+
 	wu := &wsUser{
 		cliWsConn:      conn,
 		UID:            online.UID,
@@ -122,14 +124,16 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 		msgToCliChan:   make(chan *pbs.WsMsg, _wsConfig.WsMsgSizePerUser),
 	}
 
-	ws.msgToOtherPeerQueue <- msg
+	if err := ws.p2pOnOffWriter.Publish(ws.ctx, rawData); err != nil {
+		return err
+	}
 	ws.onlineSet.add(wu.UID)
 	ws.userTable.add(wu)
 
 	tid := fmt.Sprintf("chat read:%s", wu.UID)
 	t := thread.NewThreadWithName(tid, func(stop chan struct{}) {
 		wu.reader(stop)
-		ws.OfflineUser(tid, wu, msg)
+		ws.OfflineUser(tid, wu, online.UID)
 	})
 	ws.threads[tid] = t
 	t.Run()
@@ -137,7 +141,7 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 	tid = fmt.Sprintf("chat writer:%s", wu.UID)
 	t = thread.NewThreadWithName(tid, func(stop chan struct{}) {
 		wu.writer(stop)
-		ws.OfflineUser(tid, wu, msg)
+		ws.OfflineUser(tid, wu, online.UID)
 	})
 	ws.threads[tid] = t
 	t.Run()
@@ -145,17 +149,79 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 	return nil
 }
 
-func (ws *Service) OfflineUser(threadId string, user *wsUser, msg *pbs.WsMsg) {
+func (ws *Service) OfflineUser(threadId string, user *wsUser, uid string) {
 	delete(ws.threads, threadId)
 	ws.onlineSet.del(user.UID)
 	ws.userTable.del(user.UID)
 
-	//key := wallet.Inst().KeyInUsed()
-	//key.SignData(msg.Payload)
-	//offlineMsg := &pbs.P2PMsg_Offline{
-	//	Offline:msg,
-	//}
 	//TODO:: add signature for offline message
-	msg.Typ = pbs.WsMsgType_Offline
-	ws.msgToOtherPeerQueue <- msg
+	msg := &pbs.WsMsg{
+		Typ:     pbs.WsMsgType_Offline,
+		Payload: &pbs.WsMsg_Online{Online: &pbs.WSOnline{UID: uid}},
+	}
+
+	if err := ws.p2pOnOffWriter.Publish(ws.ctx, msg.Data()); err != nil {
+		utils.LogInst().Warn().Err(err).Send()
+	}
+}
+
+func (ws *Service) OnOffLineForP2pNetwork(stop chan struct{}, r *pubsub.Subscription, w *pubsub.Topic) {
+	ws.p2pOnOffWriter = w
+	utils.LogInst().Debug().Msg("start on-off line message listening thread for p2p network")
+
+	for {
+		select {
+		case <-stop:
+			utils.LogInst().Warn().Msg("on-off line thread exit by outer controller")
+			return
+		default:
+			msg, err := r.Next(ws.ctx)
+			if err != nil {
+				utils.LogInst().Warn().Err(err).Send()
+				return
+			}
+
+			p2pMsg := &pbs.WsMsg{}
+			if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
+				utils.LogInst().Warn().Msg("failed parse p2p message")
+				continue
+			}
+
+			if p2pMsg.Typ == pbs.WsMsgType_Online {
+				if err := ws.onlineFromOtherPeer(p2pMsg); err != nil {
+					utils.LogInst().Warn().Msg("online from p2p network failed")
+				}
+			} else if p2pMsg.Typ == pbs.WsMsgType_Offline {
+				if err := ws.offlineFromOtherPeer(p2pMsg); err != nil {
+					utils.LogInst().Warn().Msg("offline from p2p network failed")
+				}
+			} else {
+				utils.LogInst().Warn().Msg("unknown msg typ in p2p on-off line channel")
+			}
+		}
+	}
+}
+
+func (ws *Service) onlineFromOtherPeer(msg *pbs.WsMsg) error {
+	body, ok := msg.Payload.(*pbs.WsMsg_Online)
+	if !ok {
+		return fmt.Errorf("this is not a valid online p2p message")
+	}
+
+	if !body.Online.Verify(msg.Sig) {
+		return fmt.Errorf("this is an attack")
+	}
+	ws.onlineSet.add(body.Online.UID)
+	return nil
+}
+
+func (ws *Service) offlineFromOtherPeer(msg *pbs.WsMsg) error {
+	body, ok := msg.Payload.(*pbs.WsMsg_Online)
+	if !ok {
+		return fmt.Errorf("this is not a valid offline p2p message")
+	}
+	//TODO:: verify peer's authorization
+	ws.onlineSet.del(body.Online.UID)
+	ws.userTable.del(body.Online.UID)
+	return nil
 }

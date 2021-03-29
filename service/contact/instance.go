@@ -1,7 +1,9 @@
 package contact
 
 import (
+	"context"
 	"fmt"
+	"github.com/libp2p/go-libp2p-pubsub"
 	pbs "github.com/ninjahome/ninja-go/pbs/contact"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
@@ -60,18 +62,20 @@ func newContactServer() *Service {
 }
 
 type Service struct {
-	id          string
-	p2pChan     chan *pbs.ContactMsg
-	apis        *http.ServeMux
-	server      *http.Server
-	threads     map[string]*thread.Thread
-	dataBase    *leveldb.DB
-	contactLock sync.RWMutex
+	id              string
+	ctx             context.Context
+	contactOpWriter *pubsub.Topic
+	contactQuery    *pubsub.Topic
+	apis            *http.ServeMux
+	server          *http.Server
+	threads         map[string]*thread.Thread
+	dataBase        *leveldb.DB
+	contactLock     sync.RWMutex
 }
 
-func (s *Service) StartService(id string, queue chan *pbs.ContactMsg) {
+func (s *Service) StartService(id string, ctx context.Context) {
 	s.id = id
-	s.p2pChan = queue
+	s.ctx = ctx
 
 	t := thread.NewThreadWithName(ServiceThreadName, func(_ chan struct{}) {
 		err := s.server.ListenAndServe()
@@ -96,8 +100,10 @@ func (s *Service) ShutDown() {
 }
 
 func (s *Service) operateContact(w http.ResponseWriter, r *http.Request) {
+
 	msg := &pbs.ContactMsg{}
 	data, err := io.ReadAll(r.Body)
+
 	if err != nil {
 		w.Write(pbs.ErrAck(err.Error()))
 		return
@@ -108,46 +114,25 @@ func (s *Service) operateContact(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err = s.contactOpWriter.Publish(s.ctx, msg.Data()); err != nil {
+		return
+	}
+
+	if err := s.procContactOperation(msg); err != nil {
+		w.Write(pbs.ErrAck(err.Error()))
+		return
+	}
+
+	w.Write(pbs.OkAck())
+}
+
+func (s *Service) procContactOperation(msg *pbs.ContactMsg) error {
 	switch msg.Typ {
 	case pbs.ContactMsgType_MTAddContact, pbs.ContactMsgType_MTUpdateContact:
-		body, ok := msg.PayLoad.(*pbs.ContactMsg_AddOrUpdate)
-		if !ok {
-			w.Write(pbs.ErrAck(ErBodyCast.Error()))
-			return
-		}
-
-		item := body.AddOrUpdate
-		if !msg.Verify(item.Data()) {
-			w.Write(pbs.ErrAck(ErVerifyFailed.Error()))
-			return
-		}
-
-		s.p2pChan <- msg
-		if err := s.save(msg.From, item); err != nil {
-			w.Write(pbs.ErrAck(err.Error()))
-			return
-		}
-
-		w.Write(pbs.OkAck())
-
+		return s.saveContact(msg)
 	case pbs.ContactMsgType_MTDeleteContact:
-		body, ok := msg.PayLoad.(*pbs.ContactMsg_DelC)
-		if !ok {
-			w.Write(pbs.ErrAck(ErBodyCast.Error()))
-			return
-		}
-
-		cid := body.DelC
-		if !msg.Verify([]byte(cid)) {
-			w.Write(pbs.ErrAck(ErVerifyFailed.Error()))
-			return
-		}
-		s.p2pChan <- msg
-		if err := s.del(msg.From, cid); err != nil {
-			w.Write(pbs.ErrAck(err.Error()))
-			return
-		}
-
-		w.Write(pbs.OkAck())
+		return s.delContact(msg)
+	default:
+		return fmt.Errorf("unknown contact operation")
 	}
 }

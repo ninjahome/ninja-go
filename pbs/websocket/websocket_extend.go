@@ -30,8 +30,8 @@ func (x *WSOnline) Verify(sig []byte) bool {
 	return wallet.VerifyByte(s, p, data)
 }
 
-func (x *WsMsg) ReadOnlineFromCli(conn *websocket.Conn) (olMsg *WSOnline, err error) {
-	_, message, err := conn.ReadMessage()
+func (x *WsMsg) ReadOnlineFromCli(conn *websocket.Conn) (olMsg *WSOnline, message []byte, err error) {
+	_, message, err = conn.ReadMessage()
 	if err != nil {
 		return
 	}
@@ -66,7 +66,12 @@ func (x *WsMsg) ReadOnlineFromCli(conn *websocket.Conn) (olMsg *WSOnline, err er
 	if err != nil {
 		return
 	}
-	return olMsg, conn.WriteMessage(websocket.TextMessage, ackData)
+	return olMsg, message, conn.WriteMessage(websocket.TextMessage, ackData)
+}
+
+func (x *WsMsg) Data() []byte {
+	data, _ := proto.Marshal(x)
+	return data
 }
 
 func (x *WsMsg) Online(conn *websocket.Conn, key *wallet.Key) error {
