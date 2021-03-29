@@ -3,12 +3,12 @@ package client
 import (
 	"fmt"
 	"github.com/forgoer/openssl"
-	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	websocket2 "github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils/thread"
 	"github.com/ninjahome/ninja-go/wallet"
+	"google.golang.org/protobuf/proto"
 	"net/url"
 )
 

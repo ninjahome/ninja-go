@@ -3,10 +3,10 @@ package client
 import (
 	"bytes"
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	pbs "github.com/ninjahome/ninja-go/pbs/contact"
 	"github.com/ninjahome/ninja-go/service/contact"
 	"github.com/ninjahome/ninja-go/wallet"
+	"google.golang.org/protobuf/proto"
 	"io"
 	"net/http"
 )
