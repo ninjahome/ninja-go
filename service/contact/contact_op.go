@@ -3,10 +3,10 @@ package contact
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"github.com/libp2p/go-libp2p-pubsub"
 	pbs "github.com/ninjahome/ninja-go/pbs/contact"
 	"github.com/ninjahome/ninja-go/utils"
+	"google.golang.org/protobuf/proto"
 	"time"
 )
 
@@ -102,7 +102,7 @@ func (s *Service) ContactOperationToP2pNetwork(stop chan struct{}, r *pubsub.Sub
 				continue
 			}
 			p2pMsg := &pbs.ContactMsg{}
-			if err := proto.UnmarshalMerge(msg.Data, p2pMsg); err != nil {
+			if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
 				utils.LogInst().Warn().Err(err).Send()
 				continue
 			}
