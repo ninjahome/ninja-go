@@ -6,6 +6,7 @@ import (
 	badger "github.com/ipfs/go-ds-badger"
 	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"
+	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	"github.com/libp2p/go-libp2p-core/discovery"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -31,6 +32,9 @@ const (
 	DefaultP2pPort           = 9999
 	DefaultOutboundQueueSize = 1 << 6
 	DefaultIMThreadNo        = MsgNoPerUser * DefaultMaxUserNo
+	DefaultLowConn           = 1 << 5
+	DefaultHighConn          = 1 << 10
+	DefaultConnGrace         = time.Minute
 
 	DHTPrefix                    = "ninja"
 	MainChain             ChanID = 1
@@ -96,12 +100,29 @@ func (c *dhtConfig) String() string {
 	return s
 }
 
+type connManagerConfig struct {
+	LowWater  int           `json:"conn.low"`
+	HighWater int           `json:"conn.high"`
+	GraceTime time.Duration `json:"conn.grace"`
+}
+
+func (c *connManagerConfig) String() string {
+	s := fmt.Sprintf("\n\t***********Connection Manager*************")
+	s += fmt.Sprintf("\n\t*connection low :\t%d", c.LowWater)
+	s += fmt.Sprintf("\n\t*connection high :\t%d", c.HighWater)
+	s += fmt.Sprintf("\n\t*connection grace :\t%s", c.GraceTime)
+	s += fmt.Sprintf("\n\t******************************************\n")
+	return s
+
+}
+
 type Config struct {
-	SrvPort    int16 `json:"port"`
-	ChainID    ChanID
-	P2oLogOpen bool          `json:"p2pLog"`
-	PsConf     *pubSubConfig `json:"pub_sub"`
-	DHTConf    *dhtConfig    `json:"dht"`
+	SrvPort     int16 `json:"port"`
+	ChainID     ChanID
+	P2oLogOpen  bool               `json:"p2pLog"`
+	PsConf      *pubSubConfig      `json:"pub_sub"`
+	DHTConf     *dhtConfig         `json:"dht"`
+	ConnMngConf *connManagerConfig `json:"connManager"`
 }
 
 func (c Config) String() string {
@@ -112,6 +133,7 @@ func (c Config) String() string {
 	s += fmt.Sprintf("\nnode service port:\t%d\n", c.SrvPort)
 	s += fmt.Sprintf(c.PsConf.String())
 	s += fmt.Sprintf(c.DHTConf.String())
+	s += fmt.Sprintf(c.ConnMngConf.String())
 	s += fmt.Sprintf("\n-------------------------------------------------------\n")
 	return s
 }
@@ -151,6 +173,11 @@ func DefaultConfig(isMain bool, base string) *Config {
 			DataStoreFile: dhtDir,
 			Boots:         boots,
 		},
+		ConnMngConf: &connManagerConfig{
+			LowWater:  DefaultLowConn,
+			HighWater: DefaultHighConn,
+			GraceTime: DefaultConnGrace,
+		},
 	}
 }
 
@@ -186,8 +213,11 @@ func (c *Config) initOptions() []libp2p.Option {
 		panic(err)
 	}
 
-	//TODO:: more option settings
+	connManager := connmgr.NewConnManager(c.ConnMngConf.LowWater,
+		c.ConnMngConf.HighWater,
+		c.ConnMngConf.GraceTime)
 	return []libp2p.Option{
+		libp2p.ConnectionManager(connManager),
 		libp2p.ListenAddrs(listenAddr),
 		libp2p.Identity(key),
 		libp2p.EnableNATService(),
