@@ -73,7 +73,7 @@ func newWebSocket() *Service {
 		server:             server,
 		userTable:          newUserTable(),
 		onlineSet:          newOnlineSet(),
-		msgFromClientQueue: make(chan *pbs.WsMsg, _wsConfig.WsMsgQueueSize),
+		msgFromClientQueue: make(chan *pbs.WsMsg, _wsConfig.WsMsgNoFromCli),
 		threads:            make(map[string]*thread.Thread),
 		dataBase:           db,
 	}
@@ -125,7 +125,7 @@ func (ws *Service) online(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	webSocket.SetReadLimit(int64(_wsConfig.WsBufferSize))
+	webSocket.SetReadLimit(int64(_wsConfig.WsIOBufferSize))
 	webSocket.SetReadDeadline(time.Now().Add(_wsConfig.PongWait))
 	webSocket.SetPongHandler(func(string) error { webSocket.SetReadDeadline(time.Now().Add(_wsConfig.PongWait)); return nil })
 

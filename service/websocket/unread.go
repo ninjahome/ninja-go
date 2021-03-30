@@ -28,7 +28,7 @@ func (ws *Service) loadDbUnread(unread *pbs.WSPullUnread) ([]*pbs.WSCryptoMsg, b
 		buf = append(buf, msgV)
 		k := iter.Key()
 		_ = ws.dataBase.Delete(k, nil)
-		if counter > _wsConfig.WsMsgSizePerUser {
+		if counter > _wsConfig.MaxUnreadMsgNoPerQuery {
 			hasMore = true
 			break
 		}

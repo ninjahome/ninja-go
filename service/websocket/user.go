@@ -121,7 +121,7 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 		onLineTime:     time.Now(),
 		msgFromCliChan: ws.msgFromClientQueue,
 		kaTimer:        time.NewTicker(_wsConfig.PingPeriod),
-		msgToCliChan:   make(chan *pbs.WsMsg, _wsConfig.WsMsgSizePerUser),
+		msgToCliChan:   make(chan *pbs.WsMsg, _wsConfig.MaxUnreadMsgNoPerQuery),
 	}
 
 	if err := ws.p2pOnOffWriter.Publish(ws.ctx, rawData); err != nil {

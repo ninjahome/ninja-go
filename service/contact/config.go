@@ -11,9 +11,9 @@ const (
 	DefaultSrvPort      = 6667
 	DefaultDataBaseDir  = "contact"
 	DefaultHost         = "0.0.0.0"
-	DefaultReadTimeout  = 10 * time.Second
-	DefaultWriteTimeout = 20 * time.Second
-	DefaultIdleTimeout  = 20 * time.Second
+	DefaultReadTimeout  = 30 * time.Second
+	DefaultWriteTimeout = 30 * time.Second
+	DefaultIdleTimeout  = 120 * time.Second
 )
 
 type Config struct {
@@ -29,9 +29,9 @@ var _srvConfig *Config = nil
 
 func (c Config) String() string {
 	s := fmt.Sprintf("\n<--------------------Contact Config--------------------")
-	s += fmt.Sprintf("\nhttp read timeout:\t%d", c.ReadTimeout)
-	s += fmt.Sprintf("\nhttp writ timeout:\t%d", c.WriteTimeout)
-	s += fmt.Sprintf("\nhttp idle timeout:\t%d", c.IdleTimeout)
+	s += fmt.Sprintf("\nhttp read timeout:\t%s", c.ReadTimeout)
+	s += fmt.Sprintf("\nhttp writ timeout:\t%s", c.WriteTimeout)
+	s += fmt.Sprintf("\nhttp idle timeout:\t%s", c.IdleTimeout)
 	s += fmt.Sprintf("\nws ip:\t\t\t%s", c.SrvIP)
 	s += fmt.Sprintf("\nmessage database dir:\t%s", c.DataBaseDir)
 	s += fmt.Sprintf("\nws port:\t\t%d", c.SrvPort)

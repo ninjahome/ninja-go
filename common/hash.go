@@ -3,7 +3,6 @@ package common
 import (
 	"database/sql/driver"
 	"encoding/hex"
-	"github.com/ninjahome/ninja-go/utils"
 	"math/big"
 	"reflect"
 )
@@ -19,7 +18,7 @@ func BytesToHash(b []byte) Hash {
 }
 func BigToHash(b *big.Int) Hash { return BytesToHash(b.Bytes()) }
 
-func HexToHash(s string) Hash { return BytesToHash(utils.FromHex(s)) }
+func HexToHash(s string) Hash { panic("implement me") }
 
 func (h Hash) Bytes() []byte { return h[:] }
 

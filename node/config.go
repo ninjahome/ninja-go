@@ -24,7 +24,7 @@ import (
 
 const (
 	DefaultMaxUserNo         = 1 << 10
-	MsgNoPerUser             = 1 << 5
+	MsgNoPerUser             = 1 << 6
 	MsgAverageSize           = 1 << 8
 	DefaultMaxMessageSize    = DefaultMaxUserNo * MsgNoPerUser * MsgAverageSize
 	DefaultP2pPort           = 9999
@@ -63,18 +63,18 @@ var (
 )
 
 type pubSubConfig struct {
-	MaxMsgSize         int `json:"max_msg_size"`
-	MaxOutQueuePerPeer int `json:"out_queue_size"`
-	MaxOnLineThread    int `json:"online_topic_threads"`
-	MaxIMTopicThread   int `json:"im_topic_threads"`
+	MaxMsgSize         utils.ByteSize `json:"max_msg_size"`
+	MaxOutQueuePerPeer int            `json:"out_queue_size"`
+	MaxOnLineThread    int            `json:"online_topic_threads"`
+	MaxIMTopicThread   int            `json:"im_topic_threads"`
 }
 
 func (c *pubSubConfig) String() string {
 	s := fmt.Sprintf("\n\t******************Pub Sub****************")
-	s += fmt.Sprintf("\n\t*max message:\t\t\t%d\t*", c.MaxMsgSize)
-	s += fmt.Sprintf("\n\t*max out queue size:\t\t%d\t*", c.MaxOutQueuePerPeer)
-	s += fmt.Sprintf("\n\t*max consensus topic thread:\t%d\t*", c.MaxOnLineThread)
-	s += fmt.Sprintf("\n\t*max common topic thread:\t%d\t*", c.MaxIMTopicThread)
+	s += fmt.Sprintf("\n\t*max message size:\t\t%s\t*", c.MaxMsgSize)
+	s += fmt.Sprintf("\n\t*max out chan per peer:\t\t%d\t*", c.MaxOutQueuePerPeer)
+	s += fmt.Sprintf("\n\t*max online topic thread:\t%d\t*", c.MaxOnLineThread)
+	s += fmt.Sprintf("\n\t*max IM topic thread:\t\t%d\t*", c.MaxIMTopicThread)
 	s += fmt.Sprintf("\n\t*****************************************\n")
 	return s
 }
@@ -191,7 +191,7 @@ func (c *Config) pubSubOpts(disc discovery.Discovery) []pubsub.Option {
 		pubsub.WithPeerOutboundQueueSize(c.PsConf.MaxOutQueuePerPeer),
 		pubsub.WithValidateWorkers(runtime.NumCPU() * 2),
 		pubsub.WithValidateThrottle(c.PsConf.MaxOnLineThread + c.PsConf.MaxIMTopicThread),
-		pubsub.WithMaxMessageSize(c.PsConf.MaxMsgSize),
+		pubsub.WithMaxMessageSize(int(c.PsConf.MaxMsgSize)),
 		pubsub.WithDiscovery(disc),
 	}
 }
