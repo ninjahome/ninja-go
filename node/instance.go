@@ -86,12 +86,14 @@ func (nt *NinjaNode) ShutDown() {
 	if nt.workers == nil {
 		return
 	}
+	_ = nt.p2pHost.Close()
+
+	nt.ctxCancel()
+
 	for _, t := range nt.workers {
 		t.StopWork()
 	}
 	nt.workers = nil
-	nt.ctxCancel()
-	_ = nt.p2pHost.Close()
 }
 
 func (nt *NinjaNode) PeersOfTopic(topic string) []peer.ID {

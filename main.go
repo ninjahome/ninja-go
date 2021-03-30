@@ -193,7 +193,6 @@ func mainRun(_ *cobra.Command, _ []string) {
 }
 
 func waitShutdownSignal() {
-	sigCh := make(chan os.Signal, 1)
 
 	pid := strconv.Itoa(os.Getpid())
 	fmt.Printf("\n>>>>>>>>>>ninja node start at pid(%s)<<<<<<<<<<\n", pid)
@@ -201,11 +200,14 @@ func waitShutdownSignal() {
 	if err := ioutil.WriteFile(path, []byte(pid), 0644); err != nil {
 		fmt.Print("failed to write running pid", err)
 	}
-
+	sigCh := make(chan os.Signal)
 	signal.Notify(sigCh,
+		syscall.SIGHUP,
 		syscall.SIGINT,
 		syscall.SIGTERM,
-		syscall.SIGQUIT)
+		syscall.SIGQUIT,
+		syscall.SIGUSR1,
+		syscall.SIGUSR2)
 
 	sig := <-sigCh
 	node.Inst().ShutDown()

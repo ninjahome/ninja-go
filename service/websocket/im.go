@@ -50,12 +50,13 @@ func (ws *Service) ImmediateMsgForP2pNetwork(w *worker.TopicWorker) {
 	for {
 		select {
 		case <-w.Stop:
-			utils.LogInst().Warn().Msg("immediate message listening thread exit by outer controller")
+			utils.LogInst().Warn().Msg("immediate message listening thread exit")
 			return
 		default:
 			msg, err := w.Sub.Next(ws.ctx)
 			if err != nil {
-				utils.LogInst().Warn().Err(err).Send()
+				utils.LogInst().Warn().Msgf("immediate message listening thread exit:=>%s", err)
+
 				return
 			}
 			p2pMsg := &pbs.WsMsg{}

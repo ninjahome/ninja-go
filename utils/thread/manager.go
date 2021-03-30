@@ -19,7 +19,7 @@ func Inst() *Manager {
 }
 
 type Manager struct {
-	ID     int
+	Seq    int
 	locker sync.RWMutex
 	queue  map[int]*Thread
 	nameID map[string]int
@@ -27,7 +27,7 @@ type Manager struct {
 
 func NewThreadWithName(name string, runner Runner) *Thread {
 	t := &Thread{
-		ID:        _inst.ID,
+		ID:        _inst.Seq,
 		name:      name,
 		stop:      make(chan struct{}),
 		runFunc:   runner,
@@ -39,14 +39,14 @@ func NewThreadWithName(name string, runner Runner) *Thread {
 
 	_inst.queue[t.ID] = t
 	_inst.nameID[name] = t.ID
-	_inst.ID++
+	_inst.Seq++
 
 	return t
 }
 
 func NewThread(runner Runner) *Thread {
 	_inst.locker.RLock()
-	name := fmt.Sprintf("Thread[%d]", _inst.ID)
+	name := fmt.Sprintf("Thread[%d]", _inst.Seq)
 	_inst.locker.RUnlock()
 	return NewThreadWithName(name, runner)
 }

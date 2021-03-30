@@ -173,12 +173,12 @@ func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
 	for {
 		select {
 		case <-w.Stop:
-			utils.LogInst().Warn().Msg("on-off line thread exit by outer controller")
+			utils.LogInst().Warn().Msg("on-off line thread exit")
 			return
 		default:
 			msg, err := w.Sub.Next(ws.ctx)
 			if err != nil {
-				utils.LogInst().Warn().Err(err).Send()
+				utils.LogInst().Warn().Msgf("on-off line thread exit:=>%s", err)
 				return
 			}
 

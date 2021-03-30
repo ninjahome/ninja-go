@@ -33,7 +33,7 @@ func (nt *NinjaNode) DebugPeerMsg(w *worker.TopicWorker) {
 		default:
 			msg, err := w.Sub.Next(nt.ctx)
 			if err != nil {
-				utils.LogInst().Err(err).Send()
+				utils.LogInst().Warn().Msgf("debug peer message thread exit:=>%s", err)
 				return
 			}
 			utils.LogInst().Debug().Msg(msg.String())

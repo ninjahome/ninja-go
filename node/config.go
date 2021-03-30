@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	badger "github.com/ipfs/go-ds-badger"
+	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/discovery"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -96,17 +97,19 @@ func (c *dhtConfig) String() string {
 }
 
 type Config struct {
-	SrvPort int16 `json:"port"`
-	ChainID ChanID
-	PsConf  *pubSubConfig `json:"pub_sub"`
-	DHTConf *dhtConfig    `json:"dht"`
+	SrvPort    int16 `json:"port"`
+	ChainID    ChanID
+	P2oLogOpen bool          `json:"p2pLog"`
+	PsConf     *pubSubConfig `json:"pub_sub"`
+	DHTConf    *dhtConfig    `json:"dht"`
 }
 
 func (c Config) String() string {
 	s := fmt.Sprintf("\n----------------------Node Config-----------------------")
-	s += fmt.Sprintf("\nchain id:		%d", c.ChainID)
-	s += fmt.Sprintf("\nchain name:	%20s", c.ChainID.String())
-	s += fmt.Sprintf("\nnode service port:	%d\n", c.SrvPort)
+	s += fmt.Sprintf("\nchain id:\t%d", c.ChainID)
+	s += fmt.Sprintf("\nchain name:\t%20s", c.ChainID.String())
+	s += fmt.Sprintf("\nchain name:\t%20t", c.P2oLogOpen)
+	s += fmt.Sprintf("\nnode service port:\t%d\n", c.SrvPort)
 	s += fmt.Sprintf(c.PsConf.String())
 	s += fmt.Sprintf(c.DHTConf.String())
 	s += fmt.Sprintf("\n-------------------------------------------------------\n")
@@ -117,23 +120,27 @@ var _nodeConfig *Config = nil
 
 func DefaultConfig(isMain bool, base string) *Config {
 	var (
+		isOpen  bool
 		boots   []string
 		dhtDir  string
 		chainID ChanID
 	)
 	if isMain {
+		isOpen = false
 		boots = MainP2pBoots
 		chainID = MainChain
 		dhtDir = filepath.Join(base, string(filepath.Separator), "dht_cache")
 	} else {
+		isOpen = true
 		boots = TestP2pBoots
 		chainID = TestChain
 		dhtDir = filepath.Join(base, string(filepath.Separator), "dht_cache_test")
 	}
 
 	return &Config{
-		SrvPort: DefaultP2pPort,
-		ChainID: chainID,
+		SrvPort:    DefaultP2pPort,
+		ChainID:    chainID,
+		P2oLogOpen: isOpen,
 		PsConf: &pubSubConfig{
 			MaxMsgSize:         DefaultMaxMessageSize,
 			MaxOutQueuePerPeer: DefaultOutboundQueueSize,
@@ -159,6 +166,10 @@ func (c *Config) initOptions() []libp2p.Option {
 		P2pChanUnreadMsg:     websocket.Inst().UnreadMsgFromP2pNetwork,
 		P2pChanContactOps:    contact.Inst().ContactOperationFromP2pNetwork,
 		P2pChanContactQuery:  contact.Inst().ContactQueryFromP2pNetwork,
+	}
+
+	if c.P2oLogOpen {
+		log.SetAllLoggers(log.LevelInfo)
 	}
 
 	listenAddr, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", _nodeConfig.SrvPort))

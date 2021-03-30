@@ -38,10 +38,6 @@ func (t *Thread) Stop() {
 		return
 	}
 
-	if _, ok := _inst.queue[t.ID]; !ok {
-		return
-	}
-
 	t.stop <- struct{}{}
 
 	delete(_inst.nameID, t.name)

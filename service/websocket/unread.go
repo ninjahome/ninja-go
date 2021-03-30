@@ -132,12 +132,12 @@ func (ws *Service) UnreadMsgFromP2pNetwork(w *worker.TopicWorker) {
 	for true {
 		select {
 		case <-w.Stop:
-			utils.LogInst().Warn().Msg("unread message listening thread exit by outer controller")
+			utils.LogInst().Warn().Msg("unread message listening thread exit")
 			return
 		default:
 			msg, err := w.Sub.Next(ws.ctx)
 			if err != nil {
-				utils.LogInst().Warn().Err(err).Send()
+				utils.LogInst().Warn().Msgf("unread message listening thread exit:=>%s", err)
 				return
 			}
 

@@ -45,7 +45,6 @@ func (tw *TopicWorker) WriteData(data []byte) error {
 }
 
 func (tw *TopicWorker) StopWork() {
-	utils.LogInst().Warn().Msgf("......subscribe topic[%s] thread exit!", tw.tid)
 	tw.thread.Stop()
 	tw.Pub.Close()
 	tw.Sub.Cancel()

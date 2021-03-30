@@ -77,12 +77,12 @@ func (s *Service) ContactQueryFromP2pNetwork(w *worker.TopicWorker) {
 	for true {
 		select {
 		case <-w.Stop:
-			utils.LogInst().Warn().Msg("contact query channel exit by outer controller")
+			utils.LogInst().Warn().Msg("contact query channel exit")
 			return
 		default:
 			msg, err := w.Sub.Next(s.ctx)
 			if err != nil {
-				utils.LogInst().Warn().Err(err).Send()
+				utils.LogInst().Warn().Msgf("contact query channel exit:=>%s", err)
 				return
 			}
 
