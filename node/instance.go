@@ -2,65 +2,102 @@ package node
 
 import (
 	"context"
+	"github.com/libp2p/go-libp2p"
+	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-pubsub"
+	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"github.com/ninjahome/ninja-go/node/worker"
+	"github.com/ninjahome/ninja-go/service/contact"
+	"github.com/ninjahome/ninja-go/service/websocket"
+	"github.com/ninjahome/ninja-go/utils"
 	"sync"
-	"time"
 )
 
-type NinjaNetwork interface {
-	Start() error
-	ShutDown()
-}
-
-var _instance NinjaNetwork
+var _instance *NinjaNode
 var once sync.Once
 
-func Inst() NinjaNetwork {
+func Inst() *NinjaNode {
 	once.Do(func() {
-		_instance = newStation()
+		_instance = newNode()
 	})
 	return _instance
 }
 
-const (
-	P2pChanUserOnOffLine = "/0.1/Global/user/on_offline"
-	P2pChanImmediateMsg  = "/0.1/Global/message/immediate"
-	P2pChanUnreadMsg     = "/0.1/Global/message/unread"
-	P2pChanContactOps    = "/0.1/Global/contact/operation"
-	P2pChanContactQuery  = "/0.1/Global/contact/query"
-	P2pChanDebug         = "/0.1/Global/TEST"
-)
-
-//TODO:: check the peer id's token balance
-func userOnlineValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
-	return pubsub.ValidationAccept
+type NinjaNode struct {
+	nodeID    string
+	p2pHost   host.Host
+	workers   worker.WorkGroup
+	pubSubs   *pubsub.PubSub
+	ctxCancel context.CancelFunc
+	ctx       context.Context
 }
 
-//TODO:: check the peer id's token balance
-func immediateCryptoMsgValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
-	//service.Inst().InUserTable()//TODO::maybe some easy way to tell the invalid message
-	return pubsub.ValidationAccept
+var systemTopics map[string]worker.TopicReader
+
+func newNode() *NinjaNode {
+	if _nodeConfig == nil {
+		panic("Please init p2p _nodeConfig first")
+	}
+
+	opts := _nodeConfig.initOptions()
+	ctx, cancel := context.WithCancel(context.Background())
+	h, err := libp2p.New(ctx, opts...)
+	if err != nil {
+		panic(err)
+	}
+
+	ps, err := newWorkGroup(ctx, h)
+	if err != nil {
+		panic(err)
+	}
+	n := &NinjaNode{
+		nodeID:    h.ID().String(),
+		p2pHost:   h,
+		pubSubs:   ps,
+		ctx:       ctx,
+		ctxCancel: cancel,
+	}
+	utils.LogInst().Info().Msgf("p2p with id[%s] created addrs:%s", h.ID(), h.Addrs())
+	return n
 }
 
-//TODO:: to be discussed
-func initTopicValidators(ps *pubsub.PubSub) error {
+func (nt *NinjaNode) Start() error {
+	websocket.Inst().StartService(nt.nodeID, nt.ctx)
+	contact.Inst().StartService(nt.nodeID, nt.ctx)
 
-	err := ps.RegisterTopicValidator(P2pChanUserOnOffLine,
-		userOnlineValidator,
-		pubsub.WithValidatorTimeout(250*time.Millisecond), //TODO::config
-		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxNotifyTopicThread))
-
-	if err != nil {
-		return err
+	workers := make(worker.WorkGroup)
+	for topID, r := range systemTopics {
+		topic, err := nt.pubSubs.Join(topID)
+		if err != nil {
+			return err
+		}
+		w := worker.NewWorker(nt.ctx, topID, topic, r)
+		workers[topID] = w
+		if err := w.StartWork(); err != nil {
+			return err
+		}
 	}
-
-	err = ps.RegisterTopicValidator(P2pChanImmediateMsg,
-		immediateCryptoMsgValidator,
-		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxNodeTopicThread))
-	if err != nil {
-		return err
-	}
+	nt.workers = workers
 
 	return nil
+}
+
+func (nt *NinjaNode) ShutDown() {
+	if nt.workers == nil {
+		return
+	}
+	for _, t := range nt.workers {
+		t.StopWork()
+	}
+	nt.workers = nil
+	nt.ctxCancel()
+	_ = nt.p2pHost.Close()
+}
+
+func (nt *NinjaNode) PeersOfTopic(topic string) []peer.ID {
+	w, ok := nt.workers[(topic)]
+	if !ok {
+		return nil
+	}
+	return w.PeersOfTopic()
 }

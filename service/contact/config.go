@@ -52,7 +52,6 @@ func DefaultConfig(isMain bool, base string) *Config {
 	}
 
 	return &Config{
-
 		ReadTimeout:  DefaultReadTimeout,
 		WriteTimeout: DefaultWriteTimeout,
 		IdleTimeout:  DefaultIdleTimeout,

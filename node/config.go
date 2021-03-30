@@ -1,32 +1,47 @@
 package node
 
 import (
+	"context"
 	"fmt"
 	badger "github.com/ipfs/go-ds-badger"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/discovery"
+	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
+	dis "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-pubsub"
 	ma "github.com/multiformats/go-multiaddr"
+	"github.com/ninjahome/ninja-go/node/worker"
+	"github.com/ninjahome/ninja-go/service/contact"
+	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/wallet"
 	"path/filepath"
 	"runtime"
+	"time"
 )
 
 const (
+	DefaultMaxUserNo         = 1 << 10
+	MsgNoPerUser             = 1 << 5
+	MsgAverageSize           = 1 << 8
+	DefaultMaxMessageSize    = DefaultMaxUserNo * MsgNoPerUser * MsgAverageSize
 	DefaultP2pPort           = 9999
-	DefaultMaxMessageSize    = 1 << 21
-	DefaultOutboundQueueSize = 64
-	DefaultValidateQueueSize = 512
+	DefaultOutboundQueueSize = 1 << 6
+	DefaultIMThreadNo        = MsgNoPerUser * DefaultMaxUserNo
 
-	DefaultNotifyTopicThreadSize = 1 << 13
-	DefaultNodeTopicThreadSize   = 1 << 11
 	DHTPrefix                    = "ninja"
+	MainChain             ChanID = 1
+	TestChain             ChanID = 2
+	P2pOnLineValidateTime        = 2 * time.Second
 
-	MainChain ChanID = 1
-	TestChain ChanID = 2
+	P2pChanUserOnOffLine = "/0.1/Global/user/on_offline"
+	P2pChanImmediateMsg  = "/0.1/Global/message/immediate"
+	P2pChanUnreadMsg     = "/0.1/Global/message/unread"
+	P2pChanContactOps    = "/0.1/Global/contact/operation"
+	P2pChanContactQuery  = "/0.1/Global/contact/query"
+	P2pChanDebug         = "/0.1/Global/TEST"
 )
 
 type ChanID int
@@ -48,21 +63,19 @@ var (
 )
 
 type pubSubConfig struct {
-	MaxMsgSize           int `json:"max_msg_size"`
-	MaxValidateQueue     int `json:"validate_queue_size"`
-	MaxOutQueue          int `json:"out_queue_size"`
-	MaxNotifyTopicThread int `json:"notify_topic_threads"`
-	MaxNodeTopicThread   int `json:"node_topic_threads"`
+	MaxMsgSize         int `json:"max_msg_size"`
+	MaxOutQueuePerPeer int `json:"out_queue_size"`
+	MaxOnLineThread    int `json:"online_topic_threads"`
+	MaxIMTopicThread   int `json:"im_topic_threads"`
 }
 
 func (c *pubSubConfig) String() string {
 	s := fmt.Sprintf("\n\t******************Pub Sub****************")
-	s += fmt.Sprintf("\n\t*max message:			%d\t*", c.MaxMsgSize)
-	s += fmt.Sprintf("\n\t*max validate queue size:	%d\t*", c.MaxValidateQueue)
-	s += fmt.Sprintf("\n\t*max out queue size:		%d\t*", c.MaxOutQueue)
-	s += fmt.Sprintf("\n\t*max consensus topic thread:	%d\t*", c.MaxNotifyTopicThread)
-	s += fmt.Sprintf("\n\t*max common topic thread:	%d\t*", c.MaxNodeTopicThread)
-	s += fmt.Sprintf("\n\t******************************************\n")
+	s += fmt.Sprintf("\n\t*max message:\t\t\t%d\t*", c.MaxMsgSize)
+	s += fmt.Sprintf("\n\t*max out queue size:\t\t%d\t*", c.MaxOutQueuePerPeer)
+	s += fmt.Sprintf("\n\t*max consensus topic thread:\t%d\t*", c.MaxOnLineThread)
+	s += fmt.Sprintf("\n\t*max common topic thread:\t%d\t*", c.MaxIMTopicThread)
+	s += fmt.Sprintf("\n\t*****************************************\n")
 	return s
 }
 
@@ -83,7 +96,7 @@ func (c *dhtConfig) String() string {
 }
 
 type Config struct {
-	Port    int16 `json:"port"`
+	SrvPort int16 `json:"port"`
 	ChainID ChanID
 	PsConf  *pubSubConfig `json:"pub_sub"`
 	DHTConf *dhtConfig    `json:"dht"`
@@ -93,7 +106,7 @@ func (c Config) String() string {
 	s := fmt.Sprintf("\n----------------------Node Config-----------------------")
 	s += fmt.Sprintf("\nchain id:		%d", c.ChainID)
 	s += fmt.Sprintf("\nchain name:	%20s", c.ChainID.String())
-	s += fmt.Sprintf("\nnode service port:	%d\n", c.Port)
+	s += fmt.Sprintf("\nnode service port:	%d\n", c.SrvPort)
 	s += fmt.Sprintf(c.PsConf.String())
 	s += fmt.Sprintf(c.DHTConf.String())
 	s += fmt.Sprintf("\n-------------------------------------------------------\n")
@@ -119,14 +132,13 @@ func DefaultConfig(isMain bool, base string) *Config {
 	}
 
 	return &Config{
-		Port:    DefaultP2pPort,
+		SrvPort: DefaultP2pPort,
 		ChainID: chainID,
 		PsConf: &pubSubConfig{
-			MaxMsgSize:           DefaultMaxMessageSize,
-			MaxValidateQueue:     DefaultValidateQueueSize,
-			MaxOutQueue:          DefaultOutboundQueueSize,
-			MaxNotifyTopicThread: DefaultNotifyTopicThreadSize,
-			MaxNodeTopicThread:   DefaultNodeTopicThreadSize,
+			MaxMsgSize:         DefaultMaxMessageSize,
+			MaxOutQueuePerPeer: DefaultOutboundQueueSize,
+			MaxOnLineThread:    DefaultMaxUserNo,
+			MaxIMTopicThread:   DefaultIMThreadNo,
 		},
 		DHTConf: &dhtConfig{
 			DataStoreFile: dhtDir,
@@ -140,7 +152,17 @@ func InitConfig(c *Config) {
 }
 
 func (c *Config) initOptions() []libp2p.Option {
-	listenAddr, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", _nodeConfig.Port))
+
+	systemTopics = map[string]worker.TopicReader{
+		P2pChanUserOnOffLine: websocket.Inst().OnOffLineForP2pNetwork,
+		P2pChanImmediateMsg:  websocket.Inst().ImmediateMsgForP2pNetwork,
+		P2pChanUnreadMsg:     websocket.Inst().UnreadMsgFromP2pNetwork,
+		P2pChanContactOps:    contact.Inst().ContactOperationFromP2pNetwork,
+		P2pChanContactQuery:  contact.Inst().ContactQueryFromP2pNetwork,
+		P2pChanDebug:         Inst().DebugPeerMsg,
+	}
+
+	listenAddr, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", _nodeConfig.SrvPort))
 	if err != nil {
 		panic(err)
 	}
@@ -154,6 +176,7 @@ func (c *Config) initOptions() []libp2p.Option {
 		panic(err)
 	}
 
+	//TODO:: more option settings
 	return []libp2p.Option{
 		libp2p.ListenAddrs(listenAddr),
 		libp2p.Identity(key),
@@ -164,10 +187,10 @@ func (c *Config) initOptions() []libp2p.Option {
 
 func (c *Config) pubSubOpts(disc discovery.Discovery) []pubsub.Option {
 	return []pubsub.Option{
-		pubsub.WithValidateQueueSize(c.PsConf.MaxValidateQueue),
-		pubsub.WithPeerOutboundQueueSize(c.PsConf.MaxOutQueue),
+		pubsub.WithValidateQueueSize(c.PsConf.MaxOnLineThread),
+		pubsub.WithPeerOutboundQueueSize(c.PsConf.MaxOutQueuePerPeer),
 		pubsub.WithValidateWorkers(runtime.NumCPU() * 2),
-		pubsub.WithValidateThrottle(c.PsConf.MaxNotifyTopicThread + c.PsConf.MaxNodeTopicThread),
+		pubsub.WithValidateThrottle(c.PsConf.MaxOnLineThread + c.PsConf.MaxIMTopicThread),
 		pubsub.WithMaxMessageSize(c.PsConf.MaxMsgSize),
 		pubsub.WithDiscovery(disc),
 	}
@@ -203,4 +226,62 @@ func (c *Config) dhtOpts() ([]dht.Option, error) {
 		dht.ProtocolPrefix(DHTPrefix),
 		dht.BootstrapPeers(peers...),
 	}, nil
+}
+
+func userOnlineValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
+	//TODO:: check the balance of the account 😁
+	return pubsub.ValidationAccept
+}
+
+func immediateCryptoMsgValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
+	return pubsub.ValidationAccept
+}
+
+func initTopicValidators(ps *pubsub.PubSub) error {
+
+	err := ps.RegisterTopicValidator(P2pChanUserOnOffLine,
+		userOnlineValidator,
+		pubsub.WithValidatorTimeout(P2pOnLineValidateTime),
+		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxOnLineThread))
+
+	if err != nil {
+		return err
+	}
+
+	err = ps.RegisterTopicValidator(P2pChanImmediateMsg,
+		immediateCryptoMsgValidator,
+		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxIMTopicThread))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func newWorkGroup(ctx context.Context, h host.Host) (*pubsub.PubSub, error) {
+	dhtOpts, err := _nodeConfig.dhtOpts()
+
+	kademliaDHT, err := dht.New(ctx, h, dhtOpts...)
+	if err != nil {
+		return nil, err
+	}
+
+	disc := dis.NewRoutingDiscovery(kademliaDHT)
+
+	psOption := _nodeConfig.pubSubOpts(disc)
+
+	ps, err := pubsub.NewGossipSub(ctx, h, psOption...)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := kademliaDHT.Bootstrap(ctx); err != nil {
+		return nil, err
+	}
+
+	if err := initTopicValidators(ps); err != nil {
+		return nil, err
+	}
+
+	return ps, nil
 }

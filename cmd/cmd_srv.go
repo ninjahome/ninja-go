@@ -22,24 +22,14 @@ var (
 )
 
 func (c *cmdService) P2PShowPeers(_ context.Context, peer *pbs.ShowPeer) (*pbs.CommonResponse, error) {
-	network, ok := node.Inst().(*node.NinjaStation)
-	if !ok {
-		return nil, fmt.Errorf("this test case is not valaible")
-	}
-	result := network.DebugTopicPeers(peer.Topic)
+	result := node.Inst().DebugTopicPeers(peer.Topic)
 	return &pbs.CommonResponse{
 		Msg: result,
 	}, nil
 }
 
 func (c *cmdService) P2PSendTopicMsg(_ context.Context, msg *pbs.TopicMsg) (*pbs.CommonResponse, error) {
-
-	network, ok := node.Inst().(*node.NinjaStation)
-	if !ok {
-		return nil, fmt.Errorf("this test case is not valaible")
-	}
-
-	result := network.DebugTopicMsg(msg.Topic, msg.Msg)
+	result := node.Inst().DebugTopicMsg(msg.Topic, msg.Msg)
 	return &pbs.CommonResponse{
 		Msg: result,
 	}, nil
