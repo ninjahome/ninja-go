@@ -7,11 +7,11 @@ import (
 )
 
 func (nt *NinjaNode) DebugTopicMsg(topic, msg string) string {
-	worker, ok := nt.workers[topic]
+	w, ok := nt.workers[topic]
 	if !ok {
 		return "no such topic"
 	}
-	if err := worker.WriteData([]byte(msg)); err != nil {
+	if err := w.WriteData([]byte(msg)); err != nil {
 		return err.Error()
 	}
 	return "publish success!"

@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"fmt"
-	"github.com/libp2p/go-libp2p-pubsub"
+	"github.com/ninjahome/ninja-go/node/worker"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"google.golang.org/protobuf/proto"
@@ -44,16 +44,16 @@ func (ws *Service) procIM(msg *pbs.WsMsg) error {
 	return ws.p2pIMWriter.Publish(ws.ctx, msg.Data())
 }
 
-func (ws *Service) ImmediateMsgForP2pNetwork(stop chan struct{}, r *pubsub.Subscription, w *pubsub.Topic) {
-	ws.p2pIMWriter = w
+func (ws *Service) ImmediateMsgForP2pNetwork(w *worker.TopicWorker) {
+	ws.p2pIMWriter = w.Pub
 
 	for {
 		select {
-		case <-stop:
+		case <-w.Stop:
 			utils.LogInst().Warn().Msg("immediate message listening thread exit by outer controller")
 			return
 		default:
-			msg, err := r.Next(ws.ctx)
+			msg, err := w.Sub.Next(ws.ctx)
 			if err != nil {
 				utils.LogInst().Warn().Err(err).Send()
 				return

@@ -3,7 +3,7 @@ package websocket
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/libp2p/go-libp2p-pubsub"
+	"github.com/ninjahome/ninja-go/node/worker"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
@@ -165,17 +165,17 @@ func (ws *Service) OfflineUser(threadId string, user *wsUser, uid string) {
 	}
 }
 
-func (ws *Service) OnOffLineForP2pNetwork(stop chan struct{}, r *pubsub.Subscription, w *pubsub.Topic) {
-	ws.p2pOnOffWriter = w
+func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
+	ws.p2pOnOffWriter = w.Pub
 	utils.LogInst().Debug().Msg("start on-off line message listening thread for p2p network")
 
 	for {
 		select {
-		case <-stop:
+		case <-w.Stop:
 			utils.LogInst().Warn().Msg("on-off line thread exit by outer controller")
 			return
 		default:
-			msg, err := r.Next(ws.ctx)
+			msg, err := w.Sub.Next(ws.ctx)
 			if err != nil {
 				utils.LogInst().Warn().Err(err).Send()
 				return

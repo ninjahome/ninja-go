@@ -3,7 +3,7 @@ package contact
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/libp2p/go-libp2p-pubsub"
+	"github.com/ninjahome/ninja-go/node/worker"
 	pbs "github.com/ninjahome/ninja-go/pbs/contact"
 	"github.com/ninjahome/ninja-go/utils"
 	"google.golang.org/protobuf/proto"
@@ -71,16 +71,16 @@ func (s *Service) queryContact(w http.ResponseWriter, r *http.Request) {
 	w.Write(result.Data())
 }
 
-func (s *Service) ContactQueryFromP2pNetwork(stop chan struct{}, r *pubsub.Subscription, w *pubsub.Topic) {
-	s.contactQuery = w
+func (s *Service) ContactQueryFromP2pNetwork(w *worker.TopicWorker) {
+	s.contactQuery = w.Pub
 
 	for true {
 		select {
-		case <-stop:
+		case <-w.Stop:
 			utils.LogInst().Warn().Msg("contact query channel exit by outer controller")
 			return
 		default:
-			msg, err := r.Next(s.ctx)
+			msg, err := w.Sub.Next(s.ctx)
 			if err != nil {
 				utils.LogInst().Warn().Err(err).Send()
 				return
@@ -89,6 +89,8 @@ func (s *Service) ContactQueryFromP2pNetwork(stop chan struct{}, r *pubsub.Subsc
 			if msg.ReceivedFrom.String() == s.id {
 				continue
 			}
+
+			//TODO:: need query contact from p2p network ???
 		}
 	}
 }

@@ -3,7 +3,7 @@ package contact
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/libp2p/go-libp2p-pubsub"
+	"github.com/ninjahome/ninja-go/node/worker"
 	pbs "github.com/ninjahome/ninja-go/pbs/contact"
 	"github.com/ninjahome/ninja-go/utils"
 	"google.golang.org/protobuf/proto"
@@ -83,16 +83,16 @@ func (s *Service) delContact(msg *pbs.ContactMsg) error {
 	})
 }
 
-func (s *Service) ContactOperationFromP2pNetwork(stop chan struct{}, r *pubsub.Subscription, w *pubsub.Topic) {
-	s.contactOpWriter = w
+func (s *Service) ContactOperationFromP2pNetwork(w *worker.TopicWorker) {
+	s.contactOpWriter = w.Pub
 
 	for true {
 		select {
-		case <-stop:
+		case <-w.Stop:
 			utils.LogInst().Warn().Msg("contact operation channel exit by outer controller")
 			return
 		default:
-			msg, err := r.Next(s.ctx)
+			msg, err := w.Sub.Next(s.ctx)
 			if err != nil {
 				utils.LogInst().Warn().Err(err).Send()
 				return

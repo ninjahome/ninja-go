@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"fmt"
-	"github.com/libp2p/go-libp2p-pubsub"
+	"github.com/ninjahome/ninja-go/node/worker"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -126,16 +126,16 @@ func (ws *Service) unreadMsgResultFromP2pNetwork(msg *pbs.WsMsg) error {
 	return user.writeToCli(msg)
 }
 
-func (ws *Service) UnreadMsgFromP2pNetwork(stop chan struct{}, r *pubsub.Subscription, w *pubsub.Topic) {
-	ws.p2pUnreadQuery = w
+func (ws *Service) UnreadMsgFromP2pNetwork(w *worker.TopicWorker) {
+	ws.p2pUnreadQuery = w.Pub
 
 	for true {
 		select {
-		case <-stop:
+		case <-w.Stop:
 			utils.LogInst().Warn().Msg("unread message listening thread exit by outer controller")
 			return
 		default:
-			msg, err := r.Next(ws.ctx)
+			msg, err := w.Sub.Next(ws.ctx)
 			if err != nil {
 				utils.LogInst().Warn().Err(err).Send()
 				return
