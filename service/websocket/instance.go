@@ -99,10 +99,10 @@ func (ws *Service) StartService(nodeID string, ctx context.Context) {
 }
 
 func (ws *Service) ShutDown() {
-	utils.LogInst().Warn().Msg("websocket service thread exit......")
 	if ws.threads == nil {
 		return
 	}
+	utils.LogInst().Warn().Msg("websocket service thread exit......")
 	for _, t := range ws.threads {
 		t.Stop()
 	}

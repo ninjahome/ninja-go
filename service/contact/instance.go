@@ -89,14 +89,13 @@ func (s *Service) StartService(id string, ctx context.Context) {
 }
 
 func (s *Service) ShutDown() {
+	if s.threads == nil {
+		return
+	}
 	utils.LogInst().Warn().Msg("contact service thread exit......")
 	for _, t := range s.threads {
 		t.Stop()
 	}
-	if s.threads == nil {
-		return
-	}
-
 	s.threads = nil
 	_ = s.dataBase.Close()
 	_ = s.server.Close()
