@@ -25,42 +25,39 @@ func (u *wsUser) offLine() {
 	if u.msgToCliChan == nil {
 		return
 	}
+
+	u.cliWsConn.WriteMessage(websocket.CloseMessage, []byte{})
 	u.cliWsConn.Close()
 	close(u.msgToCliChan)
 	u.msgToCliChan = nil
 	u.kaTimer.Stop()
 }
 
-func (u *wsUser) reading(stop chan struct{}) {
+func (u *wsUser) reading(_ chan struct{}) {
+	utils.LogInst().Info().Msgf("reading thread for [%s] start success!", u.UID)
 	defer u.offLine()
 	for {
-		select {
-		case <-stop:
-			utils.LogInst().Warn().Msg("web socket reader thread exit")
-			return
-		default:
-			_, message, err := u.cliWsConn.ReadMessage()
-			if err != nil {
-				if websocket.IsUnexpectedCloseError(err,
-					websocket.CloseGoingAway,
-					websocket.CloseAbnormalClosure) {
-					utils.LogInst().Err(err)
-				}
-				break
+		_, message, err := u.cliWsConn.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err,
+				websocket.CloseGoingAway,
+				websocket.CloseAbnormalClosure) {
+				utils.LogInst().Err(err).Send()
 			}
-
-			msg := &pbs.WsMsg{}
-			if err := proto.Unmarshal(message, msg); err != nil {
-				utils.LogInst().Warn().Msgf("web socket read invalid:%x", message)
-				continue
-			}
-			u.msgFromCliChan <- msg
+			break
 		}
+
+		msg := &pbs.WsMsg{}
+		if err := proto.Unmarshal(message, msg); err != nil {
+			utils.LogInst().Warn().Msgf("web socket read invalid:%x", message)
+			continue
+		}
+		u.msgFromCliChan <- msg
 	}
 }
 
 func (u *wsUser) writing(stop chan struct{}) {
-
+	utils.LogInst().Info().Msgf("writing thread for [%s] start success!", u.UID)
 	defer u.offLine()
 	for {
 		select {
@@ -77,24 +74,24 @@ func (u *wsUser) writing(stop chan struct{}) {
 
 			w, err := u.cliWsConn.NextWriter(websocket.TextMessage)
 			if err != nil {
-				utils.LogInst().Err(err)
+				utils.LogInst().Err(err).Send()
 				return
 			}
 
 			data, _ := proto.Marshal(message)
 			w.Write(data)
 			if err := w.Close(); err != nil {
-				utils.LogInst().Err(err)
+				utils.LogInst().Err(err).Send()
 				return
 			}
 
 		case <-u.kaTimer.C:
 			if err := u.cliWsConn.SetWriteDeadline(time.Now().Add(_wsConfig.WriteWait)); err != nil {
-				utils.LogInst().Err(err)
+				utils.LogInst().Err(err).Send()
 				return
 			}
 			if err := u.cliWsConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				utils.LogInst().Err(err)
+				utils.LogInst().Err(err).Send()
 				return
 			}
 		}
@@ -131,20 +128,15 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 	ws.userTable.add(wu)
 
 	tid := fmt.Sprintf("chat read:%s", wu.UID)
-	t := thread.NewThreadWithName(tid, func(stop chan struct{}) {
-		utils.LogInst().Info().Msgf("reading thread for [%s] start success!", wu.UID)
-		wu.reading(stop)
+	t := thread.NewThreadWithName(tid, wu.reading)
+	t.WillExit(func() {
 		ws.offlineUser(tid, wu.UID)
 	})
 	ws.threads[tid] = t
 	t.Run()
 
 	tid = fmt.Sprintf("chat writer:%s", wu.UID)
-	t = thread.NewThreadWithName(tid, func(stop chan struct{}) {
-		utils.LogInst().Info().Msgf("writing thread for [%s] start success!", wu.UID)
-		wu.writing(stop)
-		ws.offlineUser(tid, online.UID)
-	})
+	t = thread.NewThreadWithName(tid, wu.writing)
 	ws.threads[tid] = t
 	t.Run()
 
@@ -170,35 +162,30 @@ func (ws *Service) offlineUser(threadId string, uid string) {
 
 func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
 	ws.p2pOnOffWriter = w.Pub
+
 	for {
-		select {
-		case <-w.Stop:
-			utils.LogInst().Warn().Msg("on-off line thread exit")
+		msg, err := w.Sub.Next(ws.ctx)
+		if err != nil {
+			utils.LogInst().Warn().Msgf("on-off line thread exit:=>%s", err)
 			return
-		default:
-			msg, err := w.Sub.Next(ws.ctx)
-			if err != nil {
-				utils.LogInst().Warn().Msgf("on-off line thread exit:=>%s", err)
-				return
-			}
+		}
 
-			p2pMsg := &pbs.WsMsg{}
-			if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
-				utils.LogInst().Warn().Msg("failed parse p2p message")
-				continue
-			}
+		p2pMsg := &pbs.WsMsg{}
+		if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
+			utils.LogInst().Warn().Msg("failed parse p2p message")
+			continue
+		}
 
-			if p2pMsg.Typ == pbs.WsMsgType_Online {
-				if err := ws.onlineFromOtherPeer(p2pMsg); err != nil {
-					utils.LogInst().Warn().Msg("online from p2p network failed")
-				}
-			} else if p2pMsg.Typ == pbs.WsMsgType_Offline {
-				if err := ws.offlineFromOtherPeer(p2pMsg); err != nil {
-					utils.LogInst().Warn().Msg("offline from p2p network failed")
-				}
-			} else {
-				utils.LogInst().Warn().Msg("unknown msg typ in p2p on-off line channel")
+		if p2pMsg.Typ == pbs.WsMsgType_Online {
+			if err := ws.onlineFromOtherPeer(p2pMsg); err != nil {
+				utils.LogInst().Warn().Msg("online from p2p network failed")
 			}
+		} else if p2pMsg.Typ == pbs.WsMsgType_Offline {
+			if err := ws.offlineFromOtherPeer(p2pMsg); err != nil {
+				utils.LogInst().Warn().Msg("offline from p2p network failed")
+			}
+		} else {
+			utils.LogInst().Warn().Msg("unknown msg typ in p2p on-off line channel")
 		}
 	}
 }

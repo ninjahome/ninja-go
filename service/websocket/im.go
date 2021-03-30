@@ -48,29 +48,23 @@ func (ws *Service) ImmediateMsgForP2pNetwork(w *worker.TopicWorker) {
 	ws.p2pIMWriter = w.Pub
 
 	for {
-		select {
-		case <-w.Stop:
-			utils.LogInst().Warn().Msg("immediate message listening thread exit")
-			return
-		default:
-			msg, err := w.Sub.Next(ws.ctx)
-			if err != nil {
-				utils.LogInst().Warn().Msgf("immediate message listening thread exit:=>%s", err)
+		msg, err := w.Sub.Next(ws.ctx)
+		if err != nil {
+			utils.LogInst().Warn().Msgf("immediate message listening thread exit:=>%s", err)
 
-				return
-			}
-			p2pMsg := &pbs.WsMsg{}
-			if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
-				utils.LogInst().Warn().Msg("failed parse p2p message")
-				continue
-			}
-			if p2pMsg.Typ != pbs.WsMsgType_ImmediateMsg {
-				utils.LogInst().Warn().Msg("unknown msg typ in p2p immediate message channel")
-				continue
-			}
-			if err := ws.peerImmediateMsg(p2pMsg); err != nil {
-				utils.LogInst().Warn().Err(err).Send()
-			}
+			return
+		}
+		p2pMsg := &pbs.WsMsg{}
+		if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
+			utils.LogInst().Warn().Msg("failed parse p2p message")
+			continue
+		}
+		if p2pMsg.Typ != pbs.WsMsgType_ImmediateMsg {
+			utils.LogInst().Warn().Msg("unknown msg typ in p2p immediate message channel")
+			continue
+		}
+		if err := ws.peerImmediateMsg(p2pMsg); err != nil {
+			utils.LogInst().Warn().Err(err).Send()
 		}
 	}
 }

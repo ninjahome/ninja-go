@@ -11,7 +11,6 @@ import (
 type TopicReader func(*TopicWorker)
 
 type TopicWorker struct {
-	Stop    chan struct{}
 	ctx     context.Context
 	tid     string
 	Pub     *pubsub.Topic
@@ -29,9 +28,8 @@ func (tw *TopicWorker) StartWork() error {
 	}
 	tw.Sub = sub
 
-	t := thread.NewThreadWithName(tw.tid, func(stop chan struct{}) {
+	t := thread.NewThreadWithName(tw.tid, func(_ chan struct{}) {
 		utils.LogInst().Info().Msgf("......subscribe topic[%s] thread success!", tw.tid)
-		tw.Stop = stop
 		tw.tReader(tw)
 		tw.StopWork()
 	})
@@ -45,7 +43,6 @@ func (tw *TopicWorker) WriteData(data []byte) error {
 }
 
 func (tw *TopicWorker) StopWork() {
-	tw.thread.Stop()
 	tw.Pub.Close()
 	tw.Sub.Cancel()
 }

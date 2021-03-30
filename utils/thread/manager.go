@@ -29,7 +29,7 @@ func NewThreadWithName(name string, runner Runner) *Thread {
 	t := &Thread{
 		ID:        _inst.Seq,
 		name:      name,
-		stop:      make(chan struct{}),
+		stop:      make(chan struct{}, 1),
 		runFunc:   runner,
 		startTime: time.Now(),
 	}

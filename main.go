@@ -200,7 +200,7 @@ func waitShutdownSignal() {
 	if err := ioutil.WriteFile(path, []byte(pid), 0644); err != nil {
 		fmt.Print("failed to write running pid", err)
 	}
-	sigCh := make(chan os.Signal)
+	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh,
 		syscall.SIGHUP,
 		syscall.SIGINT,

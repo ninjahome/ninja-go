@@ -6,12 +6,18 @@ import (
 )
 
 type Runner func(stop chan struct{})
+type BeforeExit func()
 type Thread struct {
 	ID        int
 	name      string
 	stop      chan struct{}
 	runFunc   Runner
+	beFunc    BeforeExit
 	startTime time.Time
+}
+
+func (t *Thread) WillExit(be BeforeExit) {
+	t.beFunc = be
 }
 
 func (t *Thread) Run() {
@@ -38,10 +44,15 @@ func (t *Thread) Stop() {
 		return
 	}
 
+	if t.beFunc != nil {
+		t.beFunc()
+	}
+
 	t.stop <- struct{}{}
+
+	close(t.stop)
+	t.stop = nil
 
 	delete(_inst.nameID, t.name)
 	delete(_inst.queue, t.ID)
-	close(t.stop)
-	t.stop = nil
 }

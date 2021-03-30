@@ -129,42 +129,37 @@ func (ws *Service) unreadMsgResultFromP2pNetwork(msg *pbs.WsMsg) error {
 func (ws *Service) UnreadMsgFromP2pNetwork(w *worker.TopicWorker) {
 	ws.p2pUnreadQuery = w.Pub
 
-	for true {
-		select {
-		case <-w.Stop:
-			utils.LogInst().Warn().Msg("unread message listening thread exit")
+	for {
+
+		msg, err := w.Sub.Next(ws.ctx)
+		if err != nil {
+			utils.LogInst().Warn().Msgf("unread message listening thread exit:=>%s", err)
 			return
+		}
+
+		if msg.ReceivedFrom.String() == ws.id {
+			continue
+		}
+
+		p2pMsg := &pbs.WsMsg{}
+		if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
+			utils.LogInst().Warn().Msg("failed parse p2p message")
+			continue
+		}
+
+		switch p2pMsg.Typ {
+		case pbs.WsMsgType_PullUnread:
+			if err := ws.procUnreadMsgQueryFromP2pNetwork(p2pMsg); err != nil {
+				utils.LogInst().Warn().Msgf("read local unread message for p2p query err:%s", err)
+				continue
+			}
+		case pbs.WsMsgType_UnreadAck:
+			if err := ws.unreadMsgResultFromP2pNetwork(p2pMsg); err != nil {
+				utils.LogInst().Warn().Msgf("send unread msg from p2p network to client err:%s", err)
+				continue
+			}
 		default:
-			msg, err := w.Sub.Next(ws.ctx)
-			if err != nil {
-				utils.LogInst().Warn().Msgf("unread message listening thread exit:=>%s", err)
-				return
-			}
-
-			if msg.ReceivedFrom.String() == ws.id {
-				continue
-			}
-
-			p2pMsg := &pbs.WsMsg{}
-			if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
-				utils.LogInst().Warn().Msg("failed parse p2p message")
-				continue
-			}
-
-			switch p2pMsg.Typ {
-			case pbs.WsMsgType_PullUnread:
-				if err := ws.procUnreadMsgQueryFromP2pNetwork(p2pMsg); err != nil {
-					utils.LogInst().Warn().Msgf("read local unread message for p2p query err:%s", err)
-					continue
-				}
-			case pbs.WsMsgType_UnreadAck:
-				if err := ws.unreadMsgResultFromP2pNetwork(p2pMsg); err != nil {
-					utils.LogInst().Warn().Msgf("send unread msg from p2p network to client err:%s", err)
-					continue
-				}
-			default:
-				utils.LogInst().Warn().Msg("unknown msg typ in unread message channel")
-			}
+			utils.LogInst().Warn().Msg("unknown msg typ in unread message channel")
 		}
 	}
 }

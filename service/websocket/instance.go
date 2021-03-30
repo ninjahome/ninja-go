@@ -84,11 +84,7 @@ func newWebSocket() *Service {
 func (ws *Service) StartService(nodeID string, ctx context.Context) {
 	ws.id = nodeID
 	ws.ctx = ctx
-	t := thread.NewThreadWithName(DispatchThreadName, func(stop chan struct{}) {
-		utils.LogInst().Info().Msg("websocket client message dispatch thread start......")
-		ws.wsCliMsgDispatch(stop)
-		ws.ShutDown()
-	})
+	t := thread.NewThreadWithName(DispatchThreadName, ws.wsCliMsgDispatch)
 	ws.threads[DispatchThreadName] = t
 	t.Run()
 
@@ -104,15 +100,17 @@ func (ws *Service) StartService(nodeID string, ctx context.Context) {
 
 func (ws *Service) ShutDown() {
 	utils.LogInst().Warn().Msg("websocket service thread exit......")
-	for _, t := range ws.threads {
-		t.Stop()
-	}
 	if ws.threads == nil {
 		return
 	}
+	for _, t := range ws.threads {
+		t.Stop()
+	}
 	ws.threads = nil
+
 	_ = ws.dataBase.Close()
 	_ = ws.server.Close()
+	close(ws.msgFromClientQueue)
 }
 
 func (ws *Service) online(w http.ResponseWriter, r *http.Request) {
@@ -140,7 +138,7 @@ func (ws *Service) online(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ws *Service) wsCliMsgDispatch(stop chan struct{}) {
-
+	utils.LogInst().Info().Msg("websocket client message dispatch thread start......")
 	for {
 		select {
 		case <-stop:

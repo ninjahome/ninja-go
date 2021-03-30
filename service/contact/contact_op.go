@@ -85,30 +85,23 @@ func (s *Service) delContact(msg *pbs.ContactMsg) error {
 
 func (s *Service) ContactOperationFromP2pNetwork(w *worker.TopicWorker) {
 	s.contactOpWriter = w.Pub
-
-	for true {
-		select {
-		case <-w.Stop:
-			utils.LogInst().Warn().Msg("contact operation thread exit")
+	for {
+		msg, err := w.Sub.Next(s.ctx)
+		if err != nil {
+			utils.LogInst().Warn().Msgf("contact operation thread exit:=>%s", err)
 			return
-		default:
-			msg, err := w.Sub.Next(s.ctx)
-			if err != nil {
-				utils.LogInst().Warn().Msgf("contact operation thread exit:=>%s", err)
-				return
-			}
+		}
 
-			if msg.ReceivedFrom.String() == s.id {
-				continue
-			}
-			p2pMsg := &pbs.ContactMsg{}
-			if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
-				utils.LogInst().Warn().Err(err).Send()
-				continue
-			}
-			if err := s.procContactOperation(p2pMsg); err != nil {
-				utils.LogInst().Warn().Err(err).Send()
-			}
+		if msg.ReceivedFrom.String() == s.id {
+			continue
+		}
+		p2pMsg := &pbs.ContactMsg{}
+		if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
+			utils.LogInst().Warn().Err(err).Send()
+			continue
+		}
+		if err := s.procContactOperation(p2pMsg); err != nil {
+			utils.LogInst().Warn().Err(err).Send()
 		}
 	}
 }

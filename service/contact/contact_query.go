@@ -74,23 +74,17 @@ func (s *Service) queryContact(w http.ResponseWriter, r *http.Request) {
 func (s *Service) ContactQueryFromP2pNetwork(w *worker.TopicWorker) {
 	s.contactQuery = w.Pub
 
-	for true {
-		select {
-		case <-w.Stop:
-			utils.LogInst().Warn().Msg("contact query channel exit")
+	for {
+		msg, err := w.Sub.Next(s.ctx)
+		if err != nil {
+			utils.LogInst().Warn().Msgf("contact query channel exit:=>%s", err)
 			return
-		default:
-			msg, err := w.Sub.Next(s.ctx)
-			if err != nil {
-				utils.LogInst().Warn().Msgf("contact query channel exit:=>%s", err)
-				return
-			}
-
-			if msg.ReceivedFrom.String() == s.id {
-				continue
-			}
-
-			//TODO:: need query contact from p2p network ???
 		}
+
+		if msg.ReceivedFrom.String() == s.id {
+			continue
+		}
+
+		//TODO:: need query contact from p2p network ???
 	}
 }
