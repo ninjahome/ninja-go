@@ -15,10 +15,10 @@
 3. startup node✅
 4. all work thread start success ✅
 5. thread exit gracefully ✅
-6. find peers for public node 
+6. find peers for a public node  ✅
 7. find peers for private node
-8. find peers both in public and private network
-9, send debug peer message
+8. find peers both in public and private network 
+9, send debug peer message ✅
 ##4 message
 1. immediate message
 2. unread message
