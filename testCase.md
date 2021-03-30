@@ -16,8 +16,12 @@
 4. all work thread start success ✅
 5. thread exit gracefully ✅
 6. find peers for a public node  ✅
-7. find peers for private node
-8. find peers both in public and private network 
+7. find peers for a private node ✅
+   
+        192.168.30.17
+        192.168.30.214
+   
+8. find peers both in public and private network ✅
 9, send debug peer message ✅
 ##4 message
 1. immediate message
