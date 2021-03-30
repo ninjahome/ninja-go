@@ -28,7 +28,7 @@ type Config struct {
 var _srvConfig *Config = nil
 
 func (c Config) String() string {
-	s := fmt.Sprintf("\n<--------------------Contact Config--------------------")
+	s := fmt.Sprintf("\n---------------------Contact Config--------------------")
 	s += fmt.Sprintf("\nhttp read timeout:\t%s", c.ReadTimeout)
 	s += fmt.Sprintf("\nhttp writ timeout:\t%s", c.WriteTimeout)
 	s += fmt.Sprintf("\nhttp idle timeout:\t%s", c.IdleTimeout)

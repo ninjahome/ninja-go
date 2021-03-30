@@ -58,25 +58,25 @@ func init() {
 	flags := rootCmd.Flags()
 
 	flags.BoolVarP(&param.version, "version",
-		"v", false, "chord -v")
+		"v", false, "ninja -v")
 
 	flags.StringVarP(&param.network, "network",
 		"n", cmd.MainNet,
-		"chord -n|--network ["+cmd.MainNet+"|"+cmd.TestNet+"] default is "+cmd.MainNet+".")
+		"ninja -n|--network ["+cmd.MainNet+"|"+cmd.TestNet+"] default is "+cmd.MainNet+".")
 
 	flags.StringVarP(&param.password, "password",
-		"p", "", "chord -p [PASSWORD OF SELECTED KEY]")
+		"p", "", "ninja -p [PASSWORD OF SELECTED KEY]")
 
 	flags.StringVarP(&param.keyAddr, "key",
-		"k", "", "chord -k [ADDRESS OF KEY]")
+		"k", "", "ninja -k [ADDRESS OF KEY]")
 
 	flags.StringVarP(&param.baseDir, "dir",
 		"d", cmd.DefaultBaseDir, "chord -d [BASIC DIRECTORY]")
 
 	flags.StringVar(&param.wsIP, "ws.IP", "",
-		"chord --ws.ip=[Port]")
+		"ninja --ws.ip=[Port]")
 	flags.Int16Var(&param.wsPort, "ws.port", -1,
-		"chord --ws.port=[Port]")
+		"ninja --ws.port=[Port]")
 
 	rootCmd.AddCommand(cmd.InitCmd)
 	rootCmd.AddCommand(cmd.WalletCmd)
@@ -141,7 +141,7 @@ func initWalletKey() error {
 	if err := wallet.Inst().Active(pwd, param.keyAddr); err != nil {
 		return err
 	}
-
+	utils.LogInst().Info().Msg("unlock wallet success......")
 	return nil
 }
 

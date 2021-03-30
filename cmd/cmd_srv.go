@@ -5,12 +5,21 @@ import (
 	"fmt"
 	"github.com/ninjahome/ninja-go/node"
 	pbs "github.com/ninjahome/ninja-go/pbs/cmd"
+	"github.com/ninjahome/ninja-go/utils"
+	"github.com/ninjahome/ninja-go/utils/thread"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"net"
 )
 
 type cmdService struct{}
+
+func (c *cmdService) ShowAllThreads(ctx context.Context, group *pbs.ThreadGroup) (*pbs.CommonResponse, error) {
+	result := thread.Inst().AllThread(group.Group)
+	return &pbs.CommonResponse{
+		Msg: result,
+	}, nil
+}
 
 const (
 	DefaultCmdPort = 8848
@@ -47,6 +56,7 @@ func StartCmdRpc(_ chan struct{}) {
 	pbs.RegisterCmdServiceServer(cmdServer, _instance)
 
 	reflection.Register(cmdServer)
+	utils.LogInst().Info().Msg("command rpc thread start success......")
 	if err := cmdServer.Serve(l); err != nil {
 		panic(err)
 	}

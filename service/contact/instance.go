@@ -58,6 +58,7 @@ func newContactServer() *Service {
 	}
 	apis.HandleFunc(PathOperateContact, s.operateContact)
 	apis.HandleFunc(PathQueryContact, s.queryContact)
+	utils.LogInst().Info().Msg("contact service instance init......")
 	return s
 }
 
@@ -78,6 +79,7 @@ func (s *Service) StartService(id string, ctx context.Context) {
 	s.ctx = ctx
 
 	t := thread.NewThreadWithName(ServiceThreadName, func(_ chan struct{}) {
+		utils.LogInst().Info().Msg("contact service thread start......")
 		err := s.server.ListenAndServe()
 		utils.LogInst().Err(err).Send()
 		s.ShutDown()
@@ -87,6 +89,7 @@ func (s *Service) StartService(id string, ctx context.Context) {
 }
 
 func (s *Service) ShutDown() {
+	utils.LogInst().Warn().Msg("contact service thread exit......")
 	for _, t := range s.threads {
 		t.Stop()
 	}

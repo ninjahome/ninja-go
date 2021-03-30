@@ -36,6 +36,13 @@ var rpcCmd = &cobra.Command{
 	Run:   rpcUsage,
 }
 
+var threadCmd = &cobra.Command{
+	Use:   "thread",
+	Short: "ninja debug thread",
+	Long:  `TODO::.`,
+	Run:   threadAction,
+}
+
 var (
 	topic   string
 	msgBody string
@@ -53,6 +60,7 @@ func init() {
 	DebugCmd.AddCommand(showPeerCmd)
 
 	DebugCmd.AddCommand(rpcCmd)
+	DebugCmd.AddCommand(threadCmd)
 }
 
 func debug(c *cobra.Command, _ []string) {
@@ -95,4 +103,16 @@ func showPeerAction(c *cobra.Command, _ []string) {
 
 func rpcUsage(c *cobra.Command, _ []string) {
 	_ = c.Usage()
+}
+func threadAction(c *cobra.Command, _ []string) {
+
+	cli := DialToCmdService()
+	rsp, err := cli.ShowAllThreads(context.Background(), &pbs.ThreadGroup{
+		Group: "tmp",
+	})
+
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(rsp.Msg)
 }

@@ -24,6 +24,53 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ThreadGroup struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Group string `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
+}
+
+func (x *ThreadGroup) Reset() {
+	*x = ThreadGroup{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cmdService_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ThreadGroup) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ThreadGroup) ProtoMessage() {}
+
+func (x *ThreadGroup) ProtoReflect() protoreflect.Message {
+	mi := &file_cmdService_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ThreadGroup.ProtoReflect.Descriptor instead.
+func (*ThreadGroup) Descriptor() ([]byte, []int) {
+	return file_cmdService_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ThreadGroup) GetGroup() string {
+	if x != nil {
+		return x.Group
+	}
+	return ""
+}
+
 type TopicMsg struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -36,7 +83,7 @@ type TopicMsg struct {
 func (x *TopicMsg) Reset() {
 	*x = TopicMsg{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cmdService_proto_msgTypes[0]
+		mi := &file_cmdService_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -49,7 +96,7 @@ func (x *TopicMsg) String() string {
 func (*TopicMsg) ProtoMessage() {}
 
 func (x *TopicMsg) ProtoReflect() protoreflect.Message {
-	mi := &file_cmdService_proto_msgTypes[0]
+	mi := &file_cmdService_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -62,7 +109,7 @@ func (x *TopicMsg) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopicMsg.ProtoReflect.Descriptor instead.
 func (*TopicMsg) Descriptor() ([]byte, []int) {
-	return file_cmdService_proto_rawDescGZIP(), []int{0}
+	return file_cmdService_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *TopicMsg) GetTopic() string {
@@ -90,7 +137,7 @@ type ShowPeer struct {
 func (x *ShowPeer) Reset() {
 	*x = ShowPeer{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cmdService_proto_msgTypes[1]
+		mi := &file_cmdService_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -103,7 +150,7 @@ func (x *ShowPeer) String() string {
 func (*ShowPeer) ProtoMessage() {}
 
 func (x *ShowPeer) ProtoReflect() protoreflect.Message {
-	mi := &file_cmdService_proto_msgTypes[1]
+	mi := &file_cmdService_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -116,7 +163,7 @@ func (x *ShowPeer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShowPeer.ProtoReflect.Descriptor instead.
 func (*ShowPeer) Descriptor() ([]byte, []int) {
-	return file_cmdService_proto_rawDescGZIP(), []int{1}
+	return file_cmdService_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ShowPeer) GetTopic() string {
@@ -137,7 +184,7 @@ type CommonResponse struct {
 func (x *CommonResponse) Reset() {
 	*x = CommonResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cmdService_proto_msgTypes[2]
+		mi := &file_cmdService_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -150,7 +197,7 @@ func (x *CommonResponse) String() string {
 func (*CommonResponse) ProtoMessage() {}
 
 func (x *CommonResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cmdService_proto_msgTypes[2]
+	mi := &file_cmdService_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -163,7 +210,7 @@ func (x *CommonResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommonResponse.ProtoReflect.Descriptor instead.
 func (*CommonResponse) Descriptor() ([]byte, []int) {
-	return file_cmdService_proto_rawDescGZIP(), []int{2}
+	return file_cmdService_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CommonResponse) GetMsg() string {
@@ -177,23 +224,29 @@ var File_cmdService_proto protoreflect.FileDescriptor
 
 var file_cmdService_proto_rawDesc = []byte{
 	0x0a, 0x10, 0x63, 0x6d, 0x64, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x12, 0x03, 0x70, 0x62, 0x73, 0x22, 0x32, 0x0a, 0x08, 0x54, 0x6f, 0x70, 0x69, 0x63,
-	0x4d, 0x73, 0x67, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x73, 0x67,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d, 0x73, 0x67, 0x22, 0x20, 0x0a, 0x08, 0x53,
-	0x68, 0x6f, 0x77, 0x50, 0x65, 0x65, 0x72, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x70, 0x69, 0x63,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x22, 0x22, 0x0a,
-	0x0e, 0x43, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
-	0x10, 0x0a, 0x03, 0x6d, 0x73, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d, 0x73,
-	0x67, 0x32, 0x7b, 0x0a, 0x0a, 0x43, 0x6d, 0x64, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12,
-	0x37, 0x0a, 0x0f, 0x50, 0x32, 0x70, 0x53, 0x65, 0x6e, 0x64, 0x54, 0x6f, 0x70, 0x69, 0x63, 0x4d,
-	0x73, 0x67, 0x12, 0x0d, 0x2e, 0x70, 0x62, 0x73, 0x2e, 0x54, 0x6f, 0x70, 0x69, 0x63, 0x4d, 0x73,
-	0x67, 0x1a, 0x13, 0x2e, 0x70, 0x62, 0x73, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x34, 0x0a, 0x0c, 0x50, 0x32, 0x70, 0x53,
-	0x68, 0x6f, 0x77, 0x50, 0x65, 0x65, 0x72, 0x73, 0x12, 0x0d, 0x2e, 0x70, 0x62, 0x73, 0x2e, 0x53,
-	0x68, 0x6f, 0x77, 0x50, 0x65, 0x65, 0x72, 0x1a, 0x13, 0x2e, 0x70, 0x62, 0x73, 0x2e, 0x43, 0x6f,
-	0x6d, 0x6d, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x07,
-	0x5a, 0x05, 0x2e, 0x2f, 0x63, 0x6d, 0x64, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x74, 0x6f, 0x12, 0x03, 0x70, 0x62, 0x73, 0x22, 0x23, 0x0a, 0x0b, 0x54, 0x68, 0x72, 0x65, 0x61,
+	0x64, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x12, 0x14, 0x0a, 0x05, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x22, 0x32, 0x0a, 0x08,
+	0x54, 0x6f, 0x70, 0x69, 0x63, 0x4d, 0x73, 0x67, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x70, 0x69,
+	0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x12, 0x10,
+	0x0a, 0x03, 0x6d, 0x73, 0x67, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d, 0x73, 0x67,
+	0x22, 0x20, 0x0a, 0x08, 0x53, 0x68, 0x6f, 0x77, 0x50, 0x65, 0x65, 0x72, 0x12, 0x14, 0x0a, 0x05,
+	0x74, 0x6f, 0x70, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x70,
+	0x69, 0x63, 0x22, 0x22, 0x0a, 0x0e, 0x43, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x73, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x03, 0x6d, 0x73, 0x67, 0x32, 0xb6, 0x01, 0x0a, 0x0a, 0x43, 0x6d, 0x64, 0x53, 0x65,
+	0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x37, 0x0a, 0x0f, 0x50, 0x32, 0x70, 0x53, 0x65, 0x6e, 0x64,
+	0x54, 0x6f, 0x70, 0x69, 0x63, 0x4d, 0x73, 0x67, 0x12, 0x0d, 0x2e, 0x70, 0x62, 0x73, 0x2e, 0x54,
+	0x6f, 0x70, 0x69, 0x63, 0x4d, 0x73, 0x67, 0x1a, 0x13, 0x2e, 0x70, 0x62, 0x73, 0x2e, 0x43, 0x6f,
+	0x6d, 0x6d, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x34,
+	0x0a, 0x0c, 0x50, 0x32, 0x70, 0x53, 0x68, 0x6f, 0x77, 0x50, 0x65, 0x65, 0x72, 0x73, 0x12, 0x0d,
+	0x2e, 0x70, 0x62, 0x73, 0x2e, 0x53, 0x68, 0x6f, 0x77, 0x50, 0x65, 0x65, 0x72, 0x1a, 0x13, 0x2e,
+	0x70, 0x62, 0x73, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x00, 0x12, 0x39, 0x0a, 0x0e, 0x53, 0x68, 0x6f, 0x77, 0x41, 0x6c, 0x6c, 0x54,
+	0x68, 0x72, 0x65, 0x61, 0x64, 0x73, 0x12, 0x10, 0x2e, 0x70, 0x62, 0x73, 0x2e, 0x54, 0x68, 0x72,
+	0x65, 0x61, 0x64, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x1a, 0x13, 0x2e, 0x70, 0x62, 0x73, 0x2e, 0x43,
+	0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42,
+	0x07, 0x5a, 0x05, 0x2e, 0x2f, 0x63, 0x6d, 0x64, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -208,19 +261,22 @@ func file_cmdService_proto_rawDescGZIP() []byte {
 	return file_cmdService_proto_rawDescData
 }
 
-var file_cmdService_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_cmdService_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_cmdService_proto_goTypes = []interface{}{
-	(*TopicMsg)(nil),       // 0: pbs.TopicMsg
-	(*ShowPeer)(nil),       // 1: pbs.ShowPeer
-	(*CommonResponse)(nil), // 2: pbs.CommonResponse
+	(*ThreadGroup)(nil),    // 0: pbs.ThreadGroup
+	(*TopicMsg)(nil),       // 1: pbs.TopicMsg
+	(*ShowPeer)(nil),       // 2: pbs.ShowPeer
+	(*CommonResponse)(nil), // 3: pbs.CommonResponse
 }
 var file_cmdService_proto_depIdxs = []int32{
-	0, // 0: pbs.CmdService.P2pSendTopicMsg:input_type -> pbs.TopicMsg
-	1, // 1: pbs.CmdService.P2pShowPeers:input_type -> pbs.ShowPeer
-	2, // 2: pbs.CmdService.P2pSendTopicMsg:output_type -> pbs.CommonResponse
-	2, // 3: pbs.CmdService.P2pShowPeers:output_type -> pbs.CommonResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	1, // 0: pbs.CmdService.P2pSendTopicMsg:input_type -> pbs.TopicMsg
+	2, // 1: pbs.CmdService.P2pShowPeers:input_type -> pbs.ShowPeer
+	0, // 2: pbs.CmdService.ShowAllThreads:input_type -> pbs.ThreadGroup
+	3, // 3: pbs.CmdService.P2pSendTopicMsg:output_type -> pbs.CommonResponse
+	3, // 4: pbs.CmdService.P2pShowPeers:output_type -> pbs.CommonResponse
+	3, // 5: pbs.CmdService.ShowAllThreads:output_type -> pbs.CommonResponse
+	3, // [3:6] is the sub-list for method output_type
+	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -233,7 +289,7 @@ func file_cmdService_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_cmdService_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TopicMsg); i {
+			switch v := v.(*ThreadGroup); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -245,7 +301,7 @@ func file_cmdService_proto_init() {
 			}
 		}
 		file_cmdService_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ShowPeer); i {
+			switch v := v.(*TopicMsg); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -257,6 +313,18 @@ func file_cmdService_proto_init() {
 			}
 		}
 		file_cmdService_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ShowPeer); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cmdService_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CommonResponse); i {
 			case 0:
 				return &v.state
@@ -275,7 +343,7 @@ func file_cmdService_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_cmdService_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -303,6 +371,7 @@ const _ = grpc.SupportPackageIsVersion6
 type CmdServiceClient interface {
 	P2PSendTopicMsg(ctx context.Context, in *TopicMsg, opts ...grpc.CallOption) (*CommonResponse, error)
 	P2PShowPeers(ctx context.Context, in *ShowPeer, opts ...grpc.CallOption) (*CommonResponse, error)
+	ShowAllThreads(ctx context.Context, in *ThreadGroup, opts ...grpc.CallOption) (*CommonResponse, error)
 }
 
 type cmdServiceClient struct {
@@ -331,10 +400,20 @@ func (c *cmdServiceClient) P2PShowPeers(ctx context.Context, in *ShowPeer, opts 
 	return out, nil
 }
 
+func (c *cmdServiceClient) ShowAllThreads(ctx context.Context, in *ThreadGroup, opts ...grpc.CallOption) (*CommonResponse, error) {
+	out := new(CommonResponse)
+	err := c.cc.Invoke(ctx, "/pbs.CmdService/ShowAllThreads", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CmdServiceServer is the server API for CmdService service.
 type CmdServiceServer interface {
 	P2PSendTopicMsg(context.Context, *TopicMsg) (*CommonResponse, error)
 	P2PShowPeers(context.Context, *ShowPeer) (*CommonResponse, error)
+	ShowAllThreads(context.Context, *ThreadGroup) (*CommonResponse, error)
 }
 
 // UnimplementedCmdServiceServer can be embedded to have forward compatible implementations.
@@ -346,6 +425,9 @@ func (*UnimplementedCmdServiceServer) P2PSendTopicMsg(context.Context, *TopicMsg
 }
 func (*UnimplementedCmdServiceServer) P2PShowPeers(context.Context, *ShowPeer) (*CommonResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method P2PShowPeers not implemented")
+}
+func (*UnimplementedCmdServiceServer) ShowAllThreads(context.Context, *ThreadGroup) (*CommonResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ShowAllThreads not implemented")
 }
 
 func RegisterCmdServiceServer(s *grpc.Server, srv CmdServiceServer) {
@@ -388,6 +470,24 @@ func _CmdService_P2PShowPeers_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CmdService_ShowAllThreads_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ThreadGroup)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CmdServiceServer).ShowAllThreads(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pbs.CmdService/ShowAllThreads",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CmdServiceServer).ShowAllThreads(ctx, req.(*ThreadGroup))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _CmdService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "pbs.CmdService",
 	HandlerType: (*CmdServiceServer)(nil),
@@ -399,6 +499,10 @@ var _CmdService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "P2pShowPeers",
 			Handler:    _CmdService_P2PShowPeers_Handler,
+		},
+		{
+			MethodName: "ShowAllThreads",
+			Handler:    _CmdService_ShowAllThreads_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

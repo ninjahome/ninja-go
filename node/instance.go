@@ -46,7 +46,7 @@ func newNode() *NinjaNode {
 		panic(err)
 	}
 
-	ps, err := newWorkGroup(ctx, h)
+	ps, err := newPubSub(ctx, h)
 	if err != nil {
 		panic(err)
 	}
@@ -57,7 +57,8 @@ func newNode() *NinjaNode {
 		ctx:       ctx,
 		ctxCancel: cancel,
 	}
-	utils.LogInst().Info().Msgf("p2p with id[%s] created addrs:%s", h.ID(), h.Addrs())
+	systemTopics[P2pChanDebug] = n.DebugPeerMsg
+	utils.LogInst().Info().Msgf("ninja node id[%s] created addrs:%s", h.ID(), h.Addrs())
 	return n
 }
 
@@ -78,7 +79,6 @@ func (nt *NinjaNode) Start() error {
 		}
 	}
 	nt.workers = workers
-
 	return nil
 }
 

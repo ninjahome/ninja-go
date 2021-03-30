@@ -36,7 +36,7 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	s := fmt.Sprintf("\n<-------------------Websocket Config-------------------")
+	s := fmt.Sprintf("\n--------------------Websocket Config-------------------")
 	s += fmt.Sprintf("\nws ping timeout:\t%s", c.PingPeriod)
 	s += fmt.Sprintf("\nws pong timeout:\t%s", c.PongWait)
 	s += fmt.Sprintf("\nwrite wait timeout:\t%s", c.WriteWait)

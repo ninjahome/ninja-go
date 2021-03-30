@@ -159,7 +159,6 @@ func (c *Config) initOptions() []libp2p.Option {
 		P2pChanUnreadMsg:     websocket.Inst().UnreadMsgFromP2pNetwork,
 		P2pChanContactOps:    contact.Inst().ContactOperationFromP2pNetwork,
 		P2pChanContactQuery:  contact.Inst().ContactQueryFromP2pNetwork,
-		P2pChanDebug:         Inst().DebugPeerMsg,
 	}
 
 	listenAddr, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", _nodeConfig.SrvPort))
@@ -258,7 +257,7 @@ func initTopicValidators(ps *pubsub.PubSub) error {
 	return nil
 }
 
-func newWorkGroup(ctx context.Context, h host.Host) (*pubsub.PubSub, error) {
+func newPubSub(ctx context.Context, h host.Host) (*pubsub.PubSub, error) {
 	dhtOpts, err := _nodeConfig.dhtOpts()
 
 	kademliaDHT, err := dht.New(ctx, h, dhtOpts...)

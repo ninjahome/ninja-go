@@ -52,7 +52,6 @@ func Inst() *Service {
 }
 
 func newWebSocket() *Service {
-
 	if _wsConfig == nil {
 		panic("init service config first")
 	}
@@ -78,12 +77,15 @@ func newWebSocket() *Service {
 		dataBase:           db,
 	}
 	ws.apis.HandleFunc(CPUserOnline, ws.online)
+	utils.LogInst().Info().Msg("websocket service instance init......")
 	return ws
 }
+
 func (ws *Service) StartService(nodeID string, ctx context.Context) {
 	ws.id = nodeID
 	ws.ctx = ctx
 	t := thread.NewThreadWithName(DispatchThreadName, func(stop chan struct{}) {
+		utils.LogInst().Info().Msg("websocket client message dispatch thread start......")
 		ws.wsCliMsgDispatch(stop)
 		ws.ShutDown()
 	})
@@ -91,6 +93,7 @@ func (ws *Service) StartService(nodeID string, ctx context.Context) {
 	t.Run()
 
 	t = thread.NewThreadWithName(WSThreadName, func(_ chan struct{}) {
+		utils.LogInst().Info().Msg("websocket service thread start......")
 		err := ws.server.ListenAndServe()
 		utils.LogInst().Err(err).Send()
 		ws.ShutDown()
@@ -100,6 +103,7 @@ func (ws *Service) StartService(nodeID string, ctx context.Context) {
 }
 
 func (ws *Service) ShutDown() {
+	utils.LogInst().Warn().Msg("websocket service thread exit......")
 	for _, t := range ws.threads {
 		t.Stop()
 	}

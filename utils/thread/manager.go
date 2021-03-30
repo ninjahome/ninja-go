@@ -14,6 +14,9 @@ func init() {
 		nameID: make(map[string]int),
 	}
 }
+func Inst() *Manager {
+	return _inst
+}
 
 type Manager struct {
 	ID     int
@@ -75,4 +78,16 @@ func (m *Manager) ThreadByName(name string) *Thread {
 		return nil
 	}
 	return m.queue[id]
+}
+
+func (m *Manager) AllThread(group string) string {
+	m.locker.RLock()
+	defer m.locker.RUnlock()
+
+	s := fmt.Sprintf("\n----------threads list----------")
+	for name, id := range m.nameID {
+		s += fmt.Sprintf("\n\t %d\t %s", id, name)
+	}
+	s += fmt.Sprintf("\n--------------------------------\n")
+	return s
 }

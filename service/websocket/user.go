@@ -31,7 +31,7 @@ func (u *wsUser) offLine() {
 	u.kaTimer.Stop()
 }
 
-func (u *wsUser) reader(stop chan struct{}) {
+func (u *wsUser) reading(stop chan struct{}) {
 	defer u.offLine()
 	for {
 		select {
@@ -59,7 +59,7 @@ func (u *wsUser) reader(stop chan struct{}) {
 	}
 }
 
-func (u *wsUser) writer(stop chan struct{}) {
+func (u *wsUser) writing(stop chan struct{}) {
 
 	defer u.offLine()
 	for {
@@ -132,16 +132,18 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 
 	tid := fmt.Sprintf("chat read:%s", wu.UID)
 	t := thread.NewThreadWithName(tid, func(stop chan struct{}) {
-		wu.reader(stop)
-		ws.OfflineUser(tid, wu, online.UID)
+		utils.LogInst().Info().Msgf("reading thread for [%s] start success!", wu.UID)
+		wu.reading(stop)
+		ws.offlineUser(tid, wu.UID)
 	})
 	ws.threads[tid] = t
 	t.Run()
 
 	tid = fmt.Sprintf("chat writer:%s", wu.UID)
 	t = thread.NewThreadWithName(tid, func(stop chan struct{}) {
-		wu.writer(stop)
-		ws.OfflineUser(tid, wu, online.UID)
+		utils.LogInst().Info().Msgf("writing thread for [%s] start success!", wu.UID)
+		wu.writing(stop)
+		ws.offlineUser(tid, online.UID)
 	})
 	ws.threads[tid] = t
 	t.Run()
@@ -149,10 +151,11 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 	return nil
 }
 
-func (ws *Service) OfflineUser(threadId string, user *wsUser, uid string) {
+func (ws *Service) offlineUser(threadId string, uid string) {
+	utils.LogInst().Info().Msgf("user [%s] offline ", uid)
 	delete(ws.threads, threadId)
-	ws.onlineSet.del(user.UID)
-	ws.userTable.del(user.UID)
+	ws.onlineSet.del(uid)
+	ws.userTable.del(uid)
 
 	//TODO:: add signature for offline message
 	msg := &pbs.WsMsg{
@@ -167,8 +170,6 @@ func (ws *Service) OfflineUser(threadId string, user *wsUser, uid string) {
 
 func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
 	ws.p2pOnOffWriter = w.Pub
-	utils.LogInst().Debug().Msg("start on-off line message listening thread for p2p network")
-
 	for {
 		select {
 		case <-w.Stop:

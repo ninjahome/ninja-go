@@ -5,6 +5,11 @@ option go_package = "./cmd";
 service CmdService {
     rpc P2pSendTopicMsg (TopicMsg) returns (CommonResponse) {}
     rpc P2pShowPeers (ShowPeer) returns (CommonResponse) {}
+    rpc ShowAllThreads (ThreadGroup) returns (CommonResponse) {}
+}
+
+message ThreadGroup{
+    string group = 1;
 }
 
 message TopicMsg {
