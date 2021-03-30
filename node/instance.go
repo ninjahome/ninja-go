@@ -97,7 +97,7 @@ func (nt *NinjaNode) ShutDown() {
 
 	websocket.Inst().ShutDown()
 	contact.Inst().ShutDown()
-	time.Sleep(10 * time.Second)
+	time.Sleep(time.Second)
 }
 
 func (nt *NinjaNode) PeersOfTopic(topic string) []peer.ID {
