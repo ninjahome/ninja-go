@@ -58,8 +58,8 @@ func (c ChanID) String() string {
 
 var (
 	MainP2pBoots = []string{"/ip4/0.0.0.0/tcp/9999/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe"}
-	TestP2pBoots = []string{"/ip4/0.0.0.0/tcp/9999/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe",
-		"/ip4/0.0.0.0/tcp/9999/p2p/12D3KooWLYfvJ1aeQMdJsLPEHn4U5jvX4jAY4LfAan3YRcXTndZy"}
+	TestP2pBoots = []string{"/ip4/167.179.78.33/tcp/9999/p2p/12D3KooWJ9jcvDTJGWFkjRtNLcrsQrJafTiE6mJ68hAcfbi4zp2y",
+		"/ip4/198.13.44.159/tcp/9999/p2p/12D3KooWCRSAwwpEV96Zz1v4WiGFpeE34PZb6jZRc3yJkRrXz1Ww"}
 )
 
 type pubSubConfig struct {
