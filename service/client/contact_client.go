@@ -25,35 +25,40 @@ func NewContactCli(addr string, key *wallet.Key) (*ContactCli, error) {
 		key:      key,
 		endpoint: addr,
 	}, nil
-
 }
 
-func (cc *ContactCli) makeOpRequest(msg *pbs.ContactMsg) error {
-
+func (cc *ContactCli) sendRequest(msg *pbs.ContactMsg, path string) (ackMsg *pbs.ContactMsg, err error) {
 	reqData, err := proto.Marshal(msg)
 	if err != nil {
-		return err
+		return
 	}
 
 	r := bytes.NewReader(reqData)
-	request, err := http.NewRequest("GET", cc.endpoint+"/"+contact.PathOperateContact, r)
+	request, err := http.NewRequest("GET", cc.endpoint+"/"+path, r)
 	if err != nil {
-		return err
+		return
 	}
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return err
+		return
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return
 	}
 
-	ackMsg := &pbs.ContactMsg{}
+	if err = proto.Unmarshal(body, ackMsg); err != nil {
+		return
+	}
+	return ackMsg, nil
+}
 
-	if err := proto.Unmarshal(body, ackMsg); err != nil {
+func (cc *ContactCli) makeOpRequest(msg *pbs.ContactMsg) error {
+
+	ackMsg, err := cc.sendRequest(msg, contact.PathOperateContact)
+	if err != nil {
 		return err
 	}
 	ack, ok := ackMsg.PayLoad.(*pbs.ContactMsg_OpAck)
@@ -98,4 +103,23 @@ func (cc *ContactCli) DelContact(cid string) error {
 		PayLoad: &pbs.ContactMsg_DelC{DelC: cid},
 	}
 	return cc.makeOpRequest(request)
+}
+
+func (cc *ContactCli) SyncContact() []*pbs.ContactItem {
+	sig := cc.key.SignData(cc.key.Address[:])
+	request := &pbs.ContactMsg{
+		Sig:     sig,
+		From:    cc.key.Address.String(),
+		PayLoad: &pbs.ContactMsg_Query{Query: cc.key.Address.String()},
+	}
+	ackMsg, err := cc.sendRequest(request, contact.PathOperateContact)
+	if err != nil {
+		return nil
+	}
+
+	ack, ok := ackMsg.PayLoad.(*pbs.ContactMsg_QueryResult)
+	if !ok {
+		return nil
+	}
+	return ack.QueryResult.Contacts
 }

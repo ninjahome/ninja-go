@@ -83,7 +83,7 @@ func (s *Service) delContact(msg *pbs.ContactMsg) error {
 	})
 }
 
-func (s *Service) ContactOperationToP2pNetwork(stop chan struct{}, r *pubsub.Subscription, w *pubsub.Topic) {
+func (s *Service) ContactOperationFromP2pNetwork(stop chan struct{}, r *pubsub.Subscription, w *pubsub.Topic) {
 	s.contactOpWriter = w
 
 	for true {

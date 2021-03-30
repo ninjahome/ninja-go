@@ -15,7 +15,7 @@ var SystemTopics = map[string]TopicReader{
 	P2pChanUserOnOffLine: websocket.Inst().OnOffLineForP2pNetwork,
 	P2pChanImmediateMsg:  websocket.Inst().ImmediateMsgForP2pNetwork,
 	P2pChanUnreadMsg:     websocket.Inst().UnreadMsgFromP2pNetwork,
-	P2pChanContactOps:    contact.Inst().ContactOperationToP2pNetwork,
+	P2pChanContactOps:    contact.Inst().ContactOperationFromP2pNetwork,
 	P2pChanContactQuery:  contact.Inst().ContactQueryFromP2pNetwork,
 	P2pChanDebug:         nil,
 }

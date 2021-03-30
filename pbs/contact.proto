@@ -41,6 +41,6 @@ message ContactMsg{
       string undoBlock = 8;
       OperateAck opAck = 9;
       string query = 10;
-      ContactList contacts = 11;
+      ContactList queryResult = 11;
     }
 }
