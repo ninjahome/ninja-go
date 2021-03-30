@@ -6,19 +6,8 @@ import (
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-pubsub"
-	"github.com/ninjahome/ninja-go/service/contact"
-	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils/thread"
 )
-
-var SystemTopics = map[string]TopicReader{
-	P2pChanUserOnOffLine: websocket.Inst().OnOffLineForP2pNetwork,
-	P2pChanImmediateMsg:  websocket.Inst().ImmediateMsgForP2pNetwork,
-	P2pChanUnreadMsg:     websocket.Inst().UnreadMsgFromP2pNetwork,
-	P2pChanContactOps:    contact.Inst().ContactOperationFromP2pNetwork,
-	P2pChanContactQuery:  contact.Inst().ContactQueryFromP2pNetwork,
-	P2pChanDebug:         nil,
-}
 
 type TopicReader func(stop chan struct{}, r *pubsub.Subscription, w *pubsub.Topic)
 
@@ -79,7 +68,7 @@ func newWorkGroup(ctx context.Context, h host.Host) (WorkGroup, error) {
 	}
 
 	topics := make(WorkGroup)
-	for topID, r := range SystemTopics {
+	for topID, r := range systemTopics {
 		topic, err := ps.Join(topID)
 		if err != nil {
 			return nil, err

@@ -3,7 +3,6 @@ package node
 import (
 	"fmt"
 	badger "github.com/ipfs/go-ds-badger"
-	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/discovery"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -12,7 +11,6 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/wallet"
-	"math/big"
 	"path/filepath"
 	"runtime"
 )
@@ -25,17 +23,28 @@ const (
 
 	DefaultNotifyTopicThreadSize = 1 << 13
 	DefaultNodeTopicThreadSize   = 1 << 11
-	DefaultMsqQueueSize          = 1 << 16
+	DHTPrefix                    = "ninja"
 
-	DHTPrefix = "ninja"
+	MainChain ChanID = 1
+	TestChain ChanID = 2
 )
 
+type ChanID int
+
+func (c ChanID) String() string {
+	switch c {
+	case MainChain:
+		return "main network"
+	case TestChain:
+		return "test network"
+	}
+	return ""
+}
+
 var (
-	MainChain    = big.NewInt(1)
-	TestChain    = big.NewInt(2)
 	MainP2pBoots = []string{"/ip4/0.0.0.0/tcp/9999/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe"}
 	TestP2pBoots = []string{"/ip4/0.0.0.0/tcp/9999/p2p/12D3KooWH1vt62wMAzSBHaAhH273MV8hnNuwF7jrDWptGzGFzPNe",
-		"/ip4/0.0.0.0/tcp/8888/p2p/12D3KooWLYfvJ1aeQMdJsLPEHn4U5jvX4jAY4LfAan3YRcXTndZy"}
+		"/ip4/0.0.0.0/tcp/9999/p2p/12D3KooWLYfvJ1aeQMdJsLPEHn4U5jvX4jAY4LfAan3YRcXTndZy"}
 )
 
 type pubSubConfig struct {
@@ -47,13 +56,13 @@ type pubSubConfig struct {
 }
 
 func (c *pubSubConfig) String() string {
-	s := fmt.Sprintf("\n<*******pub sub*********")
-	s += fmt.Sprintf("\n*max message:			%d", c.MaxMsgSize)
-	s += fmt.Sprintf("\n*max validate queue size:	%d", c.MaxValidateQueue)
-	s += fmt.Sprintf("\n*max out queue size:		%d", c.MaxOutQueue)
-	s += fmt.Sprintf("\n*max consensus topic thread:	%d", c.MaxNotifyTopicThread)
-	s += fmt.Sprintf("\n*max common topic thread:	%d", c.MaxNodeTopicThread)
-	s += fmt.Sprintf("\n*************************\n")
+	s := fmt.Sprintf("\n\t******************Pub Sub****************")
+	s += fmt.Sprintf("\n\t*max message:			%d\t*", c.MaxMsgSize)
+	s += fmt.Sprintf("\n\t*max validate queue size:	%d\t*", c.MaxValidateQueue)
+	s += fmt.Sprintf("\n\t*max out queue size:		%d\t*", c.MaxOutQueue)
+	s += fmt.Sprintf("\n\t*max consensus topic thread:	%d\t*", c.MaxNotifyTopicThread)
+	s += fmt.Sprintf("\n\t*max common topic thread:	%d\t*", c.MaxNodeTopicThread)
+	s += fmt.Sprintf("\n\t******************************************\n")
 	return s
 }
 
@@ -63,34 +72,31 @@ type dhtConfig struct {
 }
 
 func (c *dhtConfig) String() string {
-	s := fmt.Sprintf("\n<**********dht***********")
-	s += fmt.Sprintf("\n*dht cache dir:%s", c.DataStoreFile)
-	s += fmt.Sprintf("\n*boot strap nodes:%d", len(c.Boots))
+	s := fmt.Sprintf("\n\t******************DHT********************")
+	s += fmt.Sprintf("\n\t*dht cache dir:%s", c.DataStoreFile)
+	s += fmt.Sprintf("\n\t*boot strap nodes:%d", len(c.Boots))
 	for _, boot := range c.Boots {
-		s += fmt.Sprintf("\n%s", boot)
+		s += fmt.Sprintf("\n\t%s", boot)
 	}
-	s += fmt.Sprintf("\n*************************\n")
+	s += fmt.Sprintf("\n\t******************************************\n")
 	return s
 }
 
 type Config struct {
-	Port            int16 `json:"port"`
-	ChainID         *big.Int
-	MaxMsgQueueSize int           `json:"max_msg_queue_size"`
-	LogLevel        log.LogLevel  `json:"log_level"`
-	PsConf          *pubSubConfig `json:"pub_sub"`
-	DHTConf         *dhtConfig    `json:"dht"`
+	Port    int16 `json:"port"`
+	ChainID ChanID
+	PsConf  *pubSubConfig `json:"pub_sub"`
+	DHTConf *dhtConfig    `json:"dht"`
 }
 
 func (c Config) String() string {
-	s := fmt.Sprintf("\n<-------------Node Config------------")
-	s += fmt.Sprintf("\n*chord id:			%s", c.ChainID.String())
-	s += fmt.Sprintf("\nport:		%d", c.Port)
-	s += fmt.Sprintf("\nmax msg queue sieze:		%d", c.MaxMsgQueueSize)
-	s += fmt.Sprintf("\nloglevl:	%d", c.LogLevel)
+	s := fmt.Sprintf("\n----------------------Node Config-----------------------")
+	s += fmt.Sprintf("\nchain id:		%d", c.ChainID)
+	s += fmt.Sprintf("\nchain name:	%20s", c.ChainID.String())
+	s += fmt.Sprintf("\nnode service port:	%d\n", c.Port)
 	s += fmt.Sprintf(c.PsConf.String())
 	s += fmt.Sprintf(c.DHTConf.String())
-	s += fmt.Sprintf("\n----------------------------------->\n")
+	s += fmt.Sprintf("\n-------------------------------------------------------\n")
 	return s
 }
 
@@ -98,28 +104,23 @@ var _nodeConfig *Config = nil
 
 func DefaultConfig(isMain bool, base string) *Config {
 	var (
-		level   log.LogLevel
 		boots   []string
 		dhtDir  string
-		chainID *big.Int
+		chainID ChanID
 	)
 	if isMain {
 		boots = MainP2pBoots
-		level = log.LevelWarn
 		chainID = MainChain
 		dhtDir = filepath.Join(base, string(filepath.Separator), "dht_cache")
 	} else {
 		boots = TestP2pBoots
-		level = log.LevelDebug
 		chainID = TestChain
 		dhtDir = filepath.Join(base, string(filepath.Separator), "dht_cache_test")
 	}
 
 	return &Config{
-		Port:            DefaultP2pPort,
-		LogLevel:        level,
-		ChainID:         chainID,
-		MaxMsgQueueSize: DefaultMsqQueueSize,
+		Port:    DefaultP2pPort,
+		ChainID: chainID,
 		PsConf: &pubSubConfig{
 			MaxMsgSize:           DefaultMaxMessageSize,
 			MaxValidateQueue:     DefaultValidateQueueSize,

@@ -41,21 +41,21 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	s := fmt.Sprintf("\n<-------------websocket Config------------")
-	s += fmt.Sprintf("\nhttp read timeout:%20d", c.ReadTimeout)
-	s += fmt.Sprintf("\nhttp writ timeout:%20d", c.WriteTimeout)
-	s += fmt.Sprintf("\nhttp idle timeout:%20d", c.IdleTimeout)
-	s += fmt.Sprintf("\nws ping timeout:%20d", c.PingPeriod)
-	s += fmt.Sprintf("\nws pong timeout:%20d", c.PongWait)
-	s += fmt.Sprintf("\nws wait timeout:%20d", c.WriteWait)
-	s += fmt.Sprintf("\nws handshake timeout:%20d", c.HsTimeout)
-	s += fmt.Sprintf("\nws buffer size:%20d", c.WsBufferSize)
-	s += fmt.Sprintf("\nws msg queue size:%20d", c.WsMsgQueueSize)
-	s += fmt.Sprintf("\nws msg size/user:%20d", c.WsMsgSizePerUser)
-	s += fmt.Sprintf("\nws ip:%20s", c.WsIP)
-	s += fmt.Sprintf("\nmessage database dir:%20s", c.DataBaseDir)
-	s += fmt.Sprintf("\nws port:%20d", c.WsPort)
-	s += fmt.Sprintf("\n----------------------------------->\n")
+	s := fmt.Sprintf("\n<-------------------Websocket Config-------------------")
+	s += fmt.Sprintf("\nhttp read timeout:\t%d", c.ReadTimeout)
+	s += fmt.Sprintf("\nhttp writ timeout:\t%d", c.WriteTimeout)
+	s += fmt.Sprintf("\nhttp idle timeout:\t%d", c.IdleTimeout)
+	s += fmt.Sprintf("\nws ping timeout:\t%d", c.PingPeriod)
+	s += fmt.Sprintf("\nws pong timeout:\t%d", c.PongWait)
+	s += fmt.Sprintf("\nws wait timeout:\t%d", c.WriteWait)
+	s += fmt.Sprintf("\nws handshake timeout:\t%d", c.HsTimeout)
+	s += fmt.Sprintf("\nws buffer size:\t\t%d", c.WsBufferSize)
+	s += fmt.Sprintf("\nws msg queue size:\t%d", c.WsMsgQueueSize)
+	s += fmt.Sprintf("\nws msg size/user:\t%d", c.WsMsgSizePerUser)
+	s += fmt.Sprintf("\nws ip:\t\t\t%s", c.WsIP)
+	s += fmt.Sprintf("\nmessage database dir:\t%s", c.DataBaseDir)
+	s += fmt.Sprintf("\nws port:\t\t%d", c.WsPort)
+	s += fmt.Sprintf("\n-------------------------------------------------------\n")
 	return s
 }
 

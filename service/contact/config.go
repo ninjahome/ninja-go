@@ -28,14 +28,14 @@ type Config struct {
 var _srvConfig *Config = nil
 
 func (c Config) String() string {
-	s := fmt.Sprintf("\n<-------------websocket Config------------")
-	s += fmt.Sprintf("\nhttp read timeout:%20d", c.ReadTimeout)
-	s += fmt.Sprintf("\nhttp writ timeout:%20d", c.WriteTimeout)
-	s += fmt.Sprintf("\nhttp idle timeout:%20d", c.IdleTimeout)
-	s += fmt.Sprintf("\nws ip:%20s", c.SrvIP)
-	s += fmt.Sprintf("\nmessage database dir:%20s", c.DataBaseDir)
-	s += fmt.Sprintf("\nws port:%20d", c.SrvPort)
-	s += fmt.Sprintf("\n----------------------------------->\n")
+	s := fmt.Sprintf("\n<--------------------Contact Config--------------------")
+	s += fmt.Sprintf("\nhttp read timeout:\t%d", c.ReadTimeout)
+	s += fmt.Sprintf("\nhttp writ timeout:\t%d", c.WriteTimeout)
+	s += fmt.Sprintf("\nhttp idle timeout:\t%d", c.IdleTimeout)
+	s += fmt.Sprintf("\nws ip:\t\t\t%s", c.SrvIP)
+	s += fmt.Sprintf("\nmessage database dir:\t%s", c.DataBaseDir)
+	s += fmt.Sprintf("\nws port:\t\t%d", c.SrvPort)
+	s += fmt.Sprintf("\n-------------------------------------------------------\n")
 	return s
 }
 

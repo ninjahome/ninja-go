@@ -13,9 +13,9 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	s := fmt.Sprintf("\n<-------------wallet Config------------")
+	s := fmt.Sprintf("\n----------------------Wallet Config--------------------")
 	s += fmt.Sprintf("\nkey store dir:%20s", c.Dir)
-	s += fmt.Sprintf("\n----------------------------------->\n")
+	s += fmt.Sprintf("\n-------------------------------------------------------\n")
 	return s
 }
 

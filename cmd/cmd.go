@@ -40,7 +40,7 @@ func (sc StoreCfg) DebugPrint() {
 }
 
 func (c CfgPerNetwork) String() string {
-	s := fmt.Sprintf("\n<<<===================System[%s] Config===========================", c.Name)
+	s := fmt.Sprintf("\n<<<===================System [%s] Config===========================", c.Name)
 	s += c.PCfg.String()
 	s += c.UCfg.String()
 	s += c.WCfg.String()
@@ -79,11 +79,16 @@ var InitCmd = &cobra.Command{
 
 func initNode(_ *cobra.Command, _ []string) {
 	dir := utils.BaseUsrDir(param.baseDir)
-	if utils.FileExists(dir) {
-		panic("duplicate init operation! please save the old config or use -baseDir for new node config")
+
+	if !utils.FileExists(dir) {
+		if err := os.Mkdir(dir, os.ModePerm); err != nil {
+			panic(err)
+		}
 	}
-	if err := os.Mkdir(dir, os.ModePerm); err != nil {
-		panic(err)
+
+	path := filepath.Join(dir, string(filepath.Separator), ConfFileName)
+	if utils.FileExists(path) {
+		panic("duplicate init operation! please save the old config first")
 	}
 	if err := initDefault(dir); err != nil {
 		panic(err)
@@ -144,7 +149,7 @@ var walletCreateCmd = &cobra.Command{
 	Short: "ninja wallet create -p [PASSWORD] -t",
 	Long:  `TODO::.`,
 	Run:   createAcc,
-	Args:  cobra.MinimumNArgs(1),
+	//Args:  cobra.MinimumNArgs(1),
 }
 
 func createAcc(_ *cobra.Command, _ []string) {

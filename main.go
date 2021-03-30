@@ -61,8 +61,8 @@ func init() {
 		"v", false, "chord -v")
 
 	flags.StringVarP(&param.network, "network",
-		"n", cmd.TestNet,
-		"chord -n|--network ["+cmd.MainNet+"|"+cmd.TestNet+"] default is "+cmd.TestNet+".")
+		"n", cmd.MainNet,
+		"chord -n|--network ["+cmd.MainNet+"|"+cmd.TestNet+"] default is "+cmd.MainNet+".")
 
 	flags.StringVarP(&param.password, "password",
 		"p", "", "chord -p [PASSWORD OF SELECTED KEY]")
@@ -196,7 +196,7 @@ func waitShutdownSignal() {
 	sigCh := make(chan os.Signal, 1)
 
 	pid := strconv.Itoa(os.Getpid())
-	fmt.Printf("\n>>>>>>>>>>chord node start at pid(%s)<<<<<<<<<<\n", pid)
+	fmt.Printf("\n>>>>>>>>>>ninja node start at pid(%s)<<<<<<<<<<\n", pid)
 	path := filepath.Join(utils.BaseUsrDir(param.baseDir), string(filepath.Separator), PidFileName)
 	if err := ioutil.WriteFile(path, []byte(pid), 0644); err != nil {
 		fmt.Print("failed to write running pid", err)

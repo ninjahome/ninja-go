@@ -18,9 +18,20 @@ type NinjaStation struct {
 	ctx       context.Context
 }
 
+var systemTopics map[string]TopicReader
+
 func newStation() *NinjaStation {
 	if _nodeConfig == nil {
 		panic("Please init p2p _nodeConfig first")
+	}
+
+	systemTopics = map[string]TopicReader{
+		P2pChanUserOnOffLine: websocket.Inst().OnOffLineForP2pNetwork,
+		P2pChanImmediateMsg:  websocket.Inst().ImmediateMsgForP2pNetwork,
+		P2pChanUnreadMsg:     websocket.Inst().UnreadMsgFromP2pNetwork,
+		P2pChanContactOps:    contact.Inst().ContactOperationFromP2pNetwork,
+		P2pChanContactQuery:  contact.Inst().ContactQueryFromP2pNetwork,
+		P2pChanDebug:         nil,
 	}
 
 	opts := _nodeConfig.initOptions()
