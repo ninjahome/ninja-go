@@ -8,9 +8,10 @@
 2. init config ✅
 3. change config✅
 ##3 P2pNetwork
-1. join topic
-2. subscribe topic
-3. startup node
+1. join topic✅
+2. subscribe topic✅
+3. startup node✅
+4. all work thread ✅
 ##4 message
 1. immediate message
 2. unread message
