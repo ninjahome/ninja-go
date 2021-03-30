@@ -3,15 +3,22 @@
 ##1 wallet
 1.
 2.
+
 ##2 node init
 1. create account ✅
 2. init config ✅
 3. change config✅
+
 ##3 P2pNetwork
 1. join topic✅
 2. subscribe topic✅
 3. startup node✅
-4. all work thread ✅
+4. all work thread start success ✅
+5. thread exit gracefully ✅
+6. find peers for public node 
+7. find peers for private node
+8. find peers both in public and private network
+9, send debug peer message
 ##4 message
 1. immediate message
 2. unread message
