@@ -13,7 +13,7 @@ import (
 
 type wsUser struct {
 	UID            string
-	onLineTime     time.Time
+	OnLineTime     time.Time
 	cliWsConn      *websocket.Conn
 	msgFromCliChan chan *pbs.WsMsg
 	msgToCliChan   chan *pbs.WsMsg
@@ -104,7 +104,7 @@ func (u *wsUser) writeToCli(msg *pbs.WsMsg) error {
 }
 
 func (u *wsUser) String() string {
-	return fmt.Sprintf("uid:%s, online:%s, from:%s", u.UID, u.onLineTime, u.cliWsConn.RemoteAddr())
+	return fmt.Sprintf("uid:%s, online:%s, from:%s", u.UID, u.OnLineTime, u.cliWsConn.RemoteAddr())
 }
 
 func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
@@ -119,7 +119,7 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 	wu := &wsUser{
 		cliWsConn:      conn,
 		UID:            online.UID,
-		onLineTime:     time.Now(),
+		OnLineTime:     time.Now(),
 		msgFromCliChan: ws.msgFromClientQueue,
 		kaTimer:        time.NewTicker(_wsConfig.PingPeriod),
 		msgToCliChan:   make(chan *pbs.WsMsg, _wsConfig.MaxUnreadMsgNoPerQuery),

@@ -56,3 +56,7 @@ func (t *Thread) Stop() {
 	delete(_inst.nameID, t.name)
 	delete(_inst.queue, t.ID)
 }
+
+func (t *Thread) String() string {
+	return fmt.Sprintf("id:%d, name:%s, time:%s", t.ID, t.name, t.startTime)
+}

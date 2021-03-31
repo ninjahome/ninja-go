@@ -22,8 +22,16 @@ func (c *cmdService) WebSocketInfo(ctx context.Context, req *pbs.WSInfoReq) (*pb
 	}, nil
 }
 
-func (c *cmdService) ShowAllThreads(ctx context.Context, group *pbs.ThreadGroup) (*pbs.CommonResponse, error) {
-	result := thread.Inst().AllThread(group.Group)
+func (c *cmdService) ShowAllThreads(ctx context.Context, req *pbs.ThreadGroup) (*pbs.CommonResponse, error) {
+	var result = ""
+	if req.List {
+		result = thread.Inst().AllThread()
+	}
+
+	if req.ThreadName != "" {
+		result += thread.Inst().ThreadInfo(req.ThreadName)
+	}
+
 	return &pbs.CommonResponse{
 		Msg: result,
 	}, nil

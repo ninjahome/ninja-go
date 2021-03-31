@@ -36,7 +36,7 @@ type ChatHandler func(http.ResponseWriter, *http.Request)
 
 const (
 	CPUserOnline       = "/user/online"
-	WSThreadName       = "websocket thread"
+	WSThreadName       = "websocket main service thread"
 	DispatchThreadName = "websocket message dispatcher thread"
 )
 

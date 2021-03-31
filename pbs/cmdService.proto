@@ -16,7 +16,8 @@ message WSInfoReq{
 }
 
 message ThreadGroup{
-    string group = 1;
+    bool list = 2;
+    string threadName = 1;
 }
 
 message TopicMsg {

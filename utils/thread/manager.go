@@ -80,7 +80,7 @@ func (m *Manager) ThreadByName(name string) *Thread {
 	return m.queue[id]
 }
 
-func (m *Manager) AllThread(group string) string {
+func (m *Manager) AllThread() string {
 	m.locker.RLock()
 	defer m.locker.RUnlock()
 
@@ -90,4 +90,17 @@ func (m *Manager) AllThread(group string) string {
 	}
 	s += fmt.Sprintf("\n--------------------------------\n")
 	return s
+}
+
+func (m *Manager) ThreadInfo(tn string) string {
+	m.locker.RLock()
+	defer m.locker.RUnlock()
+
+	id, ok := m.nameID[tn]
+	if !ok {
+		return "no such thread"
+	}
+
+	t := m.queue[id]
+	return t.String()
 }

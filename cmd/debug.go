@@ -49,6 +49,7 @@ var (
 	user    string
 	local   bool
 	online  bool
+	thName  string
 )
 
 func init() {
@@ -72,6 +73,13 @@ func init() {
 		"ninja debug ws -o")
 
 	DebugCmd.AddCommand(websocketCmd)
+
+	threadCmd.Flags().BoolVarP(&local, "list", "l", false,
+		"ninja debug thread -l")
+
+	threadCmd.Flags().StringVarP(&thName, "tname", "n", "",
+		"ninja debug thread -n [Thread Name]")
+
 	DebugCmd.AddCommand(threadCmd)
 }
 
@@ -131,7 +139,8 @@ func threadAction(c *cobra.Command, _ []string) {
 
 	cli := DialToCmdService()
 	rsp, err := cli.ShowAllThreads(context.Background(), &pbs.ThreadGroup{
-		Group: "tmp",
+		List:       local,
+		ThreadName: thName,
 	})
 
 	if err != nil {

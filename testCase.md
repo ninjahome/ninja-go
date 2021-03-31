@@ -34,6 +34,7 @@
 6. connect to public network node
 7. offline
 8. online user date cmd line debug tools✅
+9. ping pong status
 
 ##5 contact
 1. add contact
