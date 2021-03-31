@@ -127,9 +127,9 @@ type Config struct {
 
 func (c Config) String() string {
 	s := fmt.Sprintf("\n----------------------Node Config-----------------------")
-	s += fmt.Sprintf("\nchain id:\t%d", c.ChainID)
-	s += fmt.Sprintf("\nchain name:\t%20s", c.ChainID.String())
-	s += fmt.Sprintf("\nchain name:\t%20t", c.P2oLogOpen)
+	s += fmt.Sprintf("\nchain id:\t\t%d", c.ChainID)
+	s += fmt.Sprintf("\nchain name:\t\t%s", c.ChainID.String())
+	s += fmt.Sprintf("\np2p log open:\t\t%t", c.P2oLogOpen)
 	s += fmt.Sprintf("\nnode service port:\t%d\n", c.SrvPort)
 	s += fmt.Sprintf(c.PsConf.String())
 	s += fmt.Sprintf(c.DHTConf.String())

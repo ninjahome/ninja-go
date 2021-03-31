@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
+	"github.com/ninjahome/ninja-go/service/client"
 	websocket2 "github.com/ninjahome/ninja-go/service/websocket"
+	"github.com/ninjahome/ninja-go/wallet"
 	"google.golang.org/protobuf/proto"
 	"net/url"
 	"os"
@@ -13,6 +15,33 @@ import (
 )
 
 func main() {
+	ss := &MacChatCli{}
+	keyStr := ""
+	key, err := wallet.DecryptKey([]byte(keyStr), "123")
+	if err != nil {
+		panic(err)
+	}
+	ws, err := client.NewWSClient("202.182.101.145:6666", key, ss)
+	if err != nil {
+		panic(err)
+	}
+	ss.wsCli = ws
+
+	c, err := client.NewContactCli("202.182.101.145:6666", key)
+	if err != nil {
+		panic(err)
+	}
+
+	ss.contactCli = c
+
+	//ss.Run()
+
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, os.Kill)
+	<-interrupt
+}
+
+func test1() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
