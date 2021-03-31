@@ -34,7 +34,7 @@ func main() {
 
 	ss.contactCli = c
 
-	//ss.Run()
+	ss.Run()
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, os.Kill)

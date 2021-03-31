@@ -10,6 +10,7 @@ import (
 	"github.com/ninjahome/ninja-go/wallet"
 	"google.golang.org/protobuf/proto"
 	"net/url"
+	"time"
 )
 
 type WSClient struct {
@@ -25,7 +26,7 @@ type WSClient struct {
 
 type CliCallBack interface {
 	InputMsg(*pbs.WSCryptoMsg) error
-	DidClosed()
+	WebSocketClosed()
 	UnreadMsg([]*pbs.WSCryptoMsg) error
 }
 
@@ -97,10 +98,18 @@ func (cc *WSClient) getAesKey(to string) ([]byte, error) {
 	return key, nil
 }
 
-func (cc *WSClient) Write(msg *pbs.WSCryptoMsg) error {
+func (cc *WSClient) Write(to string, body []byte) error {
 	if !cc.isOnline {
 		return fmt.Errorf("please online yourself first")
 	}
+
+	msg := &pbs.WSCryptoMsg{
+		From:     cc.key.Address.String(),
+		To:       to,
+		PayLoad:  body,
+		UnixTime: time.Now().Unix(),
+	}
+
 	key, err := cc.getAesKey(msg.To)
 	if err != nil {
 		return err
@@ -205,7 +214,7 @@ func (cc *WSClient) ShutDown() {
 	if cc.msgChanToServer != nil {
 		return
 	}
-	cc.callback.DidClosed()
+	cc.callback.WebSocketClosed()
 	cc.reader.Stop()
 	cc.writer.Stop()
 	cc.wsConn.Close()
