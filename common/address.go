@@ -53,19 +53,32 @@ func (a *Address) SetBytes(b []byte) {
 //}
 
 func HexToAddress(s string) (addr Address, err error) {
-	byts, err := hex.DecodeString(s)
+	bts, err := hex.DecodeString(s)
 	if err != nil {
 		return
 	}
-	addr.SetBytes(byts)
+	addr.SetBytes(bts)
 	return
 }
 
-func (a Address) Hex() string {
+func (a *Address) UnmarshalJSON(data []byte) error {
+	bts, err := hex.DecodeString(string(data[1 : len(data)-1]))
+	if err != nil {
+		return err
+	}
+	a.SetBytes(bts)
+	return nil
+}
+
+func (a *Address) MarshalText() ([]byte, error) {
+	return []byte(a.Hex()), nil
+}
+
+func (a *Address) Hex() string {
 	return hex.EncodeToString(a[:])
 }
 
-func (a Address) String() string {
+func (a *Address) String() string {
 	return a.Hex()
 }
 
@@ -75,17 +88,12 @@ func BytesToAddress(b []byte) Address {
 	return a
 }
 
-//func PubKeyToAddr(p *bls.PublicKey) Address {
-//	pubBytes := p.Serialize()
-//	return BytesToAddress(utils.Keccak256(pubBytes[1:])[12:])
-//}
-
 func PubKeyToAddr(p *bls.PublicKey) Address {
 	pubBytes := p.Serialize()
 	return BytesToAddress(pubBytes)
 }
 
-func AddrToPub(a Address) (*bls.PublicKey, error) {
+func AddrToPub(a *Address) (*bls.PublicKey, error) {
 	pub := &bls.PublicKey{}
 	if err := pub.Deserialize(a[:]); err != nil {
 		return nil, err

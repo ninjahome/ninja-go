@@ -1,8 +1,8 @@
 
 [TOC]
 ##1 wallet
-1.parse key from 
-2.
+1.parse key from json string
+2.save key's json string data
 
 ##2 node init
 1. create account ✅

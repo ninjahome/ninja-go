@@ -2,7 +2,6 @@ package wallet
 
 import (
 	"crypto/ed25519"
-	"encoding/json"
 	"fmt"
 	"github.com/herumi/bls-eth-go-binary/bls"
 	"github.com/ninjahome/ninja-go/common"
@@ -33,10 +32,10 @@ func TestPublicKey(t *testing.T) {
 	}
 }
 func TestG1Pub(t *testing.T) {
-	pri_a := GenerateKey()
+	pri_a := GeneratePriKey()
 	pub_a := pri_a.GetPublicKey()
 
-	pri_b := GenerateKey()
+	pri_b := GeneratePriKey()
 	pub_b := pri_b.GetPublicKey()
 
 	G1_a := bls.CastFromPublicKey(pub_a)
@@ -57,26 +56,18 @@ func TestG1Pub(t *testing.T) {
 
 func TestKeyNew(t *testing.T) {
 	k := NewKey()
-
-	bs, err := json.MarshalIndent(k, "", "\t")
-	if err != nil {
-		t.Fatal(err)
-	}
-	fmt.Println(string(bs))
 	pub := k.privateKey.GetPublicKey()
 	fmt.Printf("case 1 success=> pub:%x\n", pub.Serialize())
+
 }
 
 func TestKeyAuth(t *testing.T) {
 	var auth = "123"
 	key := NewKey()
-	bs, err := key.Encrypt(auth)
-	if err != nil {
-		t.Fatal(err)
-	}
-	cipherTxt := string(bs)
+
+	cipherTxt := key.StoreString(auth)
 	fmt.Println(cipherTxt)
-	parsedKey, err := DecryptKey(bs, auth)
+	parsedKey, err := LoadKeyFromJsonStr(cipherTxt, auth)
 	if err != nil {
 		t.Fatal(err)
 	}

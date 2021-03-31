@@ -52,7 +52,7 @@ func NewKey() *Key {
 }
 
 func NewLightKey(light bool) *Key {
-	sec := GenerateKey()
+	sec := GeneratePriKey()
 	id := uuid.NewRandom()
 	key := &Key{
 		Light:      light,
@@ -70,10 +70,6 @@ func (k *Key) Encrypt(auth string) ([]byte, error) {
 	return EncryptKey(k, auth, StandardScryptN, StandardScryptP)
 }
 
-func (k *Key) isOpen() bool {
-	return k.privateKey == nil
-}
-
 func (k *Key) close() {
 	k.privateKey = nil
 }
@@ -84,7 +80,7 @@ func (k *Key) CastEd25519Key() (crypto.PrivKey, error) {
 	return crypto.UnmarshalEd25519PrivateKey(edPri[:])
 }
 
-func GenerateKey() *bls.SecretKey {
+func GeneratePriKey() *bls.SecretKey {
 	var sec bls.SecretKey
 	sec.SetByCSPRNG()
 	return &sec
@@ -114,4 +110,17 @@ func (k *Key) SharedKey(to string) ([]byte, error) {
 	aesKey := &bls.G1{}
 	bls.G1Mul(aesKey, toG1, frKey)
 	return aesKey.Serialize()[:32], nil
+}
+
+func (k *Key) StoreString(auth string) string {
+	bts, _ := k.Encrypt(auth)
+	return string(bts)
+}
+
+func LoadKeyFromJsonStr(str, auth string) (*Key, error) {
+	parsedKey, err := DecryptKey([]byte(str), auth)
+	if err != nil {
+		return nil, err
+	}
+	return parsedKey, nil
 }

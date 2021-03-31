@@ -14,13 +14,38 @@ import (
 	"time"
 )
 
+var keyStr = `
+{
+        "address": "a653234466b9cc858f238b49771298a853be717a112ee280f8b6d4fe6bf01c71cfe5334435be4a8f43cc436002763de5",
+        "crypto": {
+                "cipher": "aes-128-ctr",
+                "ciphertext": "f3ab5c896960e87b550f2a9daf10e31d827a35202303abbd1e43a98dde033c66",
+                "cipherParams": {
+                        "iv": "84170a60bd5bd82a6380d74dd2ba2908"
+                },
+                "kdf": "scrypt",
+                "kdfParams": {
+                        "dklen": 32,
+                        "n": 262144,
+                        "p": 1,
+                        "r": 8,
+                        "salt": "90b189ff698a2a3f753c31cc19b8d29ee48dcab1ffac74d0be06a263ec4bfb9e"
+                },
+                "mac": "0b945ee59581c17ec227a8b064994330e0882c6f418abbd18156d5f4372cef82"
+        },
+        "id": "b57ec371-2e95-4038-b3e0-45b104519556",
+        "version": 1
+}
+`
+
 func main() {
+
 	ss := &MacChatCli{}
-	keyStr := ""
-	key, err := wallet.DecryptKey([]byte(keyStr), "123")
+	key, err := wallet.LoadKeyFromJsonStr(keyStr, "123")
 	if err != nil {
 		panic(err)
 	}
+
 	ws, err := client.NewWSClient("202.182.101.145:6666", key, ss)
 	if err != nil {
 		panic(err)
