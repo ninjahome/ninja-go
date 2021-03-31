@@ -6,6 +6,13 @@ service CmdService {
     rpc P2pSendTopicMsg (TopicMsg) returns (CommonResponse) {}
     rpc P2pShowPeers (ShowPeer) returns (CommonResponse) {}
     rpc ShowAllThreads (ThreadGroup) returns (CommonResponse) {}
+    rpc WebSocketInfo (WSInfoReq) returns (CommonResponse) {}
+}
+
+message WSInfoReq{
+    bool online = 1;
+    bool local = 2;
+    string userAddr = 3;
 }
 
 message ThreadGroup{

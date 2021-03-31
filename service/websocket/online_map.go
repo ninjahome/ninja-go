@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"encoding/json"
 	"sync"
 )
 
@@ -31,4 +32,9 @@ func newOnlineSet() *OnlineMap {
 	return &OnlineMap{
 		lines: make(map[string]bool),
 	}
+}
+
+func (m *OnlineMap) DumpContent() string {
+	bts, _ := json.Marshal(m)
+	return string(bts)
 }

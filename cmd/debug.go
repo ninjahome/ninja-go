@@ -29,11 +29,11 @@ var showPeerCmd = &cobra.Command{
 	Run:   showPeerAction,
 }
 
-var rpcCmd = &cobra.Command{
-	Use:   "service",
-	Short: "service",
+var websocketCmd = &cobra.Command{
+	Use:   "ws",
+	Short: "ninja debug ws -u [User Address] -l -o",
 	Long:  `TODO::.`,
-	Run:   rpcUsage,
+	Run:   webSocketAction,
 }
 
 var threadCmd = &cobra.Command{
@@ -46,20 +46,32 @@ var threadCmd = &cobra.Command{
 var (
 	topic   string
 	msgBody string
+	user    string
+	local   bool
+	online  bool
 )
 
 func init() {
-	pushCmd.Flags().StringVarP(&topic, "topic", "t", string(node.P2pChanDebug),
+	pushCmd.Flags().StringVarP(&topic, "topic", "t", node.P2pChanDebug,
 		"ninja debug push -t [TOPIC]")
 	pushCmd.Flags().StringVarP(&msgBody, "message", "m", "",
 		"ninja debug push -t [TOPIC] -m \"[MESSAGE]\"")
 	DebugCmd.AddCommand(pushCmd)
 
-	showPeerCmd.Flags().StringVarP(&topic, "topic", "t", string(node.P2pChanDebug),
+	showPeerCmd.Flags().StringVarP(&topic, "topic", "t", node.P2pChanDebug,
 		"ninja debug peers -t [TOPIC]")
 	DebugCmd.AddCommand(showPeerCmd)
 
-	DebugCmd.AddCommand(rpcCmd)
+	websocketCmd.Flags().StringVarP(&user, "user", "u", "",
+		"ninja debug ws -u [User Address]")
+
+	websocketCmd.Flags().BoolVarP(&local, "local", "l", false,
+		"ninja debug ws -l")
+
+	websocketCmd.Flags().BoolVarP(&online, "online", "o", false,
+		"ninja debug ws -o")
+
+	DebugCmd.AddCommand(websocketCmd)
 	DebugCmd.AddCommand(threadCmd)
 }
 
@@ -101,9 +113,20 @@ func showPeerAction(c *cobra.Command, _ []string) {
 	fmt.Println("peers result:=>", rsp.Msg)
 }
 
-func rpcUsage(c *cobra.Command, _ []string) {
-	_ = c.Usage()
+func webSocketAction(c *cobra.Command, _ []string) {
+	cli := DialToCmdService()
+	rsp, err := cli.WebSocketInfo(context.Background(), &pbs.WSInfoReq{
+		Online:   online,
+		Local:    local,
+		UserAddr: user,
+	})
+
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(rsp.Msg)
 }
+
 func threadAction(c *cobra.Command, _ []string) {
 
 	cli := DialToCmdService()

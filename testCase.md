@@ -1,7 +1,7 @@
 
 [TOC]
 ##1 wallet
-1.parse key from json string
+1.parse key from json string✅
 2.save key's json string data
 
 ##2 node init
@@ -23,13 +23,24 @@
    
 8. find peers both in public and private network ✅
 9, send debug peer message ✅
+   
+
 ##4 message
 1. immediate message
 2. unread message
-3. online offline 
+3. online  
+4. connect to localhost node
+5. connect to private network node
+6. connect to public network node
+7. offline
+8. online user date cmd line debug tools✅
+
 ##5 contact
 1. add contact
 2. update contact
 3. remove contact
 4. sync contact
+5. connect to private network node
+6. connect to public network node
+7. connect to localhost node
 

@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"context"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/libp2p/go-libp2p-pubsub"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
@@ -26,7 +27,7 @@ type Service struct {
 	onlineSet          *OnlineMap
 	msgFromClientQueue chan *pbs.WsMsg
 	threads            map[string]*thread.Thread
-	p2pOnOffWriter     *pubsub.Topic
+	p2pOnOffLineWriter *pubsub.Topic
 	p2pIMWriter        *pubsub.Topic
 	p2pUnreadQuery     *pubsub.Topic
 	dataBase           *leveldb.DB
@@ -167,4 +168,27 @@ func (ws *Service) wsCliMsgDispatch(stop chan struct{}) {
 			}
 		}
 	}
+}
+
+func (ws *Service) DebugInfo(online, local bool, usr string) string {
+	s := "\n-------------------websocket debug info---------------------\n"
+	if online {
+		s += ws.onlineSet.DumpContent() + "\n"
+	}
+	if local {
+		s += ws.userTable.DumpContent() + "\n"
+	}
+	if usr != "" {
+		u, ok := ws.userTable.get(usr)
+		if !ok {
+			s += fmt.Sprintf("no such user:[%s] in local ", usr)
+			if ws.onlineSet.contains(usr) {
+				s += "but is online"
+			}
+		} else {
+			s += u.String() + "\n"
+		}
+	}
+	s += "\n----------------------------------------------------------\n"
+	return s
 }

@@ -62,6 +62,11 @@ func (w MacChatCli) contactWindow() {
 	}
 }
 
-func (w MacChatCli) Run() {
+func (w MacChatCli) Run() error {
+	if err := w.wsCli.Online(); err != nil {
+		return err
+	}
 	go w.writeFromStdio()
+	go w.contactWindow()
+	return nil
 }

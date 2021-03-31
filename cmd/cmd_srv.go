@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ninjahome/ninja-go/node"
 	pbs "github.com/ninjahome/ninja-go/pbs/cmd"
+	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
 	"google.golang.org/grpc"
@@ -13,6 +14,13 @@ import (
 )
 
 type cmdService struct{}
+
+func (c *cmdService) WebSocketInfo(ctx context.Context, req *pbs.WSInfoReq) (*pbs.CommonResponse, error) {
+	result := websocket.Inst().DebugInfo(req.Online, req.Local, req.UserAddr)
+	return &pbs.CommonResponse{
+		Msg: result,
+	}, nil
+}
 
 func (c *cmdService) ShowAllThreads(ctx context.Context, group *pbs.ThreadGroup) (*pbs.CommonResponse, error) {
 	result := thread.Inst().AllThread(group.Group)

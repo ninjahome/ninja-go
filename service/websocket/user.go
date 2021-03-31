@@ -103,6 +103,10 @@ func (u *wsUser) writeToCli(msg *pbs.WsMsg) error {
 	return nil
 }
 
+func (u *wsUser) String() string {
+	return fmt.Sprintf("uid:%s, online:%s, from:%s", u.UID, u.onLineTime, u.cliWsConn.RemoteAddr())
+}
+
 func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 
 	msg := &pbs.WsMsg{}
@@ -121,7 +125,7 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 		msgToCliChan:   make(chan *pbs.WsMsg, _wsConfig.MaxUnreadMsgNoPerQuery),
 	}
 
-	if err := ws.p2pOnOffWriter.Publish(ws.ctx, rawData); err != nil {
+	if err := ws.p2pOnOffLineWriter.Publish(ws.ctx, rawData); err != nil {
 		return err
 	}
 	ws.onlineSet.add(wu.UID)
@@ -140,6 +144,8 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 	ws.threads[tid] = t
 	t.Run()
 
+	utils.LogInst().Debug().Msgf("new user[%s] online success.....", wu.UID)
+
 	return nil
 }
 
@@ -155,13 +161,13 @@ func (ws *Service) offlineUser(threadId string, uid string) {
 		Payload: &pbs.WsMsg_Online{Online: &pbs.WSOnline{UID: uid}},
 	}
 
-	if err := ws.p2pOnOffWriter.Publish(ws.ctx, msg.Data()); err != nil {
+	if err := ws.p2pOnOffLineWriter.Publish(ws.ctx, msg.Data()); err != nil {
 		utils.LogInst().Warn().Err(err).Send()
 	}
 }
 
 func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
-	ws.p2pOnOffWriter = w.Pub
+	ws.p2pOnOffLineWriter = w.Pub
 
 	for {
 		msg, err := w.Sub.Next(ws.ctx)

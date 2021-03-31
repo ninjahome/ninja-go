@@ -1,6 +1,9 @@
 package websocket
 
-import "sync"
+import (
+	"encoding/json"
+	"sync"
+)
 
 type UserTable struct {
 	sync.RWMutex
@@ -30,4 +33,9 @@ func newUserTable() *UserTable {
 	return &UserTable{
 		cache: make(map[string]*wsUser),
 	}
+}
+
+func (ut *UserTable) DumpContent() string {
+	bts, _ := json.Marshal(ut.cache)
+	return string(bts)
 }

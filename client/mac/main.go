@@ -45,21 +45,24 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Printf("key is loaded :=>%t\n", key.IsOpen())
 
-	ws, err := client.NewWSClient("202.182.101.145:6666", key, ss)
+	ws, err := client.NewWSClient("127.0.0.1:6666", key, ss) //202.182.101.145
 	if err != nil {
 		panic(err)
 	}
 	ss.wsCli = ws
 
-	c, err := client.NewContactCli("202.182.101.145:6666", key)
+	c, err := client.NewContactCli("127.0.0.1:6667", key) //202.182.101.145
 	if err != nil {
 		panic(err)
 	}
 
 	ss.contactCli = c
 
-	ss.Run()
+	if err := ss.Run(); err != nil {
+		panic(err)
+	}
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, os.Kill)
