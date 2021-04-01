@@ -9,6 +9,8 @@
 
 ##3 P2pNetwork
 1. join a topic✅
+   - 1.1 join success
+    - 1.2 every topic has a peer node
 2. subscribe topic✅
 3. startup node✅
 4. all work thread start success ✅

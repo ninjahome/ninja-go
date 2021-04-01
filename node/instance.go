@@ -88,7 +88,7 @@ func (nt *NinjaNode) Start() error {
 
 	stream, err := nt.RandomPeer(StreamSyncOnline)
 	if err != nil {
-		utils.LogInst().Warn().Msg("may be i'm genesis......")
+		utils.LogInst().Warn().Msg("got random stream failed may be i'm genesis......")
 	} else {
 		if err := websocket.Inst().SyncOnlineSetFromPeerNodes(stream); err != nil {
 			return err

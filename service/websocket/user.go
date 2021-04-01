@@ -225,7 +225,6 @@ func (ws *Service) offlineFromOtherPeer(msg *pbs.WsMsg) error {
 }
 
 func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
-
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 
 	streamMsg := &pbs2.StreamMsg{}
@@ -233,20 +232,24 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 	data = append(data, OnlineStreamDelim)
 
 	if _, err := rw.Write(data); err != nil {
+		utils.LogInst().Err(err).Msg("stream: write online sync request data failed")
 		return err
 	}
 
 	bts, err := rw.ReadBytes(OnlineStreamDelim)
 	if err != nil {
+		utils.LogInst().Err(err).Msg("stream: read online sync response data failed")
 		return err
 	}
 
 	resp := &pbs2.StreamMsg{}
 	if err := proto.Unmarshal(bts, streamMsg); err != nil {
+		utils.LogInst().Err(err).Msg("failed parse stream message")
 		return err
 	}
 	body, ok := resp.Payload.(*pbs2.StreamMsg_OnlineAck)
 	if !ok {
+		utils.LogInst().Err(err).Msg("failed parse stream message")
 		return fmt.Errorf("invalid onlime map data")
 	}
 
@@ -263,11 +266,12 @@ func (ws *Service) OnlineMapQuery(stream network.Stream) {
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 	bts, err := rw.ReadBytes(OnlineStreamDelim)
 	if err != nil {
+		utils.LogInst().Err(err).Msg("stream: read online sync request data failed")
 		return
 	}
 	streamMsg := &pbs2.StreamMsg{}
 	if err := proto.Unmarshal(bts, streamMsg); err != nil {
-		utils.LogInst().Warn().Msg("failed parse p2p message")
+		utils.LogInst().Err(err).Msg("failed parse stream message")
 		return
 	}
 
@@ -275,6 +279,7 @@ func (ws *Service) OnlineMapQuery(stream network.Stream) {
 	data := resp.SyncOnlineAck(ws.onlineSet.AllUid())
 	data = append(data, OnlineStreamDelim)
 	if _, err := rw.Write(data); err != nil {
+		utils.LogInst().Err(err).Msg("stream: write online set response data failed")
 		return
 	}
 }

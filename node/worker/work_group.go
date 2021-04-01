@@ -48,6 +48,7 @@ func (wg *WorkGroup) checkPeerNo(grp *sync.WaitGroup, tw *TopicWorker) {
 		case <-checker.C:
 			tryTimes++
 			if len(tw.Pub.ListPeers()) > 0 {
+				utils.LogInst().Info().Msgf("got topic peer success [%d]", len(tw.Pub.ListPeers()))
 				return
 			}
 
