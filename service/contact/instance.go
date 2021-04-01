@@ -29,8 +29,19 @@ var (
 	once           sync.Once
 	ErBodyCast     = fmt.Errorf("invalid add contact message body")
 	ErVerifyFailed = fmt.Errorf("verify signature failed")
-	ErSyncFirst    = fmt.Errorf("please sync contact first")
 )
+
+type Service struct {
+	id                   string
+	contactOperateWorker *worker.TopicWorker
+	contactQueryWorker   *worker.TopicWorker
+	apis                 *http.ServeMux
+	server               *http.Server
+	threads              map[string]*thread.Thread
+	dataBase             *leveldb.DB
+	contactLock          sync.RWMutex
+	contactPeerWorker    *worker.StreamWorker //TODO::Make contact be a small block chain
+}
 
 func Inst() *Service {
 	once.Do(func() {
@@ -63,19 +74,6 @@ func newContactServer() *Service {
 	utils.LogInst().Info().Msg("contact service instance init......")
 	return s
 }
-
-type Service struct {
-	id                   string
-	contactOperateWorker *worker.TopicWorker
-	contactQueryWorker   *worker.TopicWorker
-	apis                 *http.ServeMux
-	server               *http.Server
-	threads              map[string]*thread.Thread
-	dataBase             *leveldb.DB
-	contactLock          sync.RWMutex
-	contactPeerWorker    *worker.StreamWorker
-}
-
 func (s *Service) StartService(id string, cpw *worker.StreamWorker) {
 	s.id = id
 	s.contactPeerWorker = cpw
