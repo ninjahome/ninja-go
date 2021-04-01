@@ -13,12 +13,15 @@ enum StreamMType{
 message StreamMsg{
   StreamMType MTyp = 1;
   oneof payload{
-    OnlineMap onlineAck= 2;
+    OnlineSync onlineSync= 2;
+    OnlineMap onlineAck = 5;
     ContactSync contactSync = 3;
     ContactAck contactAck = 4;
   }
 }
-
+message OnlineSync{
+  string nodeID = 1;
+}
 message OnlineMap{
   repeated string UID = 1;
 }

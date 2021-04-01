@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	TopicPeerNoCheckPeriods = 200 * time.Millisecond
-	TopicPeerNoCheckTimes   = int(3 * time.Second / TopicPeerNoCheckPeriods)
+	TopicPeerNoCheckPeriods = 500 * time.Millisecond
+	TopicPeerNoCheckTimes   = int(5 * time.Second / TopicPeerNoCheckPeriods)
 )
 
 type TopicReader func(*TopicWorker)

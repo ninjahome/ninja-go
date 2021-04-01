@@ -228,15 +228,18 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 
 	streamMsg := &pbs2.StreamMsg{}
-	data := streamMsg.SyncOnline()
+	data := streamMsg.SyncOnline(ws.id)
 	data = append(data, OnlineStreamDelim)
 
-	if _, err := rw.Write(data); err != nil {
+	n, err := rw.Write(data)
+	if err != nil {
 		utils.LogInst().Err(err).Msg("stream: write online sync request data failed")
 		return err
 	}
-
-	utils.LogInst().Debug().Msg("[SyncOnlineSetFromPeerNodes] stream out success.......")
+	if err := rw.Flush(); err != nil {
+		utils.LogInst().Err(err).Msg("stream:  online sync request flush failed")
+	}
+	utils.LogInst().Debug().Msgf("[SyncOnlineSetFromPeerNodes] stream out [%d][%x]success.......", n, data)
 
 	bts, err := rw.ReadBytes(OnlineStreamDelim)
 	if err != nil {
