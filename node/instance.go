@@ -86,13 +86,16 @@ func (nt *NinjaNode) Start() error {
 	}
 	nt.tWorkers = workers
 
-	onlineSycWorker := &worker.StreamWorker{
-		ProtoID: StreamSyncOnline,
-		SGetter: nt.RandomPeer,
+	stream, err := nt.RandomPeer(StreamSyncOnline)
+	if err != nil {
+		utils.LogInst().Warn().Msg("may be i'm genesis......")
+	} else {
+		if err := websocket.Inst().SyncOnlineSetFromPeerNodes(stream); err != nil {
+			return err
+		}
 	}
-	if err := websocket.Inst().StartService(nt.nodeID, onlineSycWorker); err != nil {
-		return err
-	}
+
+	websocket.Inst().StartService(nt.nodeID)
 
 	contactSyncWorker := &worker.StreamWorker{
 		ProtoID: StreamContactQuery,

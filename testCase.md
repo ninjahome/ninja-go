@@ -30,7 +30,10 @@
 12. check peers of all topics 
       - 12.1 one node setup
       - 12.2 more than one node setup
-
+13. only one node setup
+    - 13.1 boot node
+    - 13.2 normal node
+    
 ##4 message
 1. immediate message
    - 1.1 filter by contact

@@ -82,13 +82,8 @@ func newWebSocket() *Service {
 	return ws
 }
 
-func (ws *Service) StartService(nodeID string, psw *worker.StreamWorker) error {
+func (ws *Service) StartService(nodeID string) {
 	ws.id = nodeID
-	ws.peerStreamWorker = psw
-	if err := ws.syncOnlineMapFromPeerNodes(); err != nil {
-		return err
-	}
-
 	dspThread := thread.NewThreadWithName(DispatchThreadName, ws.wsCliMsgDispatch)
 	ws.threads[DispatchThreadName] = dspThread
 
@@ -103,7 +98,7 @@ func (ws *Service) StartService(nodeID string, psw *worker.StreamWorker) error {
 	dspThread.Run()
 	srvThread.Run()
 
-	return nil
+	return
 }
 
 func (ws *Service) ShutDown() {

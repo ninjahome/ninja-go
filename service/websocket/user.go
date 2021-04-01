@@ -224,12 +224,7 @@ func (ws *Service) offlineFromOtherPeer(msg *pbs.WsMsg) error {
 	return nil
 }
 
-func (ws *Service) syncOnlineMapFromPeerNodes() error {
-
-	stream, _ := ws.peerStreamWorker.Stream()
-	if stream == nil {
-		return nil
-	}
+func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 
