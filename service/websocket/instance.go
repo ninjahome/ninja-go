@@ -1,10 +1,9 @@
 package websocket
 
 import (
-	"context"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/libp2p/go-libp2p-pubsub"
+	"github.com/ninjahome/ninja-go/node/worker"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
@@ -18,26 +17,27 @@ import (
 
 type Service struct {
 	id       string
-	ctx      context.Context
 	apis     *http.ServeMux
 	upGrader *websocket.Upgrader
 	server   *http.Server
+	dataBase *leveldb.DB
 
-	userTable          *UserTable
-	onlineSet          *OnlineMap
-	msgFromClientQueue chan *pbs.WsMsg
-	threads            map[string]*thread.Thread
-	p2pOnOffLineWriter *pubsub.Topic
-	p2pIMWriter        *pubsub.Topic
-	p2pUnreadQuery     *pubsub.Topic
-	dataBase           *leveldb.DB
+	userTable            *UserTable
+	onlineSet            *OnlineMap
+	msgFromClientQueue   chan *pbs.WsMsg
+	threads              map[string]*thread.Thread
+	onOffLineP2pWorker   *worker.TopicWorker
+	IMP2pWorker          *worker.TopicWorker
+	unreadP2pQueryWorker *worker.TopicWorker
+	peerStreamWorker     *worker.StreamWorker
 }
 type ChatHandler func(http.ResponseWriter, *http.Request)
 
 const (
-	CPUserOnline       = "/user/online"
-	WSThreadName       = "websocket main service thread"
-	DispatchThreadName = "websocket message dispatcher thread"
+	CPUserOnline            = "/user/online"
+	WSThreadName            = "websocket main service thread"
+	DispatchThreadName      = "websocket message dispatcher thread"
+	OnlineStreamDelim  byte = '@'
 )
 
 var (
@@ -82,21 +82,28 @@ func newWebSocket() *Service {
 	return ws
 }
 
-func (ws *Service) StartService(nodeID string, ctx context.Context) {
+func (ws *Service) StartService(nodeID string, psw *worker.StreamWorker) error {
 	ws.id = nodeID
-	ws.ctx = ctx
-	t := thread.NewThreadWithName(DispatchThreadName, ws.wsCliMsgDispatch)
-	ws.threads[DispatchThreadName] = t
-	t.Run()
+	ws.peerStreamWorker = psw
+	if err := ws.syncOnlineMapFromPeerNodes(); err != nil {
+		return err
+	}
 
-	t = thread.NewThreadWithName(WSThreadName, func(_ chan struct{}) {
+	dspThread := thread.NewThreadWithName(DispatchThreadName, ws.wsCliMsgDispatch)
+	ws.threads[DispatchThreadName] = dspThread
+
+	srvThread := thread.NewThreadWithName(WSThreadName, func(_ chan struct{}) {
 		utils.LogInst().Info().Msg("websocket service thread start......")
 		err := ws.server.ListenAndServe()
 		utils.LogInst().Err(err).Send()
 		ws.ShutDown()
 	})
-	ws.threads[WSThreadName] = t
-	t.Run()
+	ws.threads[WSThreadName] = srvThread
+
+	dspThread.Run()
+	srvThread.Run()
+
+	return nil
 }
 
 func (ws *Service) ShutDown() {
@@ -154,7 +161,7 @@ func (ws *Service) wsCliMsgDispatch(stop chan struct{}) {
 				}
 			case pbs.WsMsgType_PullUnread:
 
-				if err := ws.p2pUnreadQuery.Publish(ws.ctx, msg.Data()); err != nil {
+				if err := ws.unreadP2pQueryWorker.BroadCast(msg.Data()); err != nil {
 					utils.LogInst().Warn().Msgf("broadcast unread message request failed:%s", err)
 					continue
 				}

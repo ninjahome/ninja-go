@@ -96,7 +96,7 @@ LoadMore:
 		}},
 	}
 
-	if err := ws.p2pUnreadQuery.Publish(ws.ctx, result.Data()); err != nil {
+	if err := ws.unreadP2pQueryWorker.BroadCast(result.Data()); err != nil {
 		return err
 	}
 
@@ -127,11 +127,9 @@ func (ws *Service) unreadMsgResultFromP2pNetwork(msg *pbs.WsMsg) error {
 }
 
 func (ws *Service) UnreadMsgFromP2pNetwork(w *worker.TopicWorker) {
-	ws.p2pUnreadQuery = w.Pub
-
+	ws.unreadP2pQueryWorker = w
 	for {
-
-		msg, err := w.Sub.Next(ws.ctx)
+		msg, err := w.ReadMsg()
 		if err != nil {
 			utils.LogInst().Warn().Msgf("unread message listening thread exit:=>%s", err)
 			return

@@ -41,14 +41,14 @@ func (ws *Service) procIM(msg *pbs.WsMsg) error {
 		return user.writeToCli(msg)
 	}
 
-	return ws.p2pIMWriter.Publish(ws.ctx, msg.Data())
+	return ws.IMP2pWorker.BroadCast(msg.Data())
 }
 
 func (ws *Service) ImmediateMsgForP2pNetwork(w *worker.TopicWorker) {
-	ws.p2pIMWriter = w.Pub
+	ws.IMP2pWorker = w
 
 	for {
-		msg, err := w.Sub.Next(ws.ctx)
+		msg, err := w.ReadMsg()
 		if err != nil {
 			utils.LogInst().Warn().Msgf("immediate message listening thread exit:=>%s", err)
 

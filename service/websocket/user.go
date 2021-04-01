@@ -1,9 +1,12 @@
 package websocket
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/ninjahome/ninja-go/node/worker"
+	pbs2 "github.com/ninjahome/ninja-go/pbs/stream"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
@@ -125,7 +128,7 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 		msgToCliChan:   make(chan *pbs.WsMsg, _wsConfig.MaxUnreadMsgNoPerQuery),
 	}
 
-	if err := ws.p2pOnOffLineWriter.Publish(ws.ctx, rawData); err != nil {
+	if err := ws.onOffLineP2pWorker.BroadCast(rawData); err != nil {
 		return err
 	}
 	ws.onlineSet.add(wu.UID)
@@ -161,16 +164,16 @@ func (ws *Service) offlineUser(threadId string, uid string) {
 		Payload: &pbs.WsMsg_Online{Online: &pbs.WSOnline{UID: uid}},
 	}
 
-	if err := ws.p2pOnOffLineWriter.Publish(ws.ctx, msg.Data()); err != nil {
+	if err := ws.onOffLineP2pWorker.BroadCast(msg.Data()); err != nil {
 		utils.LogInst().Warn().Err(err).Send()
 	}
 }
 
 func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
-	ws.p2pOnOffLineWriter = w.Pub
+	ws.onOffLineP2pWorker = w
 
 	for {
-		msg, err := w.Sub.Next(ws.ctx)
+		msg, err := w.ReadMsg()
 		if err != nil {
 			utils.LogInst().Warn().Msgf("on-off line thread exit:=>%s", err)
 			return
@@ -182,16 +185,17 @@ func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
 			continue
 		}
 
-		if p2pMsg.Typ == pbs.WsMsgType_Online {
-			if err := ws.onlineFromOtherPeer(p2pMsg); err != nil {
-				utils.LogInst().Warn().Msg("online from p2p network failed")
-			}
-		} else if p2pMsg.Typ == pbs.WsMsgType_Offline {
-			if err := ws.offlineFromOtherPeer(p2pMsg); err != nil {
-				utils.LogInst().Warn().Msg("offline from p2p network failed")
-			}
-		} else {
-			utils.LogInst().Warn().Msg("unknown msg typ in p2p on-off line channel")
+		switch p2pMsg.Typ {
+		case pbs.WsMsgType_Online:
+			err = ws.onlineFromOtherPeer(p2pMsg)
+		case pbs.WsMsgType_Offline:
+			err = ws.offlineFromOtherPeer(p2pMsg)
+		default:
+			err = fmt.Errorf("unknown msg typ in p2p on-off line channel")
+		}
+
+		if err != nil {
+			utils.LogInst().Err(err).Send()
 		}
 	}
 }
@@ -218,4 +222,64 @@ func (ws *Service) offlineFromOtherPeer(msg *pbs.WsMsg) error {
 	ws.onlineSet.del(body.Online.UID)
 	ws.userTable.del(body.Online.UID)
 	return nil
+}
+
+func (ws *Service) syncOnlineMapFromPeerNodes() error {
+
+	stream, _ := ws.peerStreamWorker.Stream()
+	if stream == nil {
+		return nil
+	}
+
+	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
+
+	streamMsg := &pbs2.StreamMsg{}
+	data := streamMsg.SyncOnline()
+	data = append(data, OnlineStreamDelim)
+
+	if _, err := rw.Write(data); err != nil {
+		return err
+	}
+
+	bts, err := rw.ReadBytes(OnlineStreamDelim)
+	if err != nil {
+		return err
+	}
+
+	resp := &pbs2.StreamMsg{}
+	if err := proto.Unmarshal(bts, streamMsg); err != nil {
+		return err
+	}
+	body, ok := resp.Payload.(*pbs2.StreamMsg_OnlineAck)
+	if !ok {
+		return fmt.Errorf("invalid onlime map data")
+	}
+
+	uidBatch := body.OnlineAck.UID
+	utils.LogInst().Info().Msgf("sync online users[%d]", len(uidBatch))
+	ws.onlineSet.addBatch(uidBatch)
+
+	return stream.Close()
+}
+
+func (ws *Service) OnlineMapQuery(stream network.Stream) {
+	defer stream.Close()
+
+	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
+	bts, err := rw.ReadBytes(OnlineStreamDelim)
+	if err != nil {
+		return
+	}
+	streamMsg := &pbs2.StreamMsg{}
+	if err := proto.Unmarshal(bts, streamMsg); err != nil {
+		utils.LogInst().Warn().Msg("failed parse p2p message")
+		return
+	}
+
+	resp := &pbs2.StreamMsg{}
+	data := resp.SyncOnlineAck(ws.onlineSet.AllUid())
+	data = append(data, OnlineStreamDelim)
+	if _, err := rw.Write(data); err != nil {
+		return
+	}
 }

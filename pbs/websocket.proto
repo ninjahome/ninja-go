@@ -1,6 +1,6 @@
 syntax = "proto3";
 package pbs;
-option go_package = "./websocket";
+option go_package = "github.com/ninjahome/ninja-go/pbs/websocket;websocket";
 
 enum WsMsgType{
   Online = 0;
@@ -8,13 +8,15 @@ enum WsMsgType{
   ImmediateMsg = 2;
   PullUnread = 3;
   Offline = 4;
-    UnreadAck = 5;
+  UnreadAck = 5;
 }
 
 message WSOnline{
   string UID = 1;
   int64 UnixTime = 3;
 }
+
+
 message WSOnlineAck{
   bool Success = 1;
   int64 Seq = 2;
@@ -43,7 +45,7 @@ message WsMsg{
   bytes Sig = 2;
   WsMsgType typ = 3;
   oneof payload{
-      WSOnline online = 4;
+    WSOnline online = 4;
     WSOnlineAck olAck = 5;
     WSCryptoMsg message = 6;
     WSPullUnread unread = 7;

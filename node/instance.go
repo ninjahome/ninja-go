@@ -2,9 +2,12 @@ package node
 
 import (
 	"context"
+	"fmt"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-core/protocol"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/ninjahome/ninja-go/node/worker"
 	"github.com/ninjahome/ninja-go/service/contact"
@@ -27,7 +30,7 @@ func Inst() *NinjaNode {
 type NinjaNode struct {
 	nodeID    string
 	p2pHost   host.Host
-	workers   worker.WorkGroup
+	tWorkers  worker.WorkGroup
 	pubSubs   *pubsub.PubSub
 	ctxCancel context.CancelFunc
 	ctx       context.Context
@@ -46,7 +49,7 @@ func newNode() *NinjaNode {
 	if err != nil {
 		panic(err)
 	}
-
+	_nodeConfig.initStreamWorker(h)
 	ps, err := newPubSub(ctx, h)
 	if err != nil {
 		panic(err)
@@ -58,52 +61,71 @@ func newNode() *NinjaNode {
 		ctx:       ctx,
 		ctxCancel: cancel,
 	}
+
 	systemTopics[P2pChanDebug] = n.DebugPeerMsg
 	utils.LogInst().Info().Msgf("ninja node id[%s] created addrs:%s", h.ID(), h.Addrs())
 	return n
 }
 
-func (nt *NinjaNode) Start() error {
-	websocket.Inst().StartService(nt.nodeID, nt.ctx)
-	contact.Inst().StartService(nt.nodeID, nt.ctx)
-
-	workers := make(worker.WorkGroup)
-	for topID, r := range systemTopics {
-		topic, err := nt.pubSubs.Join(topID)
-		if err != nil {
-			return err
-		}
-		w := worker.NewWorker(nt.ctx, topID, topic, r)
-		workers[topID] = w
-		if err := w.StartWork(); err != nil {
-			return err
+func (nt *NinjaNode) RandomPeer(protocID protocol.ID) (network.Stream, error) {
+	peers := nt.p2pHost.Network().Peers()
+	for _, pid := range peers {
+		stream, err := nt.p2pHost.NewStream(nt.ctx, pid, protocID)
+		if err == nil {
+			return stream, nil
 		}
 	}
-	nt.workers = workers
+	return nil, fmt.Errorf("no valid peer id")
+}
+
+func (nt *NinjaNode) Start() error {
+
+	workers := make(worker.WorkGroup)
+	if err := workers.StartUp(nt.ctx, nt.pubSubs, systemTopics); err != nil {
+		return err
+	}
+	nt.tWorkers = workers
+
+	onlineSycWorker := &worker.StreamWorker{
+		ProtoID: StreamSyncOnline,
+		SGetter: nt.RandomPeer,
+	}
+	if err := websocket.Inst().StartService(nt.nodeID, onlineSycWorker); err != nil {
+		return err
+	}
+
+	contactSyncWorker := &worker.StreamWorker{
+		ProtoID: StreamContactQuery,
+		SGetter: nt.RandomPeer,
+	}
+	contact.Inst().StartService(nt.nodeID, contactSyncWorker)
+
 	return nil
 }
 
 func (nt *NinjaNode) ShutDown() {
-	if nt.workers == nil {
+	if nt.tWorkers == nil {
 		return
 	}
-	for _, t := range nt.workers {
-		t.StopWork()
-	}
+	nt.tWorkers.StopWork()
+	nt.tWorkers = nil
 
-	nt.workers = nil
 	nt.ctxCancel()
 	_ = nt.p2pHost.Close()
 
 	websocket.Inst().ShutDown()
 	contact.Inst().ShutDown()
-	time.Sleep(time.Second)
+	time.Sleep(100 * time.Millisecond)
 }
 
 func (nt *NinjaNode) PeersOfTopic(topic string) []peer.ID {
-	w, ok := nt.workers[(topic)]
+	w, ok := nt.tWorkers[(topic)]
 	if !ok {
 		return nil
 	}
+	//tw, ok := w.(*worker.TopicWorker)
+	//if !ok{
+	//	return nil
+	//}
 	return w.PeersOfTopic()
 }

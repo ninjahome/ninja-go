@@ -1,10 +1,13 @@
 package contact
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/ninjahome/ninja-go/node/worker"
 	pbs "github.com/ninjahome/ninja-go/pbs/contact"
+	pbsS "github.com/ninjahome/ninja-go/pbs/stream"
 	"github.com/ninjahome/ninja-go/utils"
 	"google.golang.org/protobuf/proto"
 	"io"
@@ -71,20 +74,68 @@ func (s *Service) queryContact(w http.ResponseWriter, r *http.Request) {
 	w.Write(result.Data())
 }
 
-func (s *Service) ContactQueryFromP2pNetwork(w *worker.TopicWorker) {
-	s.contactQuery = w.Pub
+func (s *Service) ContactQueryFromP2pNetwork(stream network.Stream) {
+	defer stream.Close()
 
+	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
+	bts, err := rw.ReadBytes(SyncStreamDelim)
+	if err != nil {
+		return
+	}
+	streamMsg := &pbsS.StreamMsg{}
+	if err := proto.Unmarshal(bts, streamMsg); err != nil {
+		utils.LogInst().Warn().Msg("failed parse p2p message")
+		return
+	}
+	body, ok := streamMsg.Payload.(*pbsS.StreamMsg_ContactSync)
+	if !ok {
+		return
+	}
+
+	//if body.ContactSync.SeqVer
+
+	book, err := s.loadFromDb(body.ContactSync.UID)
+	if err != nil {
+		return
+	}
+
+	contactArr := make([]*pbs.ContactItem, 0)
+	for _, c := range book {
+		contactArr = append(contactArr, &pbs.ContactItem{
+			CID:      c.CID,
+			NickName: c.NickName,
+			Remarks:  c.Remarks,
+		})
+	}
+
+	resp := &pbsS.StreamMsg{
+		MTyp:    pbsS.StreamMType_MTContactAck,
+		Payload: &pbsS.StreamMsg_ContactAck{ContactAck: &pbsS.ContactAck{Contacts: contactArr}},
+	}
+
+	data := resp.Data()
+	data = append(data, SyncStreamDelim)
+	if _, err := rw.Write(data); err != nil {
+		return
+	}
+}
+
+func (s *Service) ContactOperationFromP2pNetwork(w *worker.TopicWorker) {
+	s.contactOperateWorker = w
 	for {
-		msg, err := w.Sub.Next(s.ctx)
+		msg, err := w.ReadMsg()
 		if err != nil {
-			utils.LogInst().Warn().Msgf("contact query channel exit:=>%s", err)
+			utils.LogInst().Warn().Msgf("contact operation thread exit:=>%s", err)
 			return
 		}
 
-		if msg.ReceivedFrom.String() == s.id {
+		p2pMsg := &pbs.ContactMsg{}
+		if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
+			utils.LogInst().Warn().Err(err).Send()
 			continue
 		}
-
-		//TODO:: need query contact from p2p network ???
+		if err := s.procContactOperation(p2pMsg); err != nil {
+			utils.LogInst().Warn().Err(err).Send()
+		}
 	}
 }

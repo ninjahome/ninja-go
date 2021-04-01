@@ -1,0 +1,33 @@
+syntax = "proto3";
+package pbs.stream;
+option go_package = "github.com/ninjahome/ninja-go/pbs/stream;stream";
+import "contact.proto";
+
+enum StreamMType{
+  MTOnlineSync = 0;
+  MTOnlineAck = 1;
+  MTContactSync = 2;
+  MTContactAck = 3;
+}
+
+message StreamMsg{
+  StreamMType MTyp = 1;
+  oneof payload{
+    OnlineMap onlineAck= 2;
+    ContactSync contactSync = 3;
+    ContactAck contactAck = 4;
+  }
+}
+
+message OnlineMap{
+  repeated string UID = 1;
+}
+
+message ContactSync{
+  string UID = 1;
+  int64 SeqVer = 2;
+}
+
+message ContactAck{
+  repeated  pbs.contact.ContactItem contacts = 1;
+}

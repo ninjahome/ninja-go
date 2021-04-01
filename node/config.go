@@ -41,12 +41,15 @@ const (
 	TestChain             ChanID = 2
 	P2pOnLineValidateTime        = 2 * time.Second
 
-	P2pChanUserOnOffLine = "/0.1/Global/user/on_offline"
-	P2pChanImmediateMsg  = "/0.1/Global/message/immediate"
-	P2pChanUnreadMsg     = "/0.1/Global/message/unread"
-	P2pChanContactOps    = "/0.1/Global/contact/operation"
-	P2pChanContactQuery  = "/0.1/Global/contact/query"
-	P2pChanDebug         = "/0.1/Global/TEST"
+	P2pChanDebug = "/0.1/Global/TEST"
+
+	P2pChanUserOnOffLine  = "/0.1/Global/user/on_offline"
+	P2pChanImmediateMsg   = "/0.1/Global/message/immediate"
+	P2pChanUnreadMsg      = "/0.1/Global/message/unread"
+	P2pChanContactOperate = "/0.1/Global/contact/operate"
+
+	StreamContactQuery = "/0.1/Global/contact/query"
+	StreamSyncOnline   = "/0.1/Rendezvous/user/onlineSet"
 )
 
 type ChanID int
@@ -185,14 +188,18 @@ func InitConfig(c *Config) {
 	_nodeConfig = c
 }
 
+func (c *Config) initStreamWorker(h host.Host) {
+	h.SetStreamHandler(StreamSyncOnline, websocket.Inst().OnlineMapQuery)
+	h.SetStreamHandler(StreamContactQuery, contact.Inst().ContactQueryFromP2pNetwork)
+}
+
 func (c *Config) initOptions() []libp2p.Option {
 
 	systemTopics = map[string]worker.TopicReader{
-		P2pChanUserOnOffLine: websocket.Inst().OnOffLineForP2pNetwork,
-		P2pChanImmediateMsg:  websocket.Inst().ImmediateMsgForP2pNetwork,
-		P2pChanUnreadMsg:     websocket.Inst().UnreadMsgFromP2pNetwork,
-		P2pChanContactOps:    contact.Inst().ContactOperationFromP2pNetwork,
-		P2pChanContactQuery:  contact.Inst().ContactQueryFromP2pNetwork,
+		P2pChanUserOnOffLine:  websocket.Inst().OnOffLineForP2pNetwork,
+		P2pChanImmediateMsg:   websocket.Inst().ImmediateMsgForP2pNetwork,
+		P2pChanUnreadMsg:      websocket.Inst().UnreadMsgFromP2pNetwork,
+		P2pChanContactOperate: contact.Inst().ContactOperationFromP2pNetwork,
 	}
 
 	if c.P2oLogOpen {
@@ -268,19 +275,19 @@ func (c *Config) dhtOpts() ([]dht.Option, error) {
 	}, nil
 }
 
-func userOnlineValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
-	//TODO:: check the balance of the account 😁
-	return pubsub.ValidationAccept
-}
+func notForSelfValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
+	if peer.String() == _instance.nodeID {
+		utils.LogInst().Debug().Msg("ignore duplicate online offline operation from myself")
+		return pubsub.ValidationIgnore
+	}
 
-func immediateCryptoMsgValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
 	return pubsub.ValidationAccept
 }
 
 func initTopicValidators(ps *pubsub.PubSub) error {
 
 	err := ps.RegisterTopicValidator(P2pChanUserOnOffLine,
-		userOnlineValidator,
+		notForSelfValidator,
 		pubsub.WithValidatorTimeout(P2pOnLineValidateTime),
 		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxOnLineThread))
 
@@ -289,12 +296,16 @@ func initTopicValidators(ps *pubsub.PubSub) error {
 	}
 
 	err = ps.RegisterTopicValidator(P2pChanImmediateMsg,
-		immediateCryptoMsgValidator,
+		notForSelfValidator,
 		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxIMTopicThread))
 	if err != nil {
 		return err
 	}
 
+	if err := ps.RegisterTopicValidator(P2pChanUnreadMsg,
+		notForSelfValidator); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -1,6 +1,6 @@
 syntax = "proto3";
-package pbs;
-option go_package = "./cmd";
+package pbs.cmd;
+option go_package = "github.com/ninjahome/ninja-go/pbs/cmd;cmd";
 
 service CmdService {
     rpc P2pSendTopicMsg (TopicMsg) returns (CommonResponse) {}

@@ -1,9 +1,8 @@
 package contact
 
 import (
-	"context"
 	"fmt"
-	"github.com/libp2p/go-libp2p-pubsub"
+	"github.com/ninjahome/ninja-go/node/worker"
 	pbs "github.com/ninjahome/ninja-go/pbs/contact"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
@@ -21,6 +20,8 @@ const (
 	PathQueryContact   = "/contact/query"
 	ServiceThreadName  = "contact http service thread"
 	DBPatternHead      = "ContactMap_%s"
+
+	SyncStreamDelim byte = '@'
 )
 
 var (
@@ -28,6 +29,7 @@ var (
 	once           sync.Once
 	ErBodyCast     = fmt.Errorf("invalid add contact message body")
 	ErVerifyFailed = fmt.Errorf("verify signature failed")
+	ErSyncFirst    = fmt.Errorf("please sync contact first")
 )
 
 func Inst() *Service {
@@ -63,21 +65,20 @@ func newContactServer() *Service {
 }
 
 type Service struct {
-	id              string
-	ctx             context.Context
-	contactOpWriter *pubsub.Topic
-	contactQuery    *pubsub.Topic
-	apis            *http.ServeMux
-	server          *http.Server
-	threads         map[string]*thread.Thread
-	dataBase        *leveldb.DB
-	contactLock     sync.RWMutex
+	id                   string
+	contactOperateWorker *worker.TopicWorker
+	contactQueryWorker   *worker.TopicWorker
+	apis                 *http.ServeMux
+	server               *http.Server
+	threads              map[string]*thread.Thread
+	dataBase             *leveldb.DB
+	contactLock          sync.RWMutex
+	contactPeerWorker    *worker.StreamWorker
 }
 
-func (s *Service) StartService(id string, ctx context.Context) {
+func (s *Service) StartService(id string, cpw *worker.StreamWorker) {
 	s.id = id
-	s.ctx = ctx
-
+	s.contactPeerWorker = cpw
 	t := thread.NewThreadWithName(ServiceThreadName, func(_ chan struct{}) {
 		utils.LogInst().Info().Msg("contact service thread start......")
 		err := s.server.ListenAndServe()
@@ -105,7 +106,6 @@ func (s *Service) operateContact(w http.ResponseWriter, r *http.Request) {
 
 	msg := &pbs.ContactMsg{}
 	data, err := io.ReadAll(r.Body)
-
 	if err != nil {
 		w.Write(pbs.ErrAck(err.Error()))
 		return
@@ -116,7 +116,8 @@ func (s *Service) operateContact(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = s.contactOpWriter.Publish(s.ctx, msg.Data()); err != nil {
+	if err = s.contactOperateWorker.BroadCast(msg.Data()); err != nil {
+		w.Write(pbs.ErrAck(err.Error()))
 		return
 	}
 

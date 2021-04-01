@@ -1,6 +1,6 @@
 syntax = "proto3";
-package pbs;
-option go_package = "./contact";
+package pbs.contact;
+option go_package = "github.com/ninjahome/ninja-go/pbs/contact;contact";
 
 enum ContactMsgType{
   MTAddContact = 0;
@@ -33,7 +33,7 @@ message ContactMsg{
     bytes sig = 1;
     string from = 2;
     ContactMsgType typ = 3;
-
+    int64 seqVer = 12;
     oneof PayLoad{
       ContactItem addOrUpdate =4;
       string delC = 6;

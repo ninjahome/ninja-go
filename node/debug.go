@@ -7,7 +7,7 @@ import (
 )
 
 func (nt *NinjaNode) DebugTopicMsg(topic, msg string) string {
-	w, ok := nt.workers[topic]
+	w, ok := nt.tWorkers[topic]
 	if !ok {
 		return "no such topic"
 	}
