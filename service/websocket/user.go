@@ -236,11 +236,15 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 		return err
 	}
 
+	utils.LogInst().Debug().Msg("[SyncOnlineSetFromPeerNodes] stream out success.......")
+
 	bts, err := rw.ReadBytes(OnlineStreamDelim)
 	if err != nil {
 		utils.LogInst().Err(err).Msg("stream: read online sync response data failed")
 		return err
 	}
+
+	utils.LogInst().Debug().Msg("[SyncOnlineSetFromPeerNodes] stream read success success.......")
 
 	resp := &pbs2.StreamMsg{}
 	if err := proto.Unmarshal(bts, streamMsg); err != nil {
@@ -269,6 +273,8 @@ func (ws *Service) OnlineMapQuery(stream network.Stream) {
 		utils.LogInst().Err(err).Msg("stream: read online sync request data failed")
 		return
 	}
+	utils.LogInst().Debug().Msg("[OnlineMapQuery] read success.......")
+
 	streamMsg := &pbs2.StreamMsg{}
 	if err := proto.Unmarshal(bts, streamMsg); err != nil {
 		utils.LogInst().Err(err).Msg("failed parse stream message")
@@ -282,4 +288,5 @@ func (ws *Service) OnlineMapQuery(stream network.Stream) {
 		utils.LogInst().Err(err).Msg("stream: write online set response data failed")
 		return
 	}
+	utils.LogInst().Debug().Msg("[OnlineMapQuery] write success.......")
 }

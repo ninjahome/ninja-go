@@ -72,6 +72,7 @@ func (nt *NinjaNode) RandomPeer(protocID protocol.ID) (network.Stream, error) {
 	for _, pid := range peers {
 		stream, err := nt.p2pHost.NewStream(nt.ctx, pid, protocID)
 		if err == nil {
+			utils.LogInst().Info().Msgf("select one peer[%s] for stream", pid)
 			return stream, nil
 		}
 	}
