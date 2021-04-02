@@ -6,7 +6,7 @@ import (
 	badger "github.com/ipfs/go-ds-badger"
 	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"
-	connmgr "github.com/libp2p/go-libp2p-connmgr"
+	CNM "github.com/libp2p/go-libp2p-connmgr"
 	"github.com/libp2p/go-libp2p-core/discovery"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -220,7 +220,7 @@ func (c *Config) initOptions() []libp2p.Option {
 		panic(err)
 	}
 
-	connManager := connmgr.NewConnManager(c.ConnMngConf.LowWater,
+	connManager := CNM.NewConnManager(c.ConnMngConf.LowWater,
 		c.ConnMngConf.HighWater,
 		c.ConnMngConf.GraceTime)
 	return []libp2p.Option{
@@ -275,7 +275,7 @@ func (c *Config) dhtOpts() ([]dht.Option, error) {
 	}, nil
 }
 
-func notForSelfValidator(ctx context.Context, peer peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
+func notForSelfValidator(_ context.Context, peer peer.ID, _ *pubsub.Message) pubsub.ValidationResult {
 	if peer.String() == _instance.nodeID {
 		utils.LogInst().Debug().Msg("ignore duplicate online offline operation from myself")
 		return pubsub.ValidationIgnore

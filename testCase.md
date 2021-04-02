@@ -15,10 +15,13 @@
 3. startup node✅
 4. all work thread start success 
     - 4.1 debug topic thread✅
-    - 4.2 online-offline topic thread
-    - 4.1 im message topic thread
-    - 4.1 unread message topic thread
-    - 4.1 contact topic thread
+    - 4.2 online-offline topic thread✅
+    - 4.3 message topic thread✅
+    - 4.4 unread message topic thread✅
+    - 4.5 contact operation topic thread✅
+    - 4.6 websocket: dispatch thread for the client message✅
+    - 4.7 websocket: websocket service thread✅
+    - 4.8 contact http service thread✅
 5. thread exit gracefully ✅
 6. find peers for a public node  ✅
 7. find peers for a private node ✅
@@ -33,7 +36,7 @@
       - 10.2 two nodes setup
          + one node setup -> user online ->second node setup
          + one node setup ->second node setup -> user online
-11. sync contact data when setup
+11. sync online user id when setup✅
 12. check peers of all topics 
       - 12.1 one node setup
       - 12.2 more than one node setup
@@ -72,3 +75,4 @@
 9. connect to a service without my contact
 
 ##6 refactor all proto message
+##7 remove all warnings and typos

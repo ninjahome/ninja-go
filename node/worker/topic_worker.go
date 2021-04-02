@@ -18,6 +18,9 @@ type TopicWorker struct {
 	thread  *thread.Thread
 }
 
+func (tw *TopicWorker) ID() string {
+	return tw.tid
+}
 func (tw *TopicWorker) startWork() error {
 	sub, err := tw.Pub.Subscribe()
 	if err != nil {
@@ -26,9 +29,10 @@ func (tw *TopicWorker) startWork() error {
 	tw.Sub = sub
 
 	t := thread.NewThreadWithName(tw.tid, func(_ chan struct{}) {
-		utils.LogInst().Info().Msgf("......subscribe topic[%s] thread success!", tw.tid)
+		utils.LogInst().Info().Msgf("......topic[%s] thread start success!", tw.tid)
 		tw.tReader(tw)
 		tw.Stop()
+		utils.LogInst().Warn().Msgf("......topic[%s] thread exit!", tw.tid)
 	})
 	tw.thread = t
 	t.Run()

@@ -80,7 +80,7 @@ func (s *Service) StartService(id string, cpw *worker.StreamWorker) {
 	t := thread.NewThreadWithName(ServiceThreadName, func(_ chan struct{}) {
 		utils.LogInst().Info().Msg("contact service thread start......")
 		err := s.server.ListenAndServe()
-		utils.LogInst().Err(err).Send()
+		utils.LogInst().Err(err).Msg("contact service thread exit......")
 		s.ShutDown()
 	})
 	s.threads[ServiceThreadName] = t

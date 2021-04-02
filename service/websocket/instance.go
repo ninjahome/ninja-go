@@ -90,7 +90,7 @@ func (ws *Service) StartService(nodeID string) {
 	srvThread := thread.NewThreadWithName(WSThreadName, func(_ chan struct{}) {
 		utils.LogInst().Info().Msg("websocket service thread start......")
 		err := ws.server.ListenAndServe()
-		utils.LogInst().Err(err).Send()
+		utils.LogInst().Err(err).Msg("websocket service thread exit")
 		ws.ShutDown()
 	})
 	ws.threads[WSThreadName] = srvThread
@@ -142,6 +142,7 @@ func (ws *Service) online(w http.ResponseWriter, r *http.Request) {
 
 func (ws *Service) wsCliMsgDispatch(stop chan struct{}) {
 	utils.LogInst().Info().Msg("websocket client message dispatch thread start......")
+	defer utils.LogInst().Info().Msg("websocket client message dispatch thread exit......")
 	for {
 		select {
 		case <-stop:

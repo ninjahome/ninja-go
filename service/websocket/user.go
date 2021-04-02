@@ -254,7 +254,7 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 		utils.LogInst().Err(err).Msg("failed parse stream message")
 		return err
 	}
-	utils.LogInst().Debug().Msg(resp.String())
+
 	body, ok := resp.Payload.(*pbs2.StreamMsg_OnlineAck)
 	if !ok {
 		utils.LogInst().Err(err).Msg("failed parse stream message")
