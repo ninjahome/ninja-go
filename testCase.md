@@ -6,7 +6,7 @@
 1. create an account ✅
 2. init config ✅
 3. change config✅
-4. use command line to change config dynamically
+4. use command line to change config dynamically✅
 ##3 P2pNetwork
 1. join a topic
    - 1.1 join success✅
@@ -15,9 +15,6 @@
 3. startup node✅
 4. all work thread start success 
     - 4.1 debug topic thread✅
-        
-            ninja.mac debug push -m "hello"
-      
     - 4.2 online-offline topic thread✅
     - 4.3 message topic thread✅
     - 4.4 unread message topic thread✅
@@ -27,6 +24,8 @@
     - 4.8 contact http service thread✅
 5. thread exit gracefully ✅
 6. find peers for a public node  ✅
+        
+        ninja.mac debug peers
    
 7. find peers for a private node ✅
 
@@ -35,18 +34,27 @@
 
 8. find peers both in a public and private network ✅ 
 9. send debug peer message ✅
+
+            ninja.mac debug push -m "hello"
+
 10. sync online map when setup 
-      - 10.1 one node setup -> user online
+      - 10.1 one node setup -> user online✅
       - 10.2 two nodes setup
-         + one node setup -> user online ->second node setup
-         + one node setup ->second node setup -> user online
-11. sync online user id when setup✅
-12. check peers of all topics 
-      - 12.1 one node setup
-      - 12.2 more than one node setup
-13. only one node setup, check the thread syncing and waiting
-    - 13.1 boot node
-    - 13.2 normal node
+         + one node setup -> user online ->second node setup✅
+         + one node setup ->second node setup -> user online✅
+
+11. check peers of all topics 
+      - 12.1 one node setup✅
+      - 12.2 more than one node setup✅
+
+            ninja.mac debug peers -t /0.1/Global/user/on_offline
+            ninja.mac debug peers -t /0.1/Global/message/immediate
+            ninja.mac debug peers -t /0.1/Global/message/unread
+            ninja.mac debug peers -t /0.1/Global/contact/operate
+    
+12. only one node setup, check the thread syncing and waiting
+    - 13.1 boot node✅
+    - 13.2 normal node✅
     
 ##4 message
 1. immediate message
