@@ -10,7 +10,7 @@ import (
 
 const (
 	TopicPeerNoCheckPeriods = 500 * time.Millisecond
-	TopicPeerNoCheckTimes   = int(5 * time.Second / TopicPeerNoCheckPeriods)
+	TopicPeerNoCheckTimes   = int(10 * time.Second / TopicPeerNoCheckPeriods)
 )
 
 type Worker interface {

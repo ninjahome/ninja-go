@@ -272,6 +272,8 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 }
 
 func (ws *Service) OnlineMapQuery(stream network.Stream) {
+	defer stream.Close()
+
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 	bts, err := rw.ReadBytes(OnlineStreamDelim)
 	if err != nil {

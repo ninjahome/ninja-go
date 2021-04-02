@@ -8,12 +8,17 @@
 3. change config✅
 4. use command line to change config dynamically
 ##3 P2pNetwork
-1. join a topic✅
-   - 1.1 join success
-    - 1.2 every topic has a peer node
+1. join a topic
+   - 1.1 join success✅
+   - 1.2 every topic has at least one peer node✅
 2. subscribe topic✅
 3. startup node✅
-4. all work thread start success ✅
+4. all work thread start success 
+    - 4.1 debug topic thread✅
+    - 4.2 online-offline topic thread
+    - 4.1 im message topic thread
+    - 4.1 unread message topic thread
+    - 4.1 contact topic thread
 5. thread exit gracefully ✅
 6. find peers for a public node  ✅
 7. find peers for a private node ✅
@@ -32,7 +37,7 @@
 12. check peers of all topics 
       - 12.1 one node setup
       - 12.2 more than one node setup
-13. only one node setup
+13. only one node setup, check the thread syncing and waiting
     - 13.1 boot node
     - 13.2 normal node
     
