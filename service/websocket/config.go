@@ -11,7 +11,7 @@ import (
 
 const (
 	DefaultWsPort              = 6666
-	DefaultHost                = "localhost"
+	DefaultHost                = "0.0.0.0"
 	DefaultPongWait            = 60 * time.Second
 	DefaultPingPeriod          = (DefaultPongWait * 9) / 10
 	DefaultWriteWait           = 10 * time.Second

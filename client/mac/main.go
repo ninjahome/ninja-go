@@ -47,7 +47,7 @@ func main() {
 	}
 	fmt.Printf("key is loaded :=>%t\n", key.IsOpen())
 
-	ws, err := client.NewWSClient("198.13.44.159:6666", key, ss) //202.182.101.145//167.179.78.33//127.0.0.1//198.13.44.159
+	ws, err := client.NewWSClient("167.179.78.33:6667", key, ss) //202.182.101.145//167.179.78.33//127.0.0.1
 	if err != nil {
 		panic(err)
 	}
