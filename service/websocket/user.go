@@ -225,13 +225,15 @@ func (ws *Service) offlineFromOtherPeer(msg *pbs.WsMsg) error {
 }
 
 func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
+	defer stream.Close()
+
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 
 	streamMsg := &pbs2.StreamMsg{}
 	data := streamMsg.SyncOnline("TODO::wallet key and sig") //TODO::
 	data = append(data, OnlineStreamDelim)
 
-	n, err := rw.Write(data)
+	_, err := rw.Write(data)
 	if err != nil {
 		utils.LogInst().Err(err).Msg("stream: write online sync request data failed")
 		return err
@@ -239,15 +241,12 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 	if err := rw.Flush(); err != nil {
 		utils.LogInst().Err(err).Msg("stream:  online sync request flush failed")
 	}
-	utils.LogInst().Debug().Msgf("[SyncOnlineSetFromPeerNodes] stream out [%d][%x][%s]success.......", n, data, string(data))
 
 	bts, err := rw.ReadBytes(OnlineStreamDelim)
 	if err != nil {
 		utils.LogInst().Err(err).Msg("stream: read online sync response data failed")
 		return err
 	}
-
-	utils.LogInst().Debug().Msgf("[SyncOnlineSetFromPeerNodes] stream read success success.......\n[%d][%x][%s]", n, data, string(data))
 
 	resp := &pbs2.StreamMsg{}
 	bts = bts[:len(bts)-1]
@@ -260,7 +259,6 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 	if !ok {
 		utils.LogInst().Err(err).Msg("failed parse stream message")
 		return fmt.Errorf("invalid onlime map data")
-		//return nil
 	}
 
 	uidBatch := body.OnlineAck.UID
@@ -270,7 +268,7 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 	}
 	ws.onlineSet.addBatch(uidBatch)
 
-	return stream.Close()
+	return nil
 }
 
 func (ws *Service) OnlineMapQuery(stream network.Stream) {

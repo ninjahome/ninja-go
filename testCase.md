@@ -6,7 +6,7 @@
 1. create an account ✅
 2. init config ✅
 3. change config✅
-
+4. use command line to change config dynamically
 ##3 P2pNetwork
 1. join a topic✅
    - 1.1 join success

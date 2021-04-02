@@ -73,10 +73,10 @@ func init() {
 	flags.StringVarP(&param.baseDir, "dir",
 		"d", cmd.DefaultBaseDir, "chord -d [BASIC DIRECTORY]")
 
-	flags.StringVar(&param.wsIP, "ws.IP", "",
-		"ninja --ws.ip=[Port]")
+	flags.StringVar(&param.wsIP, "ws.ip", "",
+		"ninja --ws.ip [IP]")
 	flags.Int16Var(&param.wsPort, "ws.port", -1,
-		"ninja --ws.port=[Port]")
+		"ninja --ws.port [Port]")
 
 	rootCmd.AddCommand(cmd.InitCmd)
 	rootCmd.AddCommand(cmd.WalletCmd)
@@ -108,22 +108,21 @@ func initNinjaConfig() (err error) {
 		err = fmt.Errorf("failed to find node config")
 		return
 	}
-
-	fmt.Println(result.String())
-
-	wallet.InitConfig(result.WCfg)
-	node.InitConfig(result.PCfg)
-	utils.InitConfig(result.UCfg)
-
 	if param.wsPort != -1 {
 		result.RCfg.WsPort = param.wsPort
 	}
 	if param.wsIP != "" {
 		result.RCfg.WsIP = param.wsIP
 	}
+	fmt.Println(result.String())
+
+	wallet.InitConfig(result.WCfg)
+	node.InitConfig(result.PCfg)
+	utils.InitConfig(result.UCfg)
 	websocket.InitConfig(result.RCfg)
 	//TODO:: configure contact service dynamically
 	contact.InitConfig(result.CCfg)
+
 	return
 }
 
