@@ -15,6 +15,9 @@
 3. startup node✅
 4. all work thread start success 
     - 4.1 debug topic thread✅
+        
+            ninja.mac debug push -m "hello"
+      
     - 4.2 online-offline topic thread✅
     - 4.3 message topic thread✅
     - 4.4 unread message topic thread✅
@@ -24,6 +27,7 @@
     - 4.8 contact http service thread✅
 5. thread exit gracefully ✅
 6. find peers for a public node  ✅
+   
 7. find peers for a private node ✅
 
         192.168.30.17

@@ -30,6 +30,7 @@ const (
 	MsgAverageSize           = 1 << 8
 	DefaultMaxMessageSize    = DefaultMaxUserNo * MsgNoPerUser * MsgAverageSize
 	DefaultP2pPort           = 9999
+	DefaultWorkerTryTimeOut  = 10 * time.Second
 	DefaultOutboundQueueSize = 1 << 6
 	DefaultIMThreadNo        = MsgNoPerUser * DefaultMaxUserNo
 	DefaultLowConn           = 1 << 5
@@ -120,16 +121,18 @@ func (c *connManagerConfig) String() string {
 }
 
 type Config struct {
-	SrvPort     int16 `json:"port"`
-	ChainID     ChanID
-	P2oLogOpen  bool               `json:"p2pLog"`
-	PsConf      *pubSubConfig      `json:"pub_sub"`
-	DHTConf     *dhtConfig         `json:"dht"`
-	ConnMngConf *connManagerConfig `json:"connManager"`
+	SrvPort            int16         `json:"port"`
+	WorkerStartTimeOut time.Duration `json:"worker.start.try"`
+	ChainID            ChanID
+	P2oLogOpen         bool               `json:"p2pLog"`
+	PsConf             *pubSubConfig      `json:"pub_sub"`
+	DHTConf            *dhtConfig         `json:"dht"`
+	ConnMngConf        *connManagerConfig `json:"connManager"`
 }
 
 func (c Config) String() string {
 	s := fmt.Sprintf("\n----------------------Node Config-----------------------")
+	s += fmt.Sprintf("\nworker timeout:\t\t%s", c.WorkerStartTimeOut)
 	s += fmt.Sprintf("\nchain id:\t\t%d", c.ChainID)
 	s += fmt.Sprintf("\nchain name:\t\t%s", c.ChainID.String())
 	s += fmt.Sprintf("\np2p log open:\t\t%t", c.P2oLogOpen)
@@ -163,9 +166,10 @@ func DefaultConfig(isMain bool, base string) *Config {
 	}
 
 	return &Config{
-		SrvPort:    DefaultP2pPort,
-		ChainID:    chainID,
-		P2oLogOpen: isOpen,
+		SrvPort:            DefaultP2pPort,
+		WorkerStartTimeOut: DefaultWorkerTryTimeOut,
+		ChainID:            chainID,
+		P2oLogOpen:         isOpen,
 		PsConf: &pubSubConfig{
 			MaxMsgSize:         DefaultMaxMessageSize,
 			MaxOutQueuePerPeer: DefaultOutboundQueueSize,

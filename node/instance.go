@@ -82,7 +82,7 @@ func (nt *NinjaNode) RandomPeer(protocID protocol.ID) (network.Stream, error) {
 func (nt *NinjaNode) Start() error {
 
 	workers := make(worker.WorkGroup)
-	if err := workers.StartUp(nt.ctx, nt.pubSubs, systemTopics); err != nil {
+	if err := workers.StartUp(nt.ctx, nt.pubSubs, systemTopics, _nodeConfig.WorkerStartTimeOut); err != nil {
 		return err
 	}
 	nt.tWorkers = workers

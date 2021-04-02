@@ -10,7 +10,6 @@ import (
 
 const (
 	TopicPeerNoCheckPeriods = 500 * time.Millisecond
-	TopicPeerNoCheckTimes   = int(10 * time.Second / TopicPeerNoCheckPeriods)
 )
 
 type Worker interface {
@@ -18,7 +17,7 @@ type Worker interface {
 }
 type WorkGroup map[string]*TopicWorker
 
-func (wg *WorkGroup) StartUp(ctx context.Context, ps *pubsub.PubSub, topics map[string]TopicReader) error {
+func (wg *WorkGroup) StartUp(ctx context.Context, ps *pubsub.PubSub, topics map[string]TopicReader, timeOut time.Duration) error {
 
 	var grp sync.WaitGroup
 
@@ -33,7 +32,7 @@ func (wg *WorkGroup) StartUp(ctx context.Context, ps *pubsub.PubSub, topics map[
 		if err := w.startWork(); err != nil {
 			return err
 		}
-		go wg.checkPeerNo(&grp, w)
+		go wg.checkPeerNo(&grp, w, timeOut)
 		(*wg)[w.tid] = w
 	}
 
@@ -42,12 +41,12 @@ func (wg *WorkGroup) StartUp(ctx context.Context, ps *pubsub.PubSub, topics map[
 	return nil
 }
 
-func (wg *WorkGroup) checkPeerNo(grp *sync.WaitGroup, tw *TopicWorker) {
+func (wg *WorkGroup) checkPeerNo(grp *sync.WaitGroup, tw *TopicWorker, timeOut time.Duration) {
 	defer grp.Done()
 
 	checker := time.NewTicker(TopicPeerNoCheckPeriods)
 	var tryTimes = 0
-
+	tryTimeOut := time.NewTimer(timeOut)
 	for {
 		select {
 		case <-checker.C:
@@ -56,12 +55,11 @@ func (wg *WorkGroup) checkPeerNo(grp *sync.WaitGroup, tw *TopicWorker) {
 				utils.LogInst().Info().Msgf("got topic peer success [%d]", len(tw.Pub.ListPeers()))
 				return
 			}
-
-			if tryTimes > TopicPeerNoCheckTimes {
-				utils.LogInst().Error().Msg("topic join time out, may be i'm genesis")
-				return
-			}
 			utils.LogInst().Info().Msgf("syncing[%d] peers for topic[%s]", tryTimes, tw.tid)
+
+		case <-tryTimeOut.C:
+			utils.LogInst().Error().Msg("topic join time out, may be i'm genesis")
+			return
 		}
 	}
 }

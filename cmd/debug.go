@@ -24,7 +24,7 @@ var pushCmd = &cobra.Command{
 
 var showPeerCmd = &cobra.Command{
 	Use:   "peers",
-	Short: "ninja debug showPeer -t [TOPIC]",
+	Short: "ninja debug peers -t [TOPIC]",
 	Long:  `TODO::.`,
 	Run:   showPeerAction,
 }
