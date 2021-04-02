@@ -11,10 +11,12 @@ import (
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
 	"google.golang.org/protobuf/proto"
+	"sync"
 	"time"
 )
 
 type wsUser struct {
+	lock           sync.RWMutex
 	UID            string
 	OnLineTime     time.Time
 	cliWsConn      *websocket.Conn
@@ -24,20 +26,23 @@ type wsUser struct {
 }
 
 func (u *wsUser) offLine() {
+	u.lock.Lock()
+	defer u.lock.Unlock()
 
 	if u.msgToCliChan == nil {
 		return
 	}
 
-	u.cliWsConn.WriteMessage(websocket.CloseMessage, []byte{})
 	u.cliWsConn.Close()
 	close(u.msgToCliChan)
 	u.msgToCliChan = nil
 	u.kaTimer.Stop()
+	utils.LogInst().Debug().Msgf("user[%s] offline add clean data.....", u.UID)
 }
 
 func (u *wsUser) reading(_ chan struct{}) {
-	utils.LogInst().Info().Msgf("reading thread for [%s] start success!", u.UID)
+	utils.LogInst().Debug().Msgf("reading thread for [%s] start success!", u.UID)
+	defer utils.LogInst().Debug().Msgf("reading thread for [%s] exit!", u.UID)
 	defer u.offLine()
 	for {
 		_, message, err := u.cliWsConn.ReadMessage()
@@ -47,7 +52,8 @@ func (u *wsUser) reading(_ chan struct{}) {
 				websocket.CloseAbnormalClosure) {
 				utils.LogInst().Err(err).Send()
 			}
-			break
+			utils.LogInst().Info().Msgf("websocket read thread read message failed:%s", err)
+			return
 		}
 
 		msg := &pbs.WsMsg{}
@@ -60,41 +66,49 @@ func (u *wsUser) reading(_ chan struct{}) {
 }
 
 func (u *wsUser) writing(stop chan struct{}) {
-	utils.LogInst().Info().Msgf("writing thread for [%s] start success!", u.UID)
+	utils.LogInst().Debug().Msgf("web socket writing thread for [%s] start success!", u.UID)
+	defer utils.LogInst().Debug().Msgf("web socket writer thread for [%s] exit", u.UID)
+
 	defer u.offLine()
 	for {
 		select {
 		case <-stop:
-			utils.LogInst().Warn().Msg("web socket writer thread exit")
 			return
 
 		case message, ok := <-u.msgToCliChan:
-			u.cliWsConn.SetWriteDeadline(time.Now().Add(_wsConfig.WriteWait))
 			if !ok {
+				utils.LogInst().Info().Msgf("websocket write thread message closed")
 				u.cliWsConn.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+
+			utils.LogInst().Debug().Msgf("websocket write thread get new client message=>%s", message.String())
+			if err := u.cliWsConn.SetWriteDeadline(time.Now().Add(_wsConfig.WriteWait)); err != nil {
+				utils.LogInst().Err(err).Msg("websocket write thread set timeout failed ")
 				return
 			}
 
 			w, err := u.cliWsConn.NextWriter(websocket.TextMessage)
 			if err != nil {
-				utils.LogInst().Err(err).Send()
+				utils.LogInst().Err(err).Msg("websocket write thread get next writer failed ")
 				return
 			}
 
 			data, _ := proto.Marshal(message)
 			w.Write(data)
 			if err := w.Close(); err != nil {
-				utils.LogInst().Err(err).Send()
+				utils.LogInst().Err(err).Msg("websocket write thread close current writer failed")
 				return
 			}
 
 		case <-u.kaTimer.C:
+			utils.LogInst().Debug().Msg("websocket write thread ping pong time")
 			if err := u.cliWsConn.SetWriteDeadline(time.Now().Add(_wsConfig.WriteWait)); err != nil {
-				utils.LogInst().Err(err).Send()
+				utils.LogInst().Err(err).Msg("websocket write deadline failed")
 				return
 			}
 			if err := u.cliWsConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				utils.LogInst().Err(err).Send()
+				utils.LogInst().Err(err).Msg("websocket write ping data to client failed")
 				return
 			}
 		}
@@ -127,25 +141,25 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 		kaTimer:        time.NewTicker(_wsConfig.PingPeriod),
 		msgToCliChan:   make(chan *pbs.WsMsg, _wsConfig.MaxUnreadMsgNoPerQuery),
 	}
-
-	if err := ws.onOffLineP2pWorker.BroadCast(rawData); err != nil {
-		return err
-	}
 	ws.onlineSet.add(wu.UID)
 	ws.userTable.add(wu)
 
 	tid := fmt.Sprintf("chat read:%s", wu.UID)
-	t := thread.NewThreadWithName(tid, wu.reading)
-	t.WillExit(func() {
+	readTh := thread.NewThreadWithName(tid, wu.reading)
+	readTh.WillExit(func() {
 		ws.offlineUser(tid, wu.UID)
 	})
-	ws.threads[tid] = t
-	t.Run()
+	ws.threads[tid] = readTh
+	readTh.Run()
 
 	tid = fmt.Sprintf("chat writer:%s", wu.UID)
-	t = thread.NewThreadWithName(tid, wu.writing)
-	ws.threads[tid] = t
-	t.Run()
+	writeTh := thread.NewThreadWithName(tid, wu.writing)
+	ws.threads[tid] = writeTh
+	writeTh.Run()
+
+	if err := ws.onOffLineP2pWorker.BroadCast(rawData); err != nil {
+		return err
+	}
 
 	utils.LogInst().Debug().Msgf("new user[%s] online success.....", wu.UID)
 
@@ -153,7 +167,6 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 }
 
 func (ws *Service) offlineUser(threadId string, uid string) {
-	utils.LogInst().Info().Msgf("user [%s] offline ", uid)
 	delete(ws.threads, threadId)
 	ws.onlineSet.del(uid)
 	ws.userTable.del(uid)
@@ -165,8 +178,9 @@ func (ws *Service) offlineUser(threadId string, uid string) {
 	}
 
 	if err := ws.onOffLineP2pWorker.BroadCast(msg.Data()); err != nil {
-		utils.LogInst().Warn().Err(err).Send()
+		utils.LogInst().Warn().Err(err).Msg("broadcast user offline message failed")
 	}
+	utils.LogInst().Info().Msgf("offline [%s]", uid)
 }
 
 func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
@@ -184,6 +198,8 @@ func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
 			utils.LogInst().Warn().Msg("failed parse p2p message")
 			continue
 		}
+
+		utils.LogInst().Debug().Str("online-offline message", p2pMsg.Typ.String()).Msg(p2pMsg.String())
 
 		switch p2pMsg.Typ {
 		case pbs.WsMsgType_Online:

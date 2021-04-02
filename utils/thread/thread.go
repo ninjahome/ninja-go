@@ -27,6 +27,9 @@ func (t *Thread) Run() {
 			fmt.Printf("thread panice by:%s", r)
 		}
 		t.runFunc(t.stop)
+		if t.beFunc != nil {
+			t.beFunc()
+		}
 	}()
 }
 
@@ -42,10 +45,6 @@ func (t *Thread) Stop() {
 	defer _inst.locker.Unlock()
 	if t.stop == nil {
 		return
-	}
-
-	if t.beFunc != nil {
-		t.beFunc()
 	}
 
 	t.stop <- struct{}{}

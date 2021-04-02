@@ -39,3 +39,15 @@ func (ut *UserTable) DumpContent() string {
 	bts, _ := json.Marshal(ut.cache)
 	return string(bts)
 }
+
+func (ut *UserTable) AllUid() []string {
+	ut.RLock()
+	defer ut.RUnlock()
+	ids := make([]string, len(ut.cache))
+	var idx = 0
+	for uid, _ := range ut.cache {
+		ids[idx] = uid
+		idx++
+	}
+	return ids
+}

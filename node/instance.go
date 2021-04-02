@@ -104,10 +104,15 @@ func (nt *NinjaNode) Start() error {
 	}
 	contact.Inst().StartService(nt.nodeID, contactSyncWorker)
 
+	utils.LogInst().Info().Msg(">>>>>>>>>>>>>>>>>>>>>>>>>>Node start success......")
+
 	return nil
 }
 
 func (nt *NinjaNode) ShutDown() {
+	websocket.Inst().ShutDown()
+	contact.Inst().ShutDown()
+
 	if nt.tWorkers == nil {
 		return
 	}
@@ -116,9 +121,6 @@ func (nt *NinjaNode) ShutDown() {
 
 	nt.ctxCancel()
 	_ = nt.p2pHost.Close()
-
-	websocket.Inst().ShutDown()
-	contact.Inst().ShutDown()
 	time.Sleep(100 * time.Millisecond)
 }
 

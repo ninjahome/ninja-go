@@ -105,7 +105,7 @@ func (ws *Service) ShutDown() {
 	if ws.threads == nil {
 		return
 	}
-	utils.LogInst().Warn().Msg("websocket service thread exit......")
+	utils.LogInst().Warn().Msg("websocket service thread shutting down......")
 	for _, t := range ws.threads {
 		t.Stop()
 	}

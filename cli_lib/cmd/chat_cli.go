@@ -15,7 +15,7 @@ type MacChatCli struct {
 }
 
 func (w MacChatCli) InputMsg(msg *pbs.WSCryptoMsg) error {
-	fmt.Println(msg.String())
+	fmt.Println("get message from peer:=>", msg.String())
 	return nil
 }
 
@@ -43,7 +43,6 @@ func (w MacChatCli) writeFromStdio() {
 		}
 	}
 }
-
 func (w MacChatCli) contactWindow() {
 	term := terminal.NewTerminal(os.Stdin, "*")
 	for {
@@ -67,6 +66,6 @@ func (w MacChatCli) Run() error {
 		return err
 	}
 	go w.writeFromStdio()
-	go w.contactWindow()
+	//go w.contactWindow()
 	return nil
 }

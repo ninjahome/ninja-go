@@ -24,19 +24,19 @@
     - 4.8 contact http service thread✅
 5. thread exit gracefully ✅
 6. find peers for a public node  ✅
-        
-        ninja.mac debug peers
-   
+ ```       
+    ninja.mac debug peers
+```
 7. find peers for a private node ✅
-
-        192.168.30.17
-        192.168.30.214
-
+```
+    192.168.30.17
+    192.168.30.214
+```
 8. find peers both in a public and private network ✅ 
 9. send debug peer message ✅
-
-            ninja.mac debug push -m "hello"
-
+```
+   ninja.mac debug push -m "hello"
+```
 10. sync online map when setup 
       - 10.1 one node setup -> user online✅
       - 10.2 two nodes setup
@@ -46,25 +46,33 @@
 11. check peers of all topics 
       - 12.1 one node setup✅
       - 12.2 more than one node setup✅
-
-            ninja.mac debug peers -t /0.1/Global/user/on_offline
-            ninja.mac debug peers -t /0.1/Global/message/immediate
-            ninja.mac debug peers -t /0.1/Global/message/unread
-            ninja.mac debug peers -t /0.1/Global/contact/operate
-    
+```
+     ninja.mac debug peers -t /0.1/Global/user/on_offline
+     ninja.mac debug peers -t /0.1/Global/message/immediate
+     ninja.mac debug peers -t /0.1/Global/message/unread
+     ninja.mac debug peers -t /0.1/Global/contact/operate
+```   
 12. only one node setup, check the thread syncing and waiting
     - 13.1 boot node✅
     - 13.2 normal node✅
     
 ##4 message
 1. immediate message
-   - 1.1 filter by contact
+    - 1.1 filter by contact
+    - 1.2 message encrypt
+    - 1.3 message decrypt
 2. unread message
 3. online
-   - 3.1 write to the local user table
-   - 3.2 write to the online map
-   - 3.3 publish to all peer node
-   - 3.4 peer node add user address to the online map
+   - 3.1 write to the local user table✅
+```
+ninja.mac debug ws -l
+```
+   - 3.2 write to the online map✅
+```
+ninja.mac debug ws -l
+```
+   - 3.3 publish to all peer node✅
+   - 3.4 peer node add user address to the online map✅
    - 3.5 start the reading thread
    - 3.6 start writing thread
 
@@ -72,6 +80,13 @@
 5. connect to the private network node
 6. connect to the public network node
 7. offline
+    - 7.1 offline from local user table
+    - 7.2 offline from online map
+    - 7.3 publish to all peer node
+    - 7.4 offline from all peer node
+    - 7.5 reading thread exit
+    - 7.6 writing thread exit
+    - 7.7 batch offline when node killed by no -9 signal
 8. online user data cmd line debug tools✅
 9. ping pong status
 
