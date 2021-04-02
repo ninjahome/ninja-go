@@ -250,6 +250,7 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 	utils.LogInst().Debug().Msg("[SyncOnlineSetFromPeerNodes] stream read success success.......")
 
 	resp := &pbs2.StreamMsg{}
+	bts = bts[:len(bts)-1]
 	if err := proto.Unmarshal(bts, streamMsg); err != nil {
 		utils.LogInst().Err(err).Msg("failed parse stream message")
 		return err
@@ -262,21 +263,21 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 
 	uidBatch := body.OnlineAck.UID
 	utils.LogInst().Info().Msgf("sync online users[%d]", len(uidBatch))
+	if len(uidBatch) == 0 {
+		return nil
+	}
 	ws.onlineSet.addBatch(uidBatch)
 
 	return stream.Close()
 }
 
 func (ws *Service) OnlineMapQuery(stream network.Stream) {
-	defer stream.Close()
-
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 	bts, err := rw.ReadBytes(OnlineStreamDelim)
 	if err != nil {
 		utils.LogInst().Err(err).Msg("stream: read online sync request data failed")
 		return
 	}
-	utils.LogInst().Debug().Msgf("[OnlineMapQuery] read success[%d][%x].......", len(bts), bts, string(bts))
 
 	bts = bts[:len(bts)-1]
 	streamMsg := &pbs2.StreamMsg{}
@@ -292,5 +293,4 @@ func (ws *Service) OnlineMapQuery(stream network.Stream) {
 		utils.LogInst().Err(err).Msg("stream: write online set response data failed")
 		return
 	}
-	utils.LogInst().Debug().Msg("[OnlineMapQuery] write success.......")
 }
