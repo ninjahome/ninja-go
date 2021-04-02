@@ -293,4 +293,7 @@ func (ws *Service) OnlineMapQuery(stream network.Stream) {
 		utils.LogInst().Err(err).Msg("stream: write online set response data failed")
 		return
 	}
+	if err := rw.Flush(); err != nil {
+		utils.LogInst().Err(err).Msg("stream:  online sync response flush failed")
+	}
 }
