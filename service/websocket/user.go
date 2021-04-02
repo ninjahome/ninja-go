@@ -278,6 +278,7 @@ func (ws *Service) OnlineMapQuery(stream network.Stream) {
 	}
 	utils.LogInst().Debug().Msgf("[OnlineMapQuery] read success[%d][%x].......", len(bts), bts, string(bts))
 
+	bts = bts[:len(bts)-1]
 	streamMsg := &pbs2.StreamMsg{}
 	if err := proto.Unmarshal(bts, streamMsg); err != nil {
 		utils.LogInst().Err(err).Msg("failed parse stream message")
