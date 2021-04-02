@@ -47,13 +47,13 @@ func main() {
 	}
 	fmt.Printf("key is loaded :=>%t\n", key.IsOpen())
 
-	ws, err := client.NewWSClient("127.0.0.1:6666", key, ss) //202.182.101.145
+	ws, err := client.NewWSClient("198.13.44.159:6666", key, ss) //202.182.101.145//167.179.78.33//127.0.0.1//198.13.44.159
 	if err != nil {
 		panic(err)
 	}
 	ss.wsCli = ws
 
-	c, err := client.NewContactCli("127.0.0.1:6667", key) //202.182.101.145
+	c, err := client.NewContactCli("167.179.78.33:6667", key) //202.182.101.145
 	if err != nil {
 		panic(err)
 	}

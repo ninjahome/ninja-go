@@ -247,18 +247,20 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 		return err
 	}
 
-	utils.LogInst().Debug().Msg("[SyncOnlineSetFromPeerNodes] stream read success success.......")
+	utils.LogInst().Debug().Msgf("[SyncOnlineSetFromPeerNodes] stream read success success.......\n[%d][%x][%s]", n, data, string(data))
 
 	resp := &pbs2.StreamMsg{}
 	bts = bts[:len(bts)-1]
-	if err := proto.Unmarshal(bts, streamMsg); err != nil {
+	if err := proto.Unmarshal(bts, resp); err != nil {
 		utils.LogInst().Err(err).Msg("failed parse stream message")
 		return err
 	}
+	utils.LogInst().Debug().Msg(resp.String())
 	body, ok := resp.Payload.(*pbs2.StreamMsg_OnlineAck)
 	if !ok {
 		utils.LogInst().Err(err).Msg("failed parse stream message")
 		return fmt.Errorf("invalid onlime map data")
+		//return nil
 	}
 
 	uidBatch := body.OnlineAck.UID
