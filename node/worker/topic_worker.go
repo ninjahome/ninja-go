@@ -6,12 +6,6 @@ import (
 	"github.com/libp2p/go-libp2p-pubsub"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
-	"time"
-)
-
-const (
-	TopicPeerNoCheckPeriods = 500 * time.Millisecond
-	TopicPeerNoCheckTimes   = int(5 * time.Second / TopicPeerNoCheckPeriods)
 )
 
 type TopicReader func(*TopicWorker)
