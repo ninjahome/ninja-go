@@ -52,7 +52,7 @@ func (wg *WorkGroup) checkPeerNo(grp *sync.WaitGroup, tw *TopicWorker) {
 				return
 			}
 
-			if tryTimes >= TopicPeerNoCheckTimes {
+			if tryTimes > TopicPeerNoCheckTimes {
 				utils.LogInst().Error().Msg("topic join time out, may be i'm genesis")
 				return
 			}

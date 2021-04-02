@@ -4,8 +4,8 @@ option go_package = "github.com/ninjahome/ninja-go/pbs/stream;stream";
 import "contact.proto";
 
 enum StreamMType{
-  MTOnlineSync = 0;
-  MTOnlineAck = 1;
+  MTOnlineAck = 0;
+  MTOnlineSync = 1;
   MTContactSync = 2;
   MTContactAck = 3;
 }
@@ -19,9 +19,11 @@ message StreamMsg{
     ContactAck contactAck = 4;
   }
 }
+
 message OnlineSync{
   string nodeID = 1;
 }
+
 message OnlineMap{
   repeated string UID = 1;
 }

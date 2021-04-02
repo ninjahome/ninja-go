@@ -228,7 +228,7 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 
 	streamMsg := &pbs2.StreamMsg{}
-	data := streamMsg.SyncOnline(ws.id)
+	data := streamMsg.SyncOnline("TODO::wallet key and sig") //TODO::
 	data = append(data, OnlineStreamDelim)
 
 	n, err := rw.Write(data)
@@ -239,7 +239,7 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 	if err := rw.Flush(); err != nil {
 		utils.LogInst().Err(err).Msg("stream:  online sync request flush failed")
 	}
-	utils.LogInst().Debug().Msgf("[SyncOnlineSetFromPeerNodes] stream out [%d][%x]success.......", n, data)
+	utils.LogInst().Debug().Msgf("[SyncOnlineSetFromPeerNodes] stream out [%d][%x][%s]success.......", n, data, string(data))
 
 	bts, err := rw.ReadBytes(OnlineStreamDelim)
 	if err != nil {
@@ -276,7 +276,7 @@ func (ws *Service) OnlineMapQuery(stream network.Stream) {
 		utils.LogInst().Err(err).Msg("stream: read online sync request data failed")
 		return
 	}
-	utils.LogInst().Debug().Msg("[OnlineMapQuery] read success.......")
+	utils.LogInst().Debug().Msgf("[OnlineMapQuery] read success[%d][%x].......", len(bts), bts, string(bts))
 
 	streamMsg := &pbs2.StreamMsg{}
 	if err := proto.Unmarshal(bts, streamMsg); err != nil {
