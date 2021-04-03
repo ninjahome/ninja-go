@@ -140,7 +140,6 @@ func initWalletKey() error {
 	if err := wallet.Inst().Active(pwd, param.keyAddr); err != nil {
 		return err
 	}
-	utils.LogInst().Info().Msg("unlock wallet success......")
 	return nil
 }
 

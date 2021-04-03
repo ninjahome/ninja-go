@@ -29,10 +29,10 @@ func (tw *TopicWorker) startWork(callback thread.AfterExit) error {
 	tw.Sub = sub
 
 	t := thread.NewThreadWithName(tw.tid, func(_ chan struct{}) {
-		utils.LogInst().Info().Msgf("......topic[%s] thread start success!", tw.tid)
+		utils.LogInst().Info().Str("topic", tw.tid).Msg("Start Success")
 		tw.tReader(tw)
 		tw.Stop()
-		utils.LogInst().Warn().Msgf("......topic[%s] thread exit!", tw.tid)
+		utils.LogInst().Warn().Str("topic", tw.tid).Msg("Thread Exit")
 	})
 	tw.thread = t
 	t.DidExit(callback)

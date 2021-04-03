@@ -78,7 +78,6 @@ func newWebSocket() *Service {
 		dataBase:           db,
 	}
 	ws.apis.HandleFunc(CPUserOnline, ws.online)
-	utils.LogInst().Info().Msg("websocket service instance init......")
 	return ws
 }
 
@@ -88,9 +87,9 @@ func (ws *Service) StartService(nodeID string) {
 	ws.threads[DispatchThreadName] = dspThread
 
 	srvThread := thread.NewThreadWithName(WSThreadName, func(_ chan struct{}) {
-		utils.LogInst().Info().Msg("websocket service thread start......")
+		utils.LogInst().Info().Str("Websocket Serve", "Start up").Send()
 		err := ws.server.ListenAndServe()
-		utils.LogInst().Err(err).Msg("websocket service thread exit")
+		utils.LogInst().Err(err).Str("Websocket Serve", "Exit").Send()
 		ws.ShutDown()
 	})
 	ws.threads[WSThreadName] = srvThread
@@ -141,15 +140,14 @@ func (ws *Service) online(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ws *Service) wsCliMsgDispatch(stop chan struct{}) {
-	utils.LogInst().Info().Msg("websocket client message dispatch thread start......")
-	defer utils.LogInst().Info().Msg("websocket client message dispatch thread exit......")
+	utils.LogInst().Info().Str("Dispatch thread", "Start up").Send()
+	defer utils.LogInst().Info().Str("Dispatch thread", "Exit").Send()
 	for {
 		select {
 		case <-stop:
 			return
 
 		case msg := <-ws.msgFromClientQueue:
-			utils.LogInst().Debug().Msg(msg.String())
 			switch msg.Typ {
 			case pbs.WsMsgType_ImmediateMsg:
 				if err := ws.procIM(msg); err != nil {

@@ -37,12 +37,12 @@ func (u *wsUser) offLine() {
 	close(u.msgToCliChan)
 	u.msgToCliChan = nil
 	u.kaTimer.Stop()
-	utils.LogInst().Debug().Msgf("user[%s] offline add clean data.....", u.UID)
+	utils.LogInst().Debug().Str("WS user offline", u.UID).Send()
 }
 
 func (u *wsUser) reading(_ chan struct{}) {
-	utils.LogInst().Debug().Msgf("reading thread[%s] start success!", u.UID)
-	defer utils.LogInst().Debug().Msgf("reading thread[%s] exit!", u.UID)
+	utils.LogInst().Debug().Str("WS reading thread start", u.UID).Send()
+	defer utils.LogInst().Debug().Str("reading thread exit!", u.UID).Send()
 	defer u.offLine()
 	for {
 		_, message, err := u.cliWsConn.ReadMessage()
@@ -52,13 +52,13 @@ func (u *wsUser) reading(_ chan struct{}) {
 				websocket.CloseAbnormalClosure) {
 				utils.LogInst().Err(err).Send()
 			}
-			utils.LogInst().Info().Msgf("websocket read thread read message failed:%s", err)
+			utils.LogInst().Info().Str("WS read client", err.Error()).Send()
 			return
 		}
 
 		msg := &pbs.WsMsg{}
 		if err := proto.Unmarshal(message, msg); err != nil {
-			utils.LogInst().Warn().Msgf("web socket read invalid message:%s", err)
+			utils.LogInst().Warn().Str("WS invalid client message", err.Error()).Send()
 			continue
 		}
 		u.msgFromCliChan <- msg
@@ -66,8 +66,8 @@ func (u *wsUser) reading(_ chan struct{}) {
 }
 
 func (u *wsUser) writing(stop chan struct{}) {
-	utils.LogInst().Debug().Msgf("websocket writing thread[%s] start success!", u.UID)
-	defer utils.LogInst().Debug().Msgf("websocket writer thread [%s] exit", u.UID)
+	utils.LogInst().Debug().Str("WS writing thread start!", u.UID).Send()
+	defer utils.LogInst().Debug().Str("WS writer thread exit", u.UID).Send()
 
 	defer u.offLine()
 	for {
@@ -76,36 +76,36 @@ func (u *wsUser) writing(stop chan struct{}) {
 			return
 		case message, ok := <-u.msgToCliChan:
 			if !ok {
-				utils.LogInst().Info().Msgf("websocket write thread message closed")
+				utils.LogInst().Info().Str("WS client message chan", " closed").Send()
 				u.cliWsConn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 
 			if err := u.cliWsConn.SetWriteDeadline(time.Now().Add(_wsConfig.WriteWait)); err != nil {
-				utils.LogInst().Err(err).Msg("websocket write thread set timeout failed ")
+				utils.LogInst().Warn().Str("WS set write timeout ", err.Error()).Send()
 				return
 			}
 
 			w, err := u.cliWsConn.NextWriter(websocket.TextMessage)
 			if err != nil {
-				utils.LogInst().Err(err).Msg("websocket write thread get next writer failed ")
+				utils.LogInst().Warn().Str("WS get next writer ", err.Error()).Send()
 				return
 			}
 
 			_, err = w.Write(message.Data())
 			if err := w.Close(); err != nil {
-				utils.LogInst().Err(err).Msg("websocket write thread close current writer failed")
+				utils.LogInst().Warn().Str("WS write ", err.Error()).Send()
 				return
 			}
 
 		case <-u.kaTimer.C:
-			utils.LogInst().Debug().Msg("websocket write thread ping pong time")
+			utils.LogInst().Debug().Str("WS ping pong", "sent").Send()
 			if err := u.cliWsConn.SetWriteDeadline(time.Now().Add(_wsConfig.WriteWait)); err != nil {
-				utils.LogInst().Err(err).Msg("websocket write deadline failed")
+				utils.LogInst().Warn().Str("WS write deadline", err.Error()).Send()
 				return
 			}
 			if err := u.cliWsConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				utils.LogInst().Err(err).Msg("websocket write ping data to client failed")
+				utils.LogInst().Warn().Str("WS write ping", err.Error()).Send()
 				return
 			}
 		}
@@ -158,7 +158,7 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 		return err
 	}
 
-	utils.LogInst().Debug().Msgf("new user[%s] online success.....", wu.UID)
+	utils.LogInst().Debug().Str("WS New User", wu.UID).Send()
 
 	return nil
 }
@@ -175,9 +175,9 @@ func (ws *Service) offlineUser(threadId string, uid string) {
 	}
 
 	if err := ws.onOffLineP2pWorker.BroadCast(msg.Data()); err != nil {
-		utils.LogInst().Warn().Err(err).Msg("broadcast user offline message failed")
+		utils.LogInst().Warn().Str("offline broadcast", err.Error()).Send()
 	}
-	utils.LogInst().Info().Msgf("ws service user offline [%s]", uid)
+	utils.LogInst().Info().Str("WS user offline", uid).Send()
 }
 
 func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
@@ -186,7 +186,7 @@ func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
 	for {
 		msg, err := w.ReadMsg()
 		if err != nil {
-			utils.LogInst().Warn().Msgf("on-off line thread exit:=>%s", err)
+			utils.LogInst().Warn().Str("on-off line ", err.Error()).Send()
 			return
 		}
 		if msg.ReceivedFrom.String() == ws.id {
@@ -195,7 +195,7 @@ func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
 
 		p2pMsg := &pbs.WsMsg{}
 		if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
-			utils.LogInst().Warn().Msg("failed parse p2p message")
+			utils.LogInst().Warn().Str("unmarshal", err.Error()).Send()
 			continue
 		}
 
@@ -224,7 +224,7 @@ func (ws *Service) onlineFromOtherPeer(msg *pbs.WsMsg) error {
 		return fmt.Errorf("this is an attack")
 	}
 	ws.onlineSet.add(body.Online.UID)
-	utils.LogInst().Debug().Str("online", body.Online.UID)
+	utils.LogInst().Debug().Str("online", body.Online.UID).Send()
 	return nil
 }
 
@@ -236,7 +236,7 @@ func (ws *Service) offlineFromOtherPeer(msg *pbs.WsMsg) error {
 	//TODO:: verify peer's authorization
 	ws.onlineSet.del(body.Online.UID)
 	ws.userTable.del(body.Online.UID)
-	utils.LogInst().Debug().Str("online", body.Online.UID)
+	utils.LogInst().Debug().Str("online", body.Online.UID).Send()
 	return nil
 }
 
@@ -251,34 +251,34 @@ func (ws *Service) SyncOnlineSetFromPeerNodes(stream network.Stream) error {
 
 	_, err := rw.Write(data)
 	if err != nil {
-		utils.LogInst().Err(err).Msg("stream: write online sync request data failed")
+		utils.LogInst().Warn().Str("stream: write online", err.Error()).Send()
 		return err
 	}
 	if err := rw.Flush(); err != nil {
-		utils.LogInst().Err(err).Msg("stream:  online sync request flush failed")
+		utils.LogInst().Warn().Str("stream: flush online", err.Error()).Send()
 	}
 
 	bts, err := rw.ReadBytes(OnlineStreamDelim)
 	if err != nil {
-		utils.LogInst().Err(err).Msg("stream: read online sync response data failed")
+		utils.LogInst().Warn().Str("stream: read online", err.Error()).Send()
 		return err
 	}
 
 	resp := &pbs2.StreamMsg{}
 	bts = bts[:len(bts)-1]
 	if err := proto.Unmarshal(bts, resp); err != nil {
-		utils.LogInst().Err(err).Msg("failed parse stream message")
+		utils.LogInst().Warn().Str("stream: parse data online", err.Error()).Send()
 		return err
 	}
 
 	body, ok := resp.Payload.(*pbs2.StreamMsg_OnlineAck)
 	if !ok {
-		utils.LogInst().Err(err).Msg("failed parse stream message")
+		utils.LogInst().Warn().Str("stream: cast data online", "failed").Send()
 		return fmt.Errorf("invalid onlime map data")
 	}
 
 	uidBatch := body.OnlineAck.UID
-	utils.LogInst().Info().Msgf("sync online users[%d]", len(uidBatch))
+	utils.LogInst().Info().Int("synced online users", len(uidBatch)).Send()
 	if len(uidBatch) == 0 {
 		return nil
 	}
@@ -293,14 +293,14 @@ func (ws *Service) OnlineMapQuery(stream network.Stream) {
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 	bts, err := rw.ReadBytes(OnlineStreamDelim)
 	if err != nil {
-		utils.LogInst().Err(err).Msg("stream: read online sync request data failed")
+		utils.LogInst().Warn().Str("read online", err.Error()).Send()
 		return
 	}
 
 	bts = bts[:len(bts)-1]
 	streamMsg := &pbs2.StreamMsg{}
 	if err := proto.Unmarshal(bts, streamMsg); err != nil {
-		utils.LogInst().Err(err).Msg("failed parse stream message")
+		utils.LogInst().Warn().Str("parse stream", err.Error()).Send()
 		return
 	}
 
@@ -308,10 +308,10 @@ func (ws *Service) OnlineMapQuery(stream network.Stream) {
 	data := resp.SyncOnlineAck(ws.onlineSet.AllUid())
 	data = append(data, OnlineStreamDelim)
 	if _, err := rw.Write(data); err != nil {
-		utils.LogInst().Err(err).Msg("stream: write online set response data failed")
+		utils.LogInst().Warn().Str("stream:  write online response", err.Error()).Send()
 		return
 	}
 	if err := rw.Flush(); err != nil {
-		utils.LogInst().Err(err).Msg("stream:  online sync response flush failed")
+		utils.LogInst().Warn().Str("stream:  flush online response", err.Error()).Send()
 	}
 }

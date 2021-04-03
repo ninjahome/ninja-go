@@ -63,7 +63,8 @@ func newNode() *NinjaNode {
 	}
 
 	systemTopics[P2pChanDebug] = n.DebugPeerMsg
-	utils.LogInst().Info().Msgf("ninja node id[%s] created addrs:%s", h.ID(), h.Addrs())
+	utils.LogInst().Info().Str("NodeID", h.ID().String()).
+		Msgf("address:%s", h.Addrs())
 	return n
 }
 
@@ -72,7 +73,7 @@ func (nt *NinjaNode) RandomPeer(protocID protocol.ID) (network.Stream, error) {
 	for _, pid := range peers {
 		stream, err := nt.p2pHost.NewStream(nt.ctx, pid, protocID)
 		if err == nil {
-			utils.LogInst().Info().Msgf("select one peer[%s] for stream", pid)
+			utils.LogInst().Info().Str("Selected Peer", pid.String()).Send()
 			return stream, nil
 		}
 	}

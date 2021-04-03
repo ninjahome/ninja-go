@@ -131,7 +131,7 @@ func (ws *Service) UnreadMsgFromP2pNetwork(w *worker.TopicWorker) {
 	for {
 		msg, err := w.ReadMsg()
 		if err != nil {
-			utils.LogInst().Warn().Msgf("unread message listening thread exit:=>%s", err)
+			utils.LogInst().Warn().Str("Peer unread message", err.Error()).Send()
 			return
 		}
 
@@ -141,23 +141,23 @@ func (ws *Service) UnreadMsgFromP2pNetwork(w *worker.TopicWorker) {
 
 		p2pMsg := &pbs.WsMsg{}
 		if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
-			utils.LogInst().Warn().Msg("failed parse p2p message")
+			utils.LogInst().Warn().Str("Peer Unread message", err.Error()).Send()
 			continue
 		}
 
 		switch p2pMsg.Typ {
 		case pbs.WsMsgType_PullUnread:
 			if err := ws.procUnreadMsgQueryFromP2pNetwork(p2pMsg); err != nil {
-				utils.LogInst().Warn().Msgf("read local unread message for p2p query err:%s", err)
+				utils.LogInst().Warn().Str("local unread message read", err.Error()).Send()
 				continue
 			}
 		case pbs.WsMsgType_UnreadAck:
 			if err := ws.unreadMsgResultFromP2pNetwork(p2pMsg); err != nil {
-				utils.LogInst().Warn().Msgf("send unread msg from p2p network to client err:%s", err)
+				utils.LogInst().Warn().Str("send unread", err.Error()).Send()
 				continue
 			}
 		default:
-			utils.LogInst().Warn().Msg("unknown msg typ in unread message channel")
+			utils.LogInst().Warn().Str("invalid unread message Type", p2pMsg.Typ.String()).Send()
 		}
 	}
 }

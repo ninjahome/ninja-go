@@ -41,7 +41,6 @@ func (wg *WorkGroup) StartUp(ctx context.Context, ps *pubsub.PubSub, topics map[
 	}
 
 	grp.Wait()
-	utils.LogInst().Info().Msgf("All topic[%d] works start up.....", len(topics))
 	return nil
 }
 
@@ -56,13 +55,16 @@ func (wg *WorkGroup) checkPeerNo(grp *sync.WaitGroup, tw *TopicWorker, timeOut t
 		case <-checker.C:
 			tryTimes++
 			if len(tw.Pub.ListPeers()) > 0 {
-				utils.LogInst().Info().Msgf("got topic[%s] peer success [%d]", tw.tid, len(tw.Pub.ListPeers()))
+				utils.LogInst().Info().Str("topic", tw.tid).
+					Int("found success peers:", len(tw.Pub.ListPeers())).
+					Send()
 				return
 			}
-			utils.LogInst().Info().Msgf("syncing[%d] peers for topic[%s]", tryTimes, tw.tid)
-
+			utils.LogInst().Info().Str("topic", tw.tid).
+				Int("tryTimes:", tryTimes).
+				Send()
 		case <-tryTimeOut.C:
-			utils.LogInst().Error().Msg("topic join time out, may be i'm genesis")
+			utils.LogInst().Error().Str("Topic Sync Result", "timeout")
 			return
 		}
 	}

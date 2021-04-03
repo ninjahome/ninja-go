@@ -58,7 +58,7 @@ func (cc *WSClient) Online() error {
 	}
 	cc.wsConn = wsConn
 	wsConn.SetPingHandler(func(appData string) error {
-		fmt.Println("ping pong time......")
+		//fmt.Println("ping pong time......")
 		return wsConn.WriteMessage(websocket.PongMessage, []byte{})
 	})
 	cc.reader.Run()

@@ -34,20 +34,24 @@ func (ws *Service) procIM(msg *pbs.WsMsg) error {
 	utils.LogInst().Debug().
 		Str("From", im.From).
 		Str("TO", im.To).
-		Int64("time", im.UnixTime)
+		Msgf("time:%s", im.UnixTime)
 
 	if !ws.onlineSet.contains(im.To) {
-		utils.LogInst().Debug().Msgf("IM:receiver[%s] is offline", im.To)
+		utils.LogInst().Debug().Str("Receiver", im.To).
+			Str("Status", "offline").Send()
 		key := IMDBKey(im.To, im.UnixTime)
 		return ws.dataBase.Put(key, im.MustData(), nil)
 	}
 
 	if user, ok := ws.userTable.get(im.To); ok {
-		utils.LogInst().Debug().Msgf("IM:receiver[%s] is in the same node", im.To)
+		utils.LogInst().Debug().Str("Receiver", im.To).
+			Str("Status", "Same node").Send()
 		return user.writeToCli(msg)
 	}
 
-	utils.LogInst().Debug().Msgf("IM:receiver[%s] is on other node", im.To)
+	utils.LogInst().Debug().Str("Receiver", im.To).
+		Str("Status", "on other node").Send()
+
 	return ws.IMP2pWorker.BroadCast(msg.Data())
 }
 
@@ -57,8 +61,7 @@ func (ws *Service) ImmediateMsgForP2pNetwork(w *worker.TopicWorker) {
 	for {
 		msg, err := w.ReadMsg()
 		if err != nil {
-			utils.LogInst().Warn().Msgf("immediate message listening thread exit:=>%s", err)
-
+			utils.LogInst().Warn().Str("Peer IM read", err.Error())
 			return
 		}
 
@@ -68,11 +71,11 @@ func (ws *Service) ImmediateMsgForP2pNetwork(w *worker.TopicWorker) {
 
 		p2pMsg := &pbs.WsMsg{}
 		if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
-			utils.LogInst().Warn().Msg("failed parse p2p message")
+			utils.LogInst().Warn().Str("IM Unmarshal", err.Error()).Send()
 			continue
 		}
 		if p2pMsg.Typ != pbs.WsMsgType_ImmediateMsg {
-			utils.LogInst().Warn().Msg("unknown msg typ in p2p immediate message channel")
+			utils.LogInst().Warn().Str("Invalid Peer IM", p2pMsg.Typ.String()).Send()
 			continue
 		}
 		if err := ws.peerImmediateMsg(p2pMsg); err != nil {
@@ -91,6 +94,6 @@ func (ws *Service) peerImmediateMsg(msg *pbs.WsMsg) error {
 	if !ok {
 		return nil
 	}
-	utils.LogInst().Debug().Msgf("found to peer[%s] in my table", body.Message.To)
+	utils.LogInst().Debug().Str("Peer IM TO", body.Message.To).Send()
 	return u.writeToCli(msg)
 }
