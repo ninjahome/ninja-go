@@ -61,7 +61,6 @@ func (u *wsUser) reading(_ chan struct{}) {
 			utils.LogInst().Warn().Msgf("web socket read invalid message:%s", err)
 			continue
 		}
-		utils.LogInst().Debug().Int("client msg", len(message)).Msg(msg.String())
 		u.msgFromCliChan <- msg
 	}
 }
@@ -82,7 +81,6 @@ func (u *wsUser) writing(stop chan struct{}) {
 				return
 			}
 
-			utils.LogInst().Debug().Msgf("websocket write thread get new client message=>%s", message.String())
 			if err := u.cliWsConn.SetWriteDeadline(time.Now().Add(_wsConfig.WriteWait)); err != nil {
 				utils.LogInst().Err(err).Msg("websocket write thread set timeout failed ")
 				return
@@ -94,8 +92,7 @@ func (u *wsUser) writing(stop chan struct{}) {
 				return
 			}
 
-			data, _ := proto.Marshal(message)
-			w.Write(data)
+			_, err = w.Write(message.Data())
 			if err := w.Close(); err != nil {
 				utils.LogInst().Err(err).Msg("websocket write thread close current writer failed")
 				return

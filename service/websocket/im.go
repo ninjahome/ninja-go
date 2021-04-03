@@ -30,17 +30,24 @@ func (ws *Service) procIM(msg *pbs.WsMsg) error {
 	}
 
 	im := body.Message
-	utils.LogInst().Debug().Msgf("message [%s->%s]_%x", im.From, im.To, im.UnixTime)
+
+	utils.LogInst().Debug().
+		Str("From", im.From).
+		Str("TO", im.To).
+		Int64("time", im.UnixTime)
 
 	if !ws.onlineSet.contains(im.To) {
+		utils.LogInst().Debug().Msgf("IM:receiver[%s] is offline", im.To)
 		key := IMDBKey(im.To, im.UnixTime)
 		return ws.dataBase.Put(key, im.MustData(), nil)
 	}
 
 	if user, ok := ws.userTable.get(im.To); ok {
+		utils.LogInst().Debug().Msgf("IM:receiver[%s] is in the same node", im.To)
 		return user.writeToCli(msg)
 	}
 
+	utils.LogInst().Debug().Msgf("IM:receiver[%s] is on other node", im.To)
 	return ws.IMP2pWorker.BroadCast(msg.Data())
 }
 
