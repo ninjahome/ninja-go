@@ -279,39 +279,34 @@ func (c *Config) dhtOpts() ([]dht.Option, error) {
 	}, nil
 }
 
-func notForSelfValidator(_ context.Context, peer peer.ID, _ *pubsub.Message) pubsub.ValidationResult {
-	if peer.String() == _instance.nodeID {
-		utils.LogInst().Debug().Msg("ignore duplicate online offline operation from myself")
-		return pubsub.ValidationIgnore
-	}
-
-	return pubsub.ValidationAccept
-}
-
-func initTopicValidators(ps *pubsub.PubSub) error {
-
-	err := ps.RegisterTopicValidator(P2pChanUserOnOffLine,
-		notForSelfValidator,
-		pubsub.WithValidatorTimeout(P2pOnLineValidateTime),
-		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxOnLineThread))
-
-	if err != nil {
-		return err
-	}
-
-	err = ps.RegisterTopicValidator(P2pChanImmediateMsg,
-		notForSelfValidator,
-		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxIMTopicThread))
-	if err != nil {
-		return err
-	}
-
-	if err := ps.RegisterTopicValidator(P2pChanUnreadMsg,
-		notForSelfValidator); err != nil {
-		return err
-	}
-	return nil
-}
+//func notForSelfValidator(_ context.Context, peer peer.ID, _ *pubsub.Message) pubsub.ValidationResult {
+//	return pubsub.ValidationAccept
+//}
+//
+//func initTopicValidators(ps *pubsub.PubSub) error {
+//
+//	err := ps.RegisterTopicValidator(P2pChanUserOnOffLine,
+//		notForSelfValidator,
+//		pubsub.WithValidatorTimeout(P2pOnLineValidateTime),
+//		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxOnLineThread))
+//
+//	if err != nil {
+//		return err
+//	}
+//
+//	err = ps.RegisterTopicValidator(P2pChanImmediateMsg,
+//		notForSelfValidator,
+//		pubsub.WithValidatorConcurrency(_nodeConfig.PsConf.MaxIMTopicThread))
+//	if err != nil {
+//		return err
+//	}
+//
+//	if err := ps.RegisterTopicValidator(P2pChanUnreadMsg,
+//		notForSelfValidator); err != nil {
+//		return err
+//	}
+//	return nil
+//}
 
 func newPubSub(ctx context.Context, h host.Host) (*pubsub.PubSub, error) {
 	dhtOpts, err := _nodeConfig.dhtOpts()
@@ -334,9 +329,9 @@ func newPubSub(ctx context.Context, h host.Host) (*pubsub.PubSub, error) {
 		return nil, err
 	}
 
-	if err := initTopicValidators(ps); err != nil {
-		return nil, err
-	}
+	//if err := initTopicValidators(ps); err != nil {
+	//	return nil, err
+	//}
 
 	return ps, nil
 }
