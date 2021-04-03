@@ -199,8 +199,6 @@ func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
 			continue
 		}
 
-		utils.LogInst().Debug().Str("online-offline message", p2pMsg.Typ.String()).Msg(p2pMsg.String())
-
 		switch p2pMsg.Typ {
 		case pbs.WsMsgType_Online:
 			err = ws.onlineFromOtherPeer(p2pMsg)
@@ -226,6 +224,7 @@ func (ws *Service) onlineFromOtherPeer(msg *pbs.WsMsg) error {
 		return fmt.Errorf("this is an attack")
 	}
 	ws.onlineSet.add(body.Online.UID)
+	utils.LogInst().Debug().Str("online", body.Online.UID)
 	return nil
 }
 
@@ -237,6 +236,7 @@ func (ws *Service) offlineFromOtherPeer(msg *pbs.WsMsg) error {
 	//TODO:: verify peer's authorization
 	ws.onlineSet.del(body.Online.UID)
 	ws.userTable.del(body.Online.UID)
+	utils.LogInst().Debug().Str("online", body.Online.UID)
 	return nil
 }
 
