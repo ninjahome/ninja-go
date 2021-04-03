@@ -54,6 +54,11 @@ func (ws *Service) ImmediateMsgForP2pNetwork(w *worker.TopicWorker) {
 
 			return
 		}
+
+		if msg.ReceivedFrom.String() == ws.id {
+			continue
+		}
+
 		p2pMsg := &pbs.WsMsg{}
 		if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
 			utils.LogInst().Warn().Msg("failed parse p2p message")

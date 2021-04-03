@@ -192,6 +192,9 @@ func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {
 			utils.LogInst().Warn().Msgf("on-off line thread exit:=>%s", err)
 			return
 		}
+		if msg.ReceivedFrom.String() == ws.id {
+			continue
+		}
 
 		p2pMsg := &pbs.WsMsg{}
 		if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {

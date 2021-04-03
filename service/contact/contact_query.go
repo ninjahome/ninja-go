@@ -129,6 +129,10 @@ func (s *Service) ContactOperationFromP2pNetwork(w *worker.TopicWorker) {
 			return
 		}
 
+		if msg.ReceivedFrom.String() == s.id {
+			continue
+		}
+
 		p2pMsg := &pbs.ContactMsg{}
 		if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
 			utils.LogInst().Warn().Err(err).Send()
