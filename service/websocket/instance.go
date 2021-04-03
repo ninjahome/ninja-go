@@ -146,10 +146,10 @@ func (ws *Service) wsCliMsgDispatch(stop chan struct{}) {
 	for {
 		select {
 		case <-stop:
-			utils.LogInst().Warn().Msg("websocket dispatch thread exit")
 			return
 
 		case msg := <-ws.msgFromClientQueue:
+			utils.LogInst().Debug().Msg(msg.String())
 			switch msg.Typ {
 			case pbs.WsMsgType_ImmediateMsg:
 				if err := ws.procIM(msg); err != nil {
@@ -186,7 +186,7 @@ func (ws *Service) DebugInfo(online, local bool, usr string) string {
 		if !ok {
 			s += fmt.Sprintf("no such user:[%s] in local ", usr)
 			if ws.onlineSet.contains(usr) {
-				s += "but is online"
+				s += "but is online\n"
 			}
 		} else {
 			s += u.String() + "\n"

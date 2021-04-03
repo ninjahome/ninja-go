@@ -5,6 +5,7 @@ import (
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/service/client"
 	"golang.org/x/crypto/ssh/terminal"
+	"io"
 	"os"
 )
 
@@ -15,7 +16,7 @@ type MacChatCli struct {
 }
 
 func (w MacChatCli) InputMsg(msg *pbs.WSCryptoMsg) error {
-	fmt.Println("get message from peer:=>", msg.String())
+	fmt.Println(string(msg.PayLoad))
 	return nil
 }
 
@@ -32,11 +33,23 @@ func (w MacChatCli) UnreadMsg(msgs []*pbs.WSCryptoMsg) error {
 }
 
 func (w MacChatCli) writeFromStdio() {
-	term := terminal.NewTerminal(os.Stdin, ">")
+	oldState, err := terminal.MakeRaw(0)
+	if err != nil {
+		return
+	}
+	defer terminal.Restore(0, oldState)
+	screen := struct {
+		io.Reader
+		io.Writer
+	}{os.Stdin, os.Stdout}
+	term := terminal.NewTerminal(screen, ">")
 	for {
 		msg, err := term.ReadLine()
 		if err != nil {
 			panic(err)
+		}
+		if msg == "" {
+			continue
 		}
 		if err := w.wsCli.Write(w.receiver, []byte(msg)); err != nil {
 			panic(err)

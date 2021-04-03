@@ -10,18 +10,16 @@ import (
 	"github.com/ninjahome/ninja-go/wallet"
 	"google.golang.org/protobuf/proto"
 	"net/url"
-	"time"
 )
 
 type WSClient struct {
-	isOnline        bool
-	endpoint        string
-	wsConn          *websocket.Conn
-	key             *wallet.Key
-	reader, writer  *thread.Thread
-	callback        CliCallBack
-	msgChanToServer chan *pbs.WsMsg
-	peerKeys        map[string][]byte
+	isOnline bool
+	endpoint string
+	wsConn   *websocket.Conn
+	key      *wallet.Key
+	reader   *thread.Thread
+	callback CliCallBack
+	peerKeys map[string][]byte
 }
 
 type CliCallBack interface {
@@ -36,16 +34,14 @@ func NewWSClient(addr string, key *wallet.Key, cb CliCallBack) (*WSClient, error
 	}
 
 	cc := &WSClient{
-		endpoint:        addr,
-		key:             key,
-		isOnline:        false,
-		msgChanToServer: make(chan *pbs.WsMsg, 1024),
-		peerKeys:        make(map[string][]byte),
-		callback:        cb,
+		endpoint: addr,
+		key:      key,
+		isOnline: false,
+		peerKeys: make(map[string][]byte),
+		callback: cb,
 	}
 
 	cc.reader = thread.NewThread(cc.reading)
-	cc.writer = thread.NewThread(cc.writing)
 	return cc, nil
 }
 
@@ -66,7 +62,6 @@ func (cc *WSClient) Online() error {
 		return wsConn.WriteMessage(websocket.PongMessage, []byte{})
 	})
 	cc.reader.Run()
-	cc.writer.Run()
 	return nil
 }
 
@@ -105,25 +100,18 @@ func (cc *WSClient) Write(to string, body []byte) error {
 	if !cc.isOnline {
 		return fmt.Errorf("please online yourself first")
 	}
-
-	msg := &pbs.WSCryptoMsg{
-		From:     cc.key.Address.String(),
-		To:       to,
-		PayLoad:  body,
-		UnixTime: time.Now().Unix(),
-	}
-
-	key, err := cc.getAesKey(msg.To)
+	key, err := cc.getAesKey(to)
 	if err != nil {
 		return err
 	}
-	dst, _ := openssl.AesECBEncrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
-	msg.PayLoad = dst
-	msgWrap := &pbs.WsMsg{
-		Typ:     pbs.WsMsgType_ImmediateMsg,
-		Payload: &pbs.WsMsg_Message{Message: msg},
+
+	from := cc.key.Address.String()
+	msgWrap := &pbs.WsMsg{}
+
+	if err := cc.wsConn.WriteMessage(websocket.TextMessage,
+		msgWrap.AesCryptData(from, to, body, key)); err != nil {
+		return err
 	}
-	cc.msgChanToServer <- msgWrap
 	return nil
 }
 
@@ -190,38 +178,13 @@ func (cc *WSClient) reading(stop chan struct{}) {
 	}
 }
 
-func (cc *WSClient) writing(stop chan struct{}) {
-	defer cc.ShutDown()
-	for {
-		select {
-		case outMsg := <-cc.msgChanToServer:
-			data, err := proto.Marshal(outMsg)
-			if err != nil {
-				fmt.Println("invalid crypto message", err)
-				continue
-			}
-			if err := cc.wsConn.WriteMessage(websocket.TextMessage, data); err != nil {
-				fmt.Println("write crypto message", err)
-				return
-			}
-
-		case <-stop:
-			fmt.Println("write thread exit")
-			_ = cc.wsConn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-		}
-	}
-}
-
 func (cc *WSClient) ShutDown() {
-
-	if cc.msgChanToServer != nil {
+	if cc.reader != nil {
 		return
 	}
 	cc.callback.WebSocketClosed()
 	cc.reader.Stop()
-	cc.writer.Stop()
 	cc.wsConn.Close()
 	cc.isOnline = false
-	close(cc.msgChanToServer)
-	cc.msgChanToServer = nil
+	cc.reader = nil
 }

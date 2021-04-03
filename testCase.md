@@ -58,37 +58,27 @@
     
 ##4 message
 1. immediate message
+   
+    setup 2 clients :
+   
+    1. 0 for account 0
+   
+    2. 1 for account 1, open it in a new cmd window
+```
+    cd cli_lib/cmd
+    go build .
+    ./cmd 0
+    ./cmd 1
+```
+
     - 1.1 filter by contact
     - 1.2 message encrypt
     - 1.3 message decrypt
 2. unread message
-3. online
-   - 3.1 write to the local user table✅
-```
-ninja.mac debug ws -l
-```
-   - 3.2 write to the online map✅
-```
-ninja.mac debug ws -o
-```
-   - 3.3 publish to all peer node✅
-   - 3.4 peer node add user address to the online map✅
-   - 3.5 start the reading thread
-   - 3.6 start writing thread
-
+3. ping pong status✅
 4. connect to localhost node
 5. connect to the private network node
 6. connect to the public network node
-7. offline when client closed
-    - 7.1 offline from local user table
-    - 7.2 offline from online map
-    - 7.3 publish to all peer node
-    - 7.4 offline from all peer node
-    - 7.5 reading thread exit
-    - 7.6 writing thread exit
-8. online user data from cmd line debug tools✅
-9. ping pong status✅
-10. offline when node crash
 
 ##5 contact
 1. add contact
@@ -101,5 +91,29 @@ ninja.mac debug ws -o
 8. sync contact from other peers
 9. connect to a service without my contact
 
-##6 refactor all proto message
-##7 remove all warnings and typos
+##6 online offline
+```
+ninja.mac debug ws -o
+ninja.mac debug ws -l
+```
+1. online
+    - 1.1 write to the local user table✅
+    - 1.2 write to the online map✅
+    - 1.3 publish to all peer node✅
+    - 1.4 peer node add user address to the online map✅
+    - 1.5 start the reading thread
+    - 1.6 start writing thread
+
+2. offline when client closed
+    - 2.1 offline from local user table✅
+    - 2.2 offline from online map✅
+    - 2.3 publish to all peer node✅
+    - 2.4 offline from all peer node✅
+    - 2.5 reading thread exit
+    - 2.6 writing thread exit
+
+3. offline when node crash✅
+3. online user data from cmd line debug tools✅
+
+##7 refactor all proto message
+##8 remove all warnings and typos

@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"fmt"
+	"github.com/forgoer/openssl"
 	"github.com/gorilla/websocket"
 	"github.com/herumi/bls-eth-go-binary/bls"
 	"github.com/ninjahome/ninja-go/wallet"
@@ -67,6 +68,25 @@ func (x *WsMsg) ReadOnlineFromCli(conn *websocket.Conn) (olMsg *WSOnline, messag
 		return
 	}
 	return olMsg, message, conn.WriteMessage(websocket.TextMessage, ackData)
+}
+
+func (x *WsMsg) AesCryptData(from, to string, body, key []byte) []byte {
+
+	msg := &WSCryptoMsg{
+		From:     from,
+		To:       to,
+		PayLoad:  body,
+		UnixTime: time.Now().Unix(),
+	}
+
+	dst, _ := openssl.AesECBEncrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
+	msg.PayLoad = dst
+
+	x.Typ = WsMsgType_ImmediateMsg
+	x.Payload = &WsMsg_Message{Message: msg}
+
+	data, _ := proto.Marshal(x)
+	return data
 }
 
 func (x *WsMsg) Data() []byte {
