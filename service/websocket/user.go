@@ -41,8 +41,8 @@ func (u *wsUser) offLine() {
 }
 
 func (u *wsUser) reading(_ chan struct{}) {
-	utils.LogInst().Debug().Msgf("reading thread for [%s] start success!", u.UID)
-	defer utils.LogInst().Debug().Msgf("reading thread for [%s] exit!", u.UID)
+	utils.LogInst().Debug().Msgf("reading thread[%s] start success!", u.UID)
+	defer utils.LogInst().Debug().Msgf("reading thread[%s] exit!", u.UID)
 	defer u.offLine()
 	for {
 		_, message, err := u.cliWsConn.ReadMessage()
@@ -58,23 +58,23 @@ func (u *wsUser) reading(_ chan struct{}) {
 
 		msg := &pbs.WsMsg{}
 		if err := proto.Unmarshal(message, msg); err != nil {
-			utils.LogInst().Warn().Msgf("web socket read invalid:%x", message)
+			utils.LogInst().Warn().Msgf("web socket read invalid message:%s", err)
 			continue
 		}
+		utils.LogInst().Debug().Int("client msg", len(message)).Msg(msg.String())
 		u.msgFromCliChan <- msg
 	}
 }
 
 func (u *wsUser) writing(stop chan struct{}) {
-	utils.LogInst().Debug().Msgf("web socket writing thread for [%s] start success!", u.UID)
-	defer utils.LogInst().Debug().Msgf("web socket writer thread for [%s] exit", u.UID)
+	utils.LogInst().Debug().Msgf("websocket writing thread[%s] start success!", u.UID)
+	defer utils.LogInst().Debug().Msgf("websocket writer thread [%s] exit", u.UID)
 
 	defer u.offLine()
 	for {
 		select {
 		case <-stop:
 			return
-
 		case message, ok := <-u.msgToCliChan:
 			if !ok {
 				utils.LogInst().Info().Msgf("websocket write thread message closed")
@@ -146,14 +146,14 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 
 	tid := fmt.Sprintf("chat read:%s", wu.UID)
 	readTh := thread.NewThreadWithName(tid, wu.reading)
-	readTh.WillExit(func() {
-		ws.offlineUser(tid, wu.UID)
-	})
 	ws.threads[tid] = readTh
 	readTh.Run()
 
 	tid = fmt.Sprintf("chat writer:%s", wu.UID)
 	writeTh := thread.NewThreadWithName(tid, wu.writing)
+	writeTh.DidExit(func() {
+		ws.offlineUser(tid, wu.UID)
+	})
 	ws.threads[tid] = writeTh
 	writeTh.Run()
 
@@ -180,7 +180,7 @@ func (ws *Service) offlineUser(threadId string, uid string) {
 	if err := ws.onOffLineP2pWorker.BroadCast(msg.Data()); err != nil {
 		utils.LogInst().Warn().Err(err).Msg("broadcast user offline message failed")
 	}
-	utils.LogInst().Info().Msgf("offline [%s]", uid)
+	utils.LogInst().Info().Msgf("ws service user offline [%s]", uid)
 }
 
 func (ws *Service) OnOffLineForP2pNetwork(w *worker.TopicWorker) {

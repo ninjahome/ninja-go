@@ -26,7 +26,7 @@ func (nt *NinjaNode) DebugTopicPeers(topic string) string {
 
 func (nt *NinjaNode) DebugPeerMsg(w *worker.TopicWorker) {
 	for {
-		msg, err := w.Sub.Next(nt.ctx)
+		msg, err := w.ReadMsg()
 		if err != nil {
 			utils.LogInst().Warn().Msgf("debug peer message thread exit:=>%s", err)
 			return

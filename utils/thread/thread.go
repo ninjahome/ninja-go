@@ -6,18 +6,18 @@ import (
 )
 
 type Runner func(stop chan struct{})
-type BeforeExit func()
+type AfterExit func()
 type Thread struct {
 	ID        int
 	name      string
 	stop      chan struct{}
 	runFunc   Runner
-	beFunc    BeforeExit
+	afterFunc AfterExit
 	startTime time.Time
 }
 
-func (t *Thread) WillExit(be BeforeExit) {
-	t.beFunc = be
+func (t *Thread) DidExit(after AfterExit) {
+	t.afterFunc = after
 }
 
 func (t *Thread) Run() {
@@ -27,8 +27,8 @@ func (t *Thread) Run() {
 			fmt.Printf("thread panice by:%s", r)
 		}
 		t.runFunc(t.stop)
-		if t.beFunc != nil {
-			t.beFunc()
+		if t.afterFunc != nil {
+			t.afterFunc()
 		}
 	}()
 }

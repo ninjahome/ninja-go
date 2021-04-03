@@ -69,7 +69,7 @@ ninja.mac debug ws -l
 ```
    - 3.2 write to the online map✅
 ```
-ninja.mac debug ws -l
+ninja.mac debug ws -o
 ```
    - 3.3 publish to all peer node✅
    - 3.4 peer node add user address to the online map✅
@@ -79,16 +79,16 @@ ninja.mac debug ws -l
 4. connect to localhost node
 5. connect to the private network node
 6. connect to the public network node
-7. offline
+7. offline when client closed
     - 7.1 offline from local user table
     - 7.2 offline from online map
     - 7.3 publish to all peer node
     - 7.4 offline from all peer node
     - 7.5 reading thread exit
     - 7.6 writing thread exit
-    - 7.7 batch offline when node killed by no -9 signal
-8. online user data cmd line debug tools✅
-9. ping pong status
+8. online user data from cmd line debug tools✅
+9. ping pong status✅
+10. offline when node crash
 
 ##5 contact
 1. add contact

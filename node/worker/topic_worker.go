@@ -21,7 +21,7 @@ type TopicWorker struct {
 func (tw *TopicWorker) ID() string {
 	return tw.tid
 }
-func (tw *TopicWorker) startWork() error {
+func (tw *TopicWorker) startWork(callback thread.AfterExit) error {
 	sub, err := tw.Pub.Subscribe()
 	if err != nil {
 		return err
@@ -35,6 +35,7 @@ func (tw *TopicWorker) startWork() error {
 		utils.LogInst().Warn().Msgf("......topic[%s] thread exit!", tw.tid)
 	})
 	tw.thread = t
+	t.DidExit(callback)
 	t.Run()
 	return nil
 }

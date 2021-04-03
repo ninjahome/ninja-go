@@ -29,9 +29,13 @@ func (wg *WorkGroup) StartUp(ctx context.Context, ps *pubsub.PubSub, topics map[
 		}
 
 		w := newTopicWorker(ctx, topID, topic, r)
-		if err := w.startWork(); err != nil {
+
+		if err := w.startWork(func() {
+			delete(*wg, w.tid)
+		}); err != nil {
 			return err
 		}
+
 		go wg.checkPeerNo(&grp, w, timeOut)
 		(*wg)[w.tid] = w
 	}
@@ -52,7 +56,7 @@ func (wg *WorkGroup) checkPeerNo(grp *sync.WaitGroup, tw *TopicWorker, timeOut t
 		case <-checker.C:
 			tryTimes++
 			if len(tw.Pub.ListPeers()) > 0 {
-				utils.LogInst().Info().Msgf("got topic peer success [%d]", len(tw.Pub.ListPeers()))
+				utils.LogInst().Info().Msgf("got topic[%s] peer success [%d]", tw.tid, len(tw.Pub.ListPeers()))
 				return
 			}
 			utils.LogInst().Info().Msgf("syncing[%d] peers for topic[%s]", tryTimes, tw.tid)
