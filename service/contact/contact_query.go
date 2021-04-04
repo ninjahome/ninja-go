@@ -133,7 +133,7 @@ func (s *Service) ContactOperationFromP2pNetwork(w *worker.TopicWorker) {
 	for {
 		msg, err := w.ReadMsg()
 		if err != nil {
-			utils.LogInst().Warn().Msgf("contact operation thread exit:=>%s", err)
+			utils.LogInst().Warn().Str("Peer Contact Reader", err.Error()).Send()
 			return
 		}
 
@@ -143,11 +143,16 @@ func (s *Service) ContactOperationFromP2pNetwork(w *worker.TopicWorker) {
 
 		p2pMsg := &pbs.ContactMsg{}
 		if err := proto.Unmarshal(msg.Data, p2pMsg); err != nil {
-			utils.LogInst().Warn().Err(err).Send()
+			utils.LogInst().Warn().Str("Peer Contact Reader", err.Error()).Send()
 			continue
 		}
+
+		utils.LogInst().Debug().
+			Str("Peer Contact", p2pMsg.From).
+			Str("Typ", p2pMsg.Typ.String()).Send()
+
 		if err := s.procContactOperation(p2pMsg); err != nil {
-			utils.LogInst().Warn().Err(err).Send()
+			utils.LogInst().Warn().Str("Peer Contact err", err.Error()).Send()
 		}
 	}
 }
