@@ -11,6 +11,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"google.golang.org/protobuf/proto"
 	"io"
+	"net"
 	"net/http"
 	"sync"
 )
@@ -78,7 +79,16 @@ func (s *Service) StartService(id string, cpw *worker.StreamWorker) {
 	s.contactPeerWorker = cpw
 	t := thread.NewThreadWithName(ServiceThreadName, func(_ chan struct{}) {
 		utils.LogInst().Info().Str("Contact Serve", "Start up").Send()
-		err := s.server.ListenAndServe()
+		endPoint := fmt.Sprintf("%s:%d", _srvConfig.SrvIP, _srvConfig.SrvPort)
+		ln, err := net.Listen("tcp4", endPoint)
+		if err != nil {
+			utils.LogInst().Error().
+				Str("end", endPoint).
+				Str("Contact Serve", err.Error()).
+				Send()
+			return
+		}
+		err = s.server.Serve(ln)
 		utils.LogInst().Err(err).Str("Contact Serve", "Exit").Send()
 		s.ShutDown()
 	})

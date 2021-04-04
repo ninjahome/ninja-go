@@ -93,9 +93,7 @@ func (c *Config) newUpGrader() *websocket.Upgrader {
 }
 
 func (c *Config) newWSServer(handler http.Handler) *http.Server {
-	endPoint := fmt.Sprintf("%s:%d", c.WsIP, c.WsPort)
 	return &http.Server{
-		Addr:    endPoint,
 		Handler: handler,
 	}
 }

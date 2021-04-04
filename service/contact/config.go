@@ -62,9 +62,8 @@ func DefaultConfig(isMain bool, base string) *Config {
 }
 
 func (c *Config) newContactServer(handler http.Handler) *http.Server {
-	endPoint := fmt.Sprintf("%s:%d", c.SrvIP, c.SrvPort)
+
 	return &http.Server{
-		Addr:         endPoint,
 		Handler:      handler,
 		ReadTimeout:  c.ReadTimeout,
 		WriteTimeout: c.WriteTimeout,

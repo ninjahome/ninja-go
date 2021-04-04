@@ -10,6 +10,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
+	"net"
 	"net/http"
 	"sync"
 	"time"
@@ -88,7 +89,15 @@ func (ws *Service) StartService(nodeID string) {
 
 	srvThread := thread.NewThreadWithName(WSThreadName, func(_ chan struct{}) {
 		utils.LogInst().Info().Str("Websocket Serve", "Start up").Send()
-		err := ws.server.ListenAndServe()
+		endPoint := fmt.Sprintf("%s:%d", _wsConfig.WsIP, _wsConfig.WsPort)
+		ln, err := net.Listen("tcp4", endPoint)
+		if err != nil {
+			utils.LogInst().Error().Str("end", endPoint).
+				Str("Contact Serve", err.Error()).
+				Send()
+			return
+		}
+		err = ws.server.Serve(ln)
 		utils.LogInst().Err(err).Str("Websocket Serve", "Exit").Send()
 		ws.ShutDown()
 	})
