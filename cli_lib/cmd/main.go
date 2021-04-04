@@ -74,13 +74,14 @@ func main() {
 	ss := &MacChatCli{
 		receiver: keys[idx],
 	}
+	serAddr := []string{"202.182.101.145:6666", "167.179.78.33:6666"} //127.0.0.1:6666
 	key, err := wallet.LoadKeyFromJsonStr(keyStr[idx], "123")
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("key is loaded :=>%t\n", key.IsOpen())
 
-	ws, err := client.NewWSClient("127.0.0.1:6666", key, ss) //202.182.101.145//167.179.78.33//127.0.0.1
+	ws, err := client.NewWSClient(serAddr[idx], key, ss) //202.182.101.145//167.179.78.33//127.0.0.1
 	if err != nil {
 		panic(err)
 	}

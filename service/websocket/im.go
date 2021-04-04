@@ -33,8 +33,8 @@ func (ws *Service) procIM(msg *pbs.WsMsg) error {
 
 	utils.LogInst().Debug().
 		Str("From", im.From).
-		Str("TO", im.To).
-		Msgf("time:%s", im.UnixTime)
+		Str("TO", im.To).Int64("time", im.UnixTime).
+		Msgf("IM Received time:%d", im.UnixTime)
 
 	if !ws.onlineSet.contains(im.To) {
 		utils.LogInst().Debug().Str("Receiver", im.To).

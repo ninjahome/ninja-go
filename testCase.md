@@ -68,18 +68,18 @@
 ```
     
 - 1.1 both 2 clients on the same node
-    - 1.1.1 message encrypt
-    - 1.1.2 message decrypt 
+    - 1.1.1 message encrypt✅
+    - 1.1.2 message decrypt ✅
     - 1.1.3 filter by contact
     
 - 1.2 the 2 clients on different node
-    - 1.2.1 message encrypt
-    - 1.2.2 message decrypt
+    - 1.2.1 message encrypt✅
+    - 1.2.2 message decrypt✅
     - 1.2.3 filter by contact
     
 - 1.3 the 2 clients on the different node and one node is in private network
-  - 1.3.1 message encrypt
-  - 1.3.2 message decrypt
+  - 1.3.1 message encrypt✅
+  - 1.3.2 message decrypt✅
   - 1.3.3 filter by contact
     
 2. unread message
