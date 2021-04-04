@@ -113,10 +113,10 @@ func (s *Service) operateContact(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.LogInst().Debug().Str("From", msg.From).Msg("contact operation")
-	if err = s.contactOperateWorker.BroadCast(msg.Data()); err != nil {
-		w.Write(pbs.ErrAck(err.Error()))
-		return
-	}
+	//if err = s.contactOperateWorker.BroadCast(msg.Data()); err != nil {
+	//	w.Write(pbs.ErrAck(err.Error()))
+	//	return
+	//}
 
 	if err := s.procContactOperation(msg); err != nil {
 		w.Write(pbs.ErrAck(err.Error()))
