@@ -55,6 +55,10 @@ LoadMore:
 	if len(unreadMsg) == 0 {
 		return nil
 	}
+	utils.LogInst().Debug().
+		Int("local unread", len(unreadMsg)).
+		Str("receiver", unread.Receiver).
+		Send()
 
 	result := &pbs.WsMsg{
 		Typ: pbs.WsMsgType_UnreadAck,
@@ -96,12 +100,18 @@ LoadMore:
 		}},
 	}
 
+	utils.LogInst().Debug().
+		Int("Peer unread", len(unreadMsg)).
+		Str("receiver", unread.Receiver).
+		Send()
+
 	if err := ws.unreadP2pQueryWorker.BroadCast(result.Data()); err != nil {
 		return err
 	}
 
 	user, ok := ws.userTable.get(unread.Receiver)
 	if ok {
+		utils.LogInst().Info().Str("receiver", unread.Receiver).Msg("multi online client")
 		if err := user.writeToCli(result); err != nil {
 			return err
 		}
@@ -123,6 +133,12 @@ func (ws *Service) unreadMsgResultFromP2pNetwork(msg *pbs.WsMsg) error {
 	if !ok {
 		return nil
 	}
+
+	utils.LogInst().Debug().
+		Str("receiver", receiver).
+		Int("peers unread ack", len(body.UnreadAck.Payload)).
+		Send()
+
 	return user.writeToCli(msg)
 }
 

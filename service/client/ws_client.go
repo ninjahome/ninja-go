@@ -22,10 +22,15 @@ type WSClient struct {
 	peerKeys map[string][]byte
 }
 
+var (
+	ErrUnknownMsg    = fmt.Errorf("unknown websocket message")
+	ErrNoMsgCallback = fmt.Errorf("no message reciver")
+)
+
 type CliCallBack interface {
-	InputMsg(*pbs.WSCryptoMsg) error
+	ImmediateMessage(*pbs.WSCryptoMsg) error
 	WebSocketClosed()
-	UnreadMsg([]*pbs.WSCryptoMsg) error
+	UnreadMsg(*pbs.WSUnreadAck) error
 }
 
 func NewWSClient(addr string, key *wallet.Key, cb CliCallBack) (*WSClient, error) {
@@ -75,11 +80,7 @@ func (cc *WSClient) PullMsg(startSeq int64) error {
 		Typ:     pbs.WsMsgType_PullUnread,
 		Payload: &pbs.WsMsg_Unread{Unread: request},
 	}
-	data, err := proto.Marshal(msgWrap)
-	if err != nil {
-		return err
-	}
-	return cc.wsConn.WriteMessage(websocket.TextMessage, data)
+	return cc.wsConn.WriteMessage(websocket.TextMessage, msgWrap.Data())
 }
 
 func (cc *WSClient) getAesKey(to string) ([]byte, error) {
@@ -116,6 +117,10 @@ func (cc *WSClient) Write(to string, body []byte) error {
 }
 
 func (cc *WSClient) procMsgFromServer() error {
+	if cc.callback == nil {
+		return ErrNoMsgCallback
+	}
+
 	_, message, err := cc.wsConn.ReadMessage()
 	if err != nil {
 		fmt.Println("read:", err)
@@ -130,22 +135,18 @@ func (cc *WSClient) procMsgFromServer() error {
 	case pbs.WsMsgType_OnlineACK:
 		ack, ok := wsMsg.Payload.(*pbs.WsMsg_OlAck)
 		if !ok {
-			return fmt.Errorf("unknown websocket message:%s", err)
+			return ErrUnknownMsg
 		}
 		if !ack.OlAck.Success {
 			return fmt.Errorf("online failed")
 		}
 		cc.isOnline = true
+		fmt.Println("\r\nonline success\r\n>")
 
 	case pbs.WsMsgType_ImmediateMsg:
-		if cc.callback == nil {
-			fmt.Println("no input message callback")
-			return nil
-		}
-
 		msgWrap, ok := wsMsg.Payload.(*pbs.WsMsg_Message)
 		if !ok {
-			return fmt.Errorf("unknown websocket message:%s", err)
+			return ErrUnknownMsg
 		}
 		msg := msgWrap.Message
 		key, err := cc.getAesKey(msg.From)
@@ -154,8 +155,26 @@ func (cc *WSClient) procMsgFromServer() error {
 		}
 		dst, _ := openssl.AesECBDecrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
 		msg.PayLoad = dst
-		if err := cc.callback.InputMsg(msg); err != nil {
-			return fmt.Errorf("process input message err:%s", err)
+		if err := cc.callback.ImmediateMessage(msg); err != nil {
+			return err
+		}
+
+	case pbs.WsMsgType_UnreadAck:
+		ack, ok := wsMsg.Payload.(*pbs.WsMsg_UnreadAck)
+		if !ok {
+			return ErrUnknownMsg
+		}
+
+		for _, msg := range ack.UnreadAck.Payload {
+			key, err := cc.getAesKey(msg.From)
+			if err != nil {
+				return err
+			}
+			dst, _ := openssl.AesECBDecrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
+			msg.PayLoad = dst
+		}
+		if err := cc.callback.UnreadMsg(ack.UnreadAck); err != nil {
+			return err
 		}
 	}
 	return nil

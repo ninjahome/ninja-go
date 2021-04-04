@@ -155,13 +155,12 @@ func (ws *Service) wsCliMsgDispatch(stop chan struct{}) {
 				}
 			case pbs.WsMsgType_PullUnread:
 
-				if err := ws.unreadP2pQueryWorker.BroadCast(msg.Data()); err != nil {
-					utils.LogInst().Warn().Msgf("broadcast unread message request failed:%s", err)
-					continue
-				}
-
 				if err := ws.findLocalUnread(msg); err != nil {
 					utils.LogInst().Warn().Msgf("dispatch ws message failed:%s", err)
+				}
+
+				if err := ws.unreadP2pQueryWorker.BroadCast(msg.Data()); err != nil {
+					utils.LogInst().Warn().Msgf("broadcast unread message request failed:%s", err)
 				}
 
 			default:

@@ -15,7 +15,7 @@ type MacChatCli struct {
 	contactCli *client.ContactCli
 }
 
-func (w MacChatCli) InputMsg(msg *pbs.WSCryptoMsg) error {
+func (w MacChatCli) ImmediateMessage(msg *pbs.WSCryptoMsg) error {
 	fmt.Printf("\r\n%s\r\n>", string(msg.PayLoad))
 	return nil
 }
@@ -25,10 +25,15 @@ func (w MacChatCli) WebSocketClosed() {
 	os.Exit(0)
 }
 
-func (w MacChatCli) UnreadMsg(msgs []*pbs.WSCryptoMsg) error {
-	for _, msg := range msgs {
+func (w MacChatCli) UnreadMsg(msgs *pbs.WSUnreadAck) error {
+
+	fmt.Println(msgs.NodeID)
+	fmt.Println(msgs.Receiver)
+
+	for _, msg := range msgs.Payload {
 		fmt.Println(msg.String())
 	}
+	fmt.Print("\r\n>")
 	return nil
 }
 
@@ -77,6 +82,9 @@ func (w MacChatCli) contactWindow() {
 func (w MacChatCli) Run() error {
 	if err := w.wsCli.Online(); err != nil {
 		return err
+	}
+	if err := w.wsCli.PullMsg(0); err != nil {
+		panic(err)
 	}
 	go w.writeFromStdio()
 	//go w.contactWindow()

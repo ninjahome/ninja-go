@@ -83,10 +83,17 @@
   - 1.3.3 filter by contact
     
 2. unread message
+   - 2.1 2 clients are always on the same private node
+   - 2.2 2 clients are always on the same public node
+   - 2.3 2 clients are always on the different private node
+   - 2.4 2 clients are always on the different public node
+   - 2.5 one client are always on a private node and the other sometimes on different node
+   - 2.6 one client are always on a public node and the other sometimes on different node
+    
 3. ping pong status✅
-4. connect to localhost node
+4. connect to localhost node✅
 5. connect to the private network node
-6. connect to the public network node
+6. connect to the public network node✅
 
 ##5 contact
 1. add contact
