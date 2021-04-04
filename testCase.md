@@ -97,13 +97,13 @@
 6. connect to the public network node✅
 
 ##5 contact
-1. add contact
-2. update contact
-3. remove contact
-4. sync contact
-5. connect to a private network node
-6. connect to a public network node
-7. connect to localhost node
+1. add contact✅
+2. update contact✅
+3. remove contact✅
+4. sync contact✅
+5. connect to a private network node✅
+6. connect to a public network node✅
+7. connect to localhost node✅
 8. sync contact from other peers
 9. connect to a service without my contact
 
