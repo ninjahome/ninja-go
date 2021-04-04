@@ -55,7 +55,7 @@ LoadMore:
 	if len(unreadMsg) == 0 {
 		return nil
 	}
-	utils.LogInst().Debug().
+	utils.LogInst().Info().
 		Int("local unread", len(unreadMsg)).
 		Str("receiver", unread.Receiver).
 		Send()
@@ -134,7 +134,7 @@ func (ws *Service) unreadMsgResultFromP2pNetwork(msg *pbs.WsMsg) error {
 		return nil
 	}
 
-	utils.LogInst().Debug().
+	utils.LogInst().Info().
 		Str("receiver", receiver).
 		Int("peers unread ack", len(body.UnreadAck.Payload)).
 		Send()

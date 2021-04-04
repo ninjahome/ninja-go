@@ -17,6 +17,7 @@ type MacChatCli struct {
 
 func (w MacChatCli) ImmediateMessage(msg *pbs.WSCryptoMsg) error {
 	fmt.Printf("\r\n%s\r\n>", string(msg.PayLoad))
+	fmt.Printf("\r\n%s\r\n>", msg.From)
 	return nil
 }
 
@@ -27,11 +28,12 @@ func (w MacChatCli) WebSocketClosed() {
 
 func (w MacChatCli) UnreadMsg(msgs *pbs.WSUnreadAck) error {
 
-	fmt.Println(msgs.NodeID)
-	fmt.Println(msgs.Receiver)
+	fmt.Printf("\r\n%s\r\n>", msgs.NodeID)
+	fmt.Printf("\r\n%s\r\n>", msgs.Receiver)
 
 	for _, msg := range msgs.Payload {
-		fmt.Println(msg.String())
+		fmt.Printf("\r\n%s\r\n>", msg.From)
+		fmt.Printf("\r\n%s\r\n>", string(msg.PayLoad))
 	}
 	fmt.Print("\r\n>")
 	return nil

@@ -7,6 +7,7 @@
 2. init config ✅
 3. change config✅
 4. use command line to change config dynamically✅
+
 ##3 P2pNetwork
 1. join a topic
    - 1.1 join success✅
@@ -83,12 +84,12 @@
   - 1.3.3 filter by contact
     
 2. unread message
-   - 2.1 2 clients are always on the same private node
-   - 2.2 2 clients are always on the same public node
-   - 2.3 2 clients are always on the different private node
-   - 2.4 2 clients are always on the different public node
-   - 2.5 one client are always on a private node and the other sometimes on different node
-   - 2.6 one client are always on a public node and the other sometimes on different node
+   - 2.1 2 clients are always on the same private node✅
+   - 2.2 2 clients are always on the same public node✅
+   - 2.3 2 clients are always on the different private node✅
+   - 2.4 2 clients are always on the different public node✅
+   - 2.5 one client are always on a private node and the other sometimes on different node✅
+   - 2.6 one client are always on a public node and the other sometimes on different node✅
     
 3. ping pong status✅
 4. connect to localhost node✅
@@ -132,3 +133,6 @@ ninja.mac debug ws -l
 
 ##7 refactor all proto message
 ##8 remove all warnings and typos
+##9 refactor client test case without code change
+##10 3 or more client message test
+    10.1

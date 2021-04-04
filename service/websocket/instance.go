@@ -154,7 +154,6 @@ func (ws *Service) wsCliMsgDispatch(stop chan struct{}) {
 					utils.LogInst().Warn().Msgf("dispatch ws message failed:%s", err)
 				}
 			case pbs.WsMsgType_PullUnread:
-
 				if err := ws.findLocalUnread(msg); err != nil {
 					utils.LogInst().Warn().Msgf("dispatch ws message failed:%s", err)
 				}
