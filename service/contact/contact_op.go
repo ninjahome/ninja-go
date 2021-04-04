@@ -25,25 +25,26 @@ func (s *Service) operation(from string, op BookOpFunc) error {
 	key := []byte(fmt.Sprintf(DBPatternHead, from))
 	data, err := s.dataBase.Get(key, nil)
 	if err != nil && err != leveldb.ErrNotFound {
+		utils.LogInst().Warn().Str("Load book db", err.Error()).Send()
 		return err
 	}
-	utils.LogInst().Error().Str("4", "4").Int("book len", len(data)).Send()
+
 	book := make(Book)
 	if len(data) > 0 {
 		if err := json.Unmarshal(data, &book); err != nil {
-			utils.LogInst().Error().Str("1", "1").Send()
+			utils.LogInst().Warn().Str("unmarshal book err", err.Error()).Send()
 			return err
 		}
 	}
 
 	if err := op(&book); err != nil {
-		utils.LogInst().Error().Str("2", "2").Send()
+		utils.LogInst().Warn().Str("operate book err", err.Error()).Send()
 		return err
 	}
 
 	newData, err := json.Marshal(book)
 	if err != nil {
-		utils.LogInst().Error().Str("3", "3").Send()
+		utils.LogInst().Warn().Str("Marshal book err", err.Error()).Send()
 		return err
 	}
 	return s.dataBase.Put(key, newData, nil)
