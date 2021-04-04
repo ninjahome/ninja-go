@@ -7,6 +7,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 	"io"
 	"os"
+	"strconv"
 )
 
 type MacChatCli struct {
@@ -39,7 +40,9 @@ func (w MacChatCli) UnreadMsg(msgs *pbs.WSUnreadAck) error {
 	return nil
 }
 
-func (w MacChatCli) writeFromStdio(term *terminal.Terminal) {
+func (w MacChatCli) writeFromStdio(term *terminal.Terminal, state *terminal.State) {
+	defer terminal.Restore(0, state)
+
 	if err := w.wsCli.Online(); err != nil {
 		panic(err)
 	}
@@ -60,14 +63,18 @@ func (w MacChatCli) writeFromStdio(term *terminal.Terminal) {
 		}
 	}
 }
-func (w MacChatCli) contactWindow(_ *terminal.Terminal) {
+func (w MacChatCli) contactWindow(term *terminal.Terminal, state *terminal.State) {
+	defer terminal.Restore(0, state)
+
 	for {
-		var no = 0
-		_, err := fmt.Scan(&no)
+		cmd, err := term.ReadLine()
 		if err != nil {
 			panic(err)
 		}
-
+		no, err := strconv.Atoi(cmd)
+		if err != nil {
+			continue
+		}
 		switch no {
 		case 1:
 			contacts, err := w.contactCli.SyncContact()
@@ -82,34 +89,26 @@ func (w MacChatCli) contactWindow(_ *terminal.Terminal) {
 			}
 
 		case 2:
-			var (
-				cid      string
-				nickName string
-			)
-			_, err1 := fmt.Scan(&cid)
-			if err1 != nil {
-				panic(err1)
+			cid, err := term.ReadLine()
+			if err != nil {
+				panic(err)
 			}
-			_, err2 := fmt.Scan(&nickName)
-			if err2 != nil {
-				panic(err2)
+			nickName, err := term.ReadLine()
+			if err != nil {
+				panic(err)
 			}
 
 			if err := w.contactCli.AddContact(cid, nickName, ""); err != nil {
 				panic(err)
 			}
 		case 3:
-			var (
-				cid      string
-				nickName string
-			)
-			_, err1 := fmt.Scan(&cid)
-			if err1 != nil {
-				panic(err1)
+			cid, err := term.ReadLine()
+			if err != nil {
+				panic(err)
 			}
-			_, err2 := fmt.Scan(&nickName)
-			if err2 != nil {
-				panic(err2)
+			nickName, err := term.ReadLine()
+			if err != nil {
+				panic(err)
 			}
 
 			if err := w.contactCli.UpdateContact(cid, nickName, ""); err != nil {
@@ -117,10 +116,9 @@ func (w MacChatCli) contactWindow(_ *terminal.Terminal) {
 			}
 
 		case 4:
-			var cid string
-			_, err1 := fmt.Scan(&cid)
-			if err1 != nil {
-				panic(err1)
+			cid, err := term.ReadLine()
+			if err != nil {
+				panic(err)
 			}
 			if err := w.contactCli.DelContact(cid); err != nil {
 				panic(err)
@@ -137,14 +135,13 @@ func (w MacChatCli) Run() error {
 	if err != nil {
 		return err
 	}
-	defer terminal.Restore(0, oldState)
 	screen := struct {
 		io.Reader
 		io.Writer
 	}{os.Stdin, os.Stdout}
 	term := terminal.NewTerminal(screen, ">")
 
-	//go w.writeFromStdio(term)
-	go w.contactWindow(term)
+	//go w.writeFromStdio(term, oldState)
+	go w.contactWindow(term, oldState)
 	return nil
 }
