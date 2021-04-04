@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DefaultSrvPort      = 6667
+	DefaultSrvPort      = 8088
 	DefaultDataBaseDir  = "contact"
 	DefaultHost         = "0.0.0.0"
 	DefaultReadTimeout  = 30 * time.Second
@@ -32,7 +32,7 @@ func (c Config) String() string {
 	s += fmt.Sprintf("\nhttp read timeout:\t%s", c.ReadTimeout)
 	s += fmt.Sprintf("\nhttp writ timeout:\t%s", c.WriteTimeout)
 	s += fmt.Sprintf("\nhttp idle timeout:\t%s", c.IdleTimeout)
-	s += fmt.Sprintf("\ncontact service ip:\t\t%s", c.SrvIP)
+	s += fmt.Sprintf("\ncontact service ip:\t%s", c.SrvIP)
 	s += fmt.Sprintf("\nmessage database dir:\t%s", c.DataBaseDir)
 	s += fmt.Sprintf("\ncontact service port:\t%d", c.SrvPort)
 	s += fmt.Sprintf("\n-------------------------------------------------------\n")

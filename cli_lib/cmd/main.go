@@ -87,7 +87,7 @@ func main() {
 	}
 	ss.wsCli = ws
 
-	c, err := client.NewContactCli("http://127.0.0.1:6667", key) //202.182.101.145//198.13.44.159
+	c, err := client.NewContactCli("http://167.179.78.33:8088", key) //202.182.101.145//198.13.44.159
 	if err != nil {
 		panic(err)
 	}
