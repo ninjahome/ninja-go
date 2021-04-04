@@ -39,17 +39,14 @@ func (w MacChatCli) UnreadMsg(msgs *pbs.WSUnreadAck) error {
 	return nil
 }
 
-func (w MacChatCli) writeFromStdio() {
-	oldState, err := terminal.MakeRaw(0)
-	if err != nil {
-		return
+func (w MacChatCli) writeFromStdio(term *terminal.Terminal) {
+	if err := w.wsCli.Online(); err != nil {
+		panic(err)
 	}
-	defer terminal.Restore(0, oldState)
-	screen := struct {
-		io.Reader
-		io.Writer
-	}{os.Stdin, os.Stdout}
-	term := terminal.NewTerminal(screen, ">")
+	if err := w.wsCli.PullMsg(0); err != nil {
+		panic(err)
+	}
+
 	for {
 		msg, err := term.ReadLine()
 		if err != nil {
@@ -63,32 +60,91 @@ func (w MacChatCli) writeFromStdio() {
 		}
 	}
 }
-func (w MacChatCli) contactWindow() {
-	term := terminal.NewTerminal(os.Stdin, "*")
+func (w MacChatCli) contactWindow(_ *terminal.Terminal) {
 	for {
-		cmd, err := term.ReadLine()
+		var no = 0
+		_, err := fmt.Scan(&no)
 		if err != nil {
 			panic(err)
 		}
 
-		switch cmd {
-		case "sync":
-			contacts := w.contactCli.SyncContact()
+		switch no {
+		case 1:
+			contacts, err := w.contactCli.SyncContact()
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			fmt.Println("contact query result:", len(contacts))
 			for _, c := range contacts {
 				fmt.Println(c.String())
 			}
+
+		case 2:
+			var (
+				cid      string
+				nickName string
+			)
+			_, err1 := fmt.Scan(&cid)
+			if err1 != nil {
+				panic(err1)
+			}
+			_, err2 := fmt.Scan(&nickName)
+			if err2 != nil {
+				panic(err2)
+			}
+
+			if err := w.contactCli.AddContact(cid, nickName, ""); err != nil {
+				panic(err)
+			}
+		case 3:
+			var (
+				cid      string
+				nickName string
+			)
+			_, err1 := fmt.Scan(&cid)
+			if err1 != nil {
+				panic(err1)
+			}
+			_, err2 := fmt.Scan(&nickName)
+			if err2 != nil {
+				panic(err2)
+			}
+
+			if err := w.contactCli.UpdateContact(cid, nickName, ""); err != nil {
+				panic(err)
+			}
+
+		case 4:
+			var cid string
+			_, err1 := fmt.Scan(&cid)
+			if err1 != nil {
+				panic(err1)
+			}
+			if err := w.contactCli.DelContact(cid); err != nil {
+				panic(err)
+			}
+		default:
+			fmt.Println("unknown command")
 		}
 	}
 }
 
 func (w MacChatCli) Run() error {
-	if err := w.wsCli.Online(); err != nil {
+
+	oldState, err := terminal.MakeRaw(0)
+	if err != nil {
 		return err
 	}
-	if err := w.wsCli.PullMsg(0); err != nil {
-		panic(err)
-	}
-	go w.writeFromStdio()
-	//go w.contactWindow()
+	defer terminal.Restore(0, oldState)
+	screen := struct {
+		io.Reader
+		io.Writer
+	}{os.Stdin, os.Stdout}
+	term := terminal.NewTerminal(screen, ">")
+
+	//go w.writeFromStdio(term)
+	go w.contactWindow(term)
 	return nil
 }

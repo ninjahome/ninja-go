@@ -158,3 +158,21 @@ func TestHexStrToPriKey(t *testing.T) {
 		t.Log(key.GetHexString())
 	}
 }
+
+func TestSignAndVerify(t *testing.T) {
+	key := NewKey()
+	data := key.Address.String()
+	sig := key.SignData([]byte(data))
+	singer := &bls.Sign{}
+	if err := singer.Deserialize(sig); err != nil {
+		t.Fatal(err)
+	}
+	pub, err := common.AddrToPub(&key.Address)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !VerifyByte(singer, pub, []byte(data)) {
+		t.Fatal("test failed")
+	}
+}

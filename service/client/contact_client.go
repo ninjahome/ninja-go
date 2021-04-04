@@ -34,7 +34,7 @@ func (cc *ContactCli) sendRequest(msg *pbs.ContactMsg, path string) (ackMsg *pbs
 	}
 
 	r := bytes.NewReader(reqData)
-	request, err := http.NewRequest("GET", cc.endpoint+"/"+path, r)
+	request, err := http.NewRequest("GET", cc.endpoint+path, r)
 	if err != nil {
 		return
 	}
@@ -48,10 +48,12 @@ func (cc *ContactCli) sendRequest(msg *pbs.ContactMsg, path string) (ackMsg *pbs
 	if err != nil {
 		return
 	}
-
+	ackMsg = &pbs.ContactMsg{}
 	if err = proto.Unmarshal(body, ackMsg); err != nil {
 		return
 	}
+	fmt.Println(ackMsg.String())
+
 	return ackMsg, nil
 }
 
@@ -66,7 +68,7 @@ func (cc *ContactCli) makeOpRequest(msg *pbs.ContactMsg) error {
 		return fmt.Errorf("invalid operation ack message")
 	}
 
-	if ack.OpAck.Success {
+	if !ack.OpAck.Success {
 		return fmt.Errorf(ack.OpAck.Msg)
 	}
 
@@ -105,21 +107,26 @@ func (cc *ContactCli) DelContact(cid string) error {
 	return cc.makeOpRequest(request)
 }
 
-func (cc *ContactCli) SyncContact() []*pbs.ContactItem {
-	sig := cc.key.SignData(cc.key.Address[:])
+func (cc *ContactCli) SyncContact() ([]*pbs.ContactItem, error) {
+	//TODO:: only self can query contact
+	from := cc.key.Address.String()
+	sig := cc.key.SignData([]byte(from))
 	request := &pbs.ContactMsg{
 		Sig:     sig,
-		From:    cc.key.Address.String(),
-		PayLoad: &pbs.ContactMsg_Query{Query: cc.key.Address.String()},
+		From:    from,
+		PayLoad: &pbs.ContactMsg_Query{Query: from},
 	}
-	ackMsg, err := cc.sendRequest(request, contact.PathOperateContact)
+	ackMsg, err := cc.sendRequest(request, contact.PathQueryContact)
 	if err != nil {
-		return nil
+		fmt.Println(err)
+		return nil, err
+	}
+	if ackMsg.Typ == pbs.ContactMsgType_MTAck {
+		ack, _ := ackMsg.PayLoad.(*pbs.ContactMsg_OpAck)
+		return nil, fmt.Errorf(ack.OpAck.Msg)
 	}
 
-	ack, ok := ackMsg.PayLoad.(*pbs.ContactMsg_QueryResult)
-	if !ok {
-		return nil
-	}
-	return ack.QueryResult.Contacts
+	ack, _ := ackMsg.PayLoad.(*pbs.ContactMsg_QueryResult)
+
+	return ack.QueryResult.Contacts, nil
 }

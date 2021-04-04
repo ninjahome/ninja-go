@@ -141,8 +141,6 @@ func (cc *WSClient) procMsgFromServer() error {
 			return fmt.Errorf("online failed")
 		}
 		cc.isOnline = true
-		fmt.Println("\r\nonline success\r\n>")
-
 	case pbs.WsMsgType_ImmediateMsg:
 		msgWrap, ok := wsMsg.Payload.(*pbs.WsMsg_Message)
 		if !ok {

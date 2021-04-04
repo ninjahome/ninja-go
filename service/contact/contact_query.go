@@ -9,6 +9,7 @@ import (
 	pbs "github.com/ninjahome/ninja-go/pbs/contact"
 	pbsS "github.com/ninjahome/ninja-go/pbs/stream"
 	"github.com/ninjahome/ninja-go/utils"
+	"github.com/syndtr/goleveldb/leveldb"
 	"google.golang.org/protobuf/proto"
 	"io"
 	"net/http"
@@ -21,6 +22,9 @@ func (s *Service) loadFromDb(from string) (Book, error) {
 	key := []byte(fmt.Sprintf(DBPatternHead, from))
 	data, err := s.dataBase.Get(key, nil)
 	if err != nil {
+		if err == leveldb.ErrNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -43,6 +47,10 @@ func (s *Service) queryContact(w http.ResponseWriter, r *http.Request) {
 
 	if err = proto.Unmarshal(data, msg); err != nil {
 		w.Write(pbs.ErrAck(err.Error()))
+		return
+	}
+	if !msg.Verify([]byte(msg.From)) {
+		w.Write(pbs.ErrAck("invalid auth"))
 		return
 	}
 
@@ -70,7 +78,7 @@ func (s *Service) queryContact(w http.ResponseWriter, r *http.Request) {
 		Typ:     pbs.ContactMsgType_MTContactList,
 		PayLoad: &pbs.ContactMsg_QueryResult{QueryResult: &pbs.ContactList{Contacts: contactArr}},
 	}
-
+	utils.LogInst().Debug().Str("Contact Query:", query.Query).Int("size", len(contactArr)).Send()
 	w.Write(result.Data())
 }
 

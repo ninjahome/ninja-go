@@ -112,7 +112,7 @@ func (s *Service) operateContact(w http.ResponseWriter, r *http.Request) {
 		w.Write(pbs.ErrAck(err.Error()))
 		return
 	}
-
+	utils.LogInst().Debug().Str("From", msg.From).Msg("contact operation")
 	if err = s.contactOperateWorker.BroadCast(msg.Data()); err != nil {
 		w.Write(pbs.ErrAck(err.Error()))
 		return

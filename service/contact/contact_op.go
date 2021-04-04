@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	pbs "github.com/ninjahome/ninja-go/pbs/contact"
+	"github.com/ninjahome/ninja-go/utils"
+	"github.com/syndtr/goleveldb/leveldb"
 	"time"
 )
 
@@ -22,20 +24,26 @@ func (s *Service) operation(from string, op BookOpFunc) error {
 
 	key := []byte(fmt.Sprintf(DBPatternHead, from))
 	data, err := s.dataBase.Get(key, nil)
-	if err != nil {
+	if err != nil && err != leveldb.ErrNotFound {
 		return err
+	}
+	utils.LogInst().Error().Str("4", "4").Int("book len", len(data)).Send()
+	book := make(Book)
+	if len(data) > 0 {
+		if err := json.Unmarshal(data, &book); err != nil {
+			utils.LogInst().Error().Str("1", "1").Send()
+			return err
+		}
 	}
 
-	book := make(Book)
-	if err := json.Unmarshal(data, &book); err != nil {
-		return err
-	}
 	if err := op(&book); err != nil {
+		utils.LogInst().Error().Str("2", "2").Send()
 		return err
 	}
 
 	newData, err := json.Marshal(book)
 	if err != nil {
+		utils.LogInst().Error().Str("3", "3").Send()
 		return err
 	}
 	return s.dataBase.Put(key, newData, nil)
@@ -51,6 +59,10 @@ func (s *Service) saveContact(msg *pbs.ContactMsg) error {
 	if !msg.Verify(item.Data()) {
 		return ErVerifyFailed
 	}
+	utils.LogInst().Debug().
+		Str("From", msg.From).
+		Str("add contact cid", item.String()).
+		Send()
 
 	return s.operation(msg.From, func(book *Book) error {
 		(*book)[item.CID] = &BookItem{
@@ -73,7 +85,7 @@ func (s *Service) delContact(msg *pbs.ContactMsg) error {
 	if !msg.Verify([]byte(cid)) {
 		return ErVerifyFailed
 	}
-
+	utils.LogInst().Debug().Str("From", msg.From).Str("remove contact cid", cid).Send()
 	return s.operation(msg.From, func(book *Book) error {
 		delete(*book, cid)
 		return nil

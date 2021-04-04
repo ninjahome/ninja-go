@@ -18,9 +18,9 @@ var (
 
 func (a *Address) SetBytes(b []byte) {
 	if len(b) > len(a) {
-		b = b[len(b)-AddressLength:]
+		panic("not same length")
 	}
-	copy(a[AddressLength-len(b):], b)
+	copy(a[:], b)
 }
 
 //
@@ -95,9 +95,10 @@ func PubKeyToAddr(p *bls.PublicKey) Address {
 
 func AddrToPub(a *Address) (*bls.PublicKey, error) {
 	pub := &bls.PublicKey{}
-	if err := pub.Deserialize(a[:]); err != nil {
+	b := make([]byte, len(a))
+	copy(b, a[:])
+	if err := pub.Deserialize(b); err != nil {
 		return nil, err
 	}
-
 	return pub, nil
 }
