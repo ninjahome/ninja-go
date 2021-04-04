@@ -86,6 +86,7 @@ func (cc *ContactCli) AddContact(cid, nickName, remarks string) error {
 	sig := cc.key.SignData(item.Data())
 	request := &pbs.ContactMsg{
 		Sig:     sig,
+		Typ:     pbs.ContactMsgType_MTAddContact,
 		From:    cc.key.Address.String(),
 		PayLoad: &pbs.ContactMsg_AddOrUpdate{AddOrUpdate: item},
 	}
@@ -101,6 +102,7 @@ func (cc *ContactCli) DelContact(cid string) error {
 	sig := cc.key.SignData([]byte(cid))
 	request := &pbs.ContactMsg{
 		Sig:     sig,
+		Typ:     pbs.ContactMsgType_MTDeleteContact,
 		From:    cc.key.Address.String(),
 		PayLoad: &pbs.ContactMsg_DelC{DelC: cid},
 	}
