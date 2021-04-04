@@ -66,7 +66,7 @@ func (u *wsUser) reading(_ chan struct{}) {
 }
 
 func (u *wsUser) writing(stop chan struct{}) {
-	utils.LogInst().Debug().Str("WS writing thread start!", u.UID).Send()
+	utils.LogInst().Debug().Str("WS writing thread start", u.UID).Send()
 	defer utils.LogInst().Debug().Str("WS writer thread exit", u.UID).Send()
 
 	defer u.offLine()
@@ -236,7 +236,7 @@ func (ws *Service) offlineFromOtherPeer(msg *pbs.WsMsg) error {
 	//TODO:: verify peer's authorization
 	ws.onlineSet.del(body.Online.UID)
 	ws.userTable.del(body.Online.UID)
-	utils.LogInst().Debug().Str("online", body.Online.UID).Send()
+	utils.LogInst().Debug().Str("offline", body.Online.UID).Send()
 	return nil
 }
 

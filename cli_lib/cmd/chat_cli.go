@@ -16,7 +16,7 @@ type MacChatCli struct {
 }
 
 func (w MacChatCli) InputMsg(msg *pbs.WSCryptoMsg) error {
-	fmt.Println(string(msg.PayLoad))
+	fmt.Printf("\r\n%s", string(msg.PayLoad))
 	return nil
 }
 
