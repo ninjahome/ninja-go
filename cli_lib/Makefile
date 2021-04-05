@@ -8,7 +8,7 @@ all: mac and ios test
 #	cd pbs/ && $(MAKE)
 #
 
-tp:=./
+tp:=./bin
 
 test:
 	go build  -ldflags '-w -s' -o $(BINDIR)/ctest mac/*.go
