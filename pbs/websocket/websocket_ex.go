@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/forgoer/openssl"
 	"github.com/gorilla/websocket"
-	"github.com/herumi/bls-eth-go-binary/bls"
+	"github.com/ninjahome/bls-wallet/bls"
 	"github.com/ninjahome/ninja-go/wallet"
 	"google.golang.org/protobuf/proto"
 	"time"

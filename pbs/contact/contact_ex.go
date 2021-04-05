@@ -2,7 +2,7 @@ package contact
 
 import (
 	"fmt"
-	"github.com/herumi/bls-eth-go-binary/bls"
+	"github.com/ninjahome/bls-wallet/bls"
 	"github.com/ninjahome/ninja-go/wallet"
 	"google.golang.org/protobuf/proto"
 )

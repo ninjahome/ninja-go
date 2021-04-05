@@ -3,7 +3,7 @@ package wallet
 import (
 	"crypto/ed25519"
 	"fmt"
-	"github.com/herumi/bls-eth-go-binary/bls"
+	"github.com/ninjahome/bls-wallet/bls"
 	"github.com/ninjahome/ninja-go/common"
 	"testing"
 )

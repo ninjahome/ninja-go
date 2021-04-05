@@ -2,7 +2,7 @@ package common
 
 import (
 	"encoding/hex"
-	"github.com/herumi/bls-eth-go-binary/bls"
+	"github.com/ninjahome/bls-wallet/bls"
 )
 
 const (

@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"github.com/herumi/bls-eth-go-binary/bls"
+	"github.com/ninjahome/bls-wallet/bls"
 	"github.com/rs/zerolog"
 	"io/ioutil"
 	"net"

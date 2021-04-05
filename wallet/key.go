@@ -2,8 +2,8 @@ package wallet
 
 import (
 	"crypto/ed25519"
-	"github.com/herumi/bls-eth-go-binary/bls"
 	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/ninjahome/bls-wallet/bls"
 	"github.com/ninjahome/ninja-go/common"
 	"github.com/pborman/uuid"
 )

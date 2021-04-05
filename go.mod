@@ -5,7 +5,6 @@ go 1.16
 require (
 	github.com/forgoer/openssl v0.0.0-20201023062029-c3112b0c8700
 	github.com/gorilla/websocket v1.4.2
-	github.com/herumi/bls-eth-go-binary v0.0.0-20210325004959-a24496ac0743
 	github.com/ipfs/go-ds-badger v0.2.6
 	github.com/ipfs/go-log/v2 v2.1.3
 	github.com/libp2p/go-libp2p v0.13.0
@@ -15,6 +14,7 @@ require (
 	github.com/libp2p/go-libp2p-kad-dht v0.11.1
 	github.com/libp2p/go-libp2p-pubsub v0.4.1
 	github.com/multiformats/go-multiaddr v0.3.1
+	github.com/ninjahome/bls-wallet v0.0.0-20210405114940-237a34199ae3
 	github.com/pborman/uuid v1.2.1
 	github.com/rs/zerolog v1.21.0
 	github.com/spf13/cobra v1.1.3
