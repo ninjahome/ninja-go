@@ -14,7 +14,7 @@ require (
 	github.com/libp2p/go-libp2p-kad-dht v0.11.1
 	github.com/libp2p/go-libp2p-pubsub v0.4.1
 	github.com/multiformats/go-multiaddr v0.3.1
-	github.com/ninjahome/bls-wallet v0.0.0-20210405114940-237a34199ae3
+	github.com/ninjahome/bls-wallet v1.3.4
 	github.com/pborman/uuid v1.2.1
 	github.com/rs/zerolog v1.21.0
 	github.com/spf13/cobra v1.1.3
