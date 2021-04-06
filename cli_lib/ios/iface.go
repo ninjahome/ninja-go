@@ -26,9 +26,9 @@ type IosApp struct {
 var _inst = &IosApp{}
 
 type AppCallBack interface {
-	//ImmediateMessage(from, to string, payload []byte, time int64) error
-	//WebSocketClosed()
-	//UnreadMsg(jsonData []string) error
+	ImmediateMessage(from, to string, payload []byte, time int64) error
+	WebSocketClosed()
+	UnreadMsg(jsonData []byte) error
 }
 
 func InitApp(cipherTxt, auth string, callback AppCallBack) error {
