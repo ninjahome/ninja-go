@@ -70,7 +70,7 @@ func InitApp(cipherTxt, auth, addr string, callback AppCallBack) error {
 	_inst.key = key
 	_inst.cb = callback
 	_inst.websocket = ws
-	return nil
+	return _inst.websocket.Online()
 }
 
 func WalletIsOpen() bool {
@@ -91,6 +91,14 @@ func WSOnline() error {
 	}
 
 	return _inst.websocket.Online()
+}
+func WSOffline() {
+	if _inst.websocket == nil {
+		fmt.Println("nil, no need to offline")
+		return
+	}
+
+	_inst.websocket.ShutDown()
 }
 
 func WriteMessage(to string, payload []byte) error {

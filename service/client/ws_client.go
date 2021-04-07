@@ -36,6 +36,7 @@ type WSClient struct {
 
 func RandomBootNode() string {
 	idx := rand.Intn(len(DefaultBootWsService))
+	fmt.Println("======>", idx)
 	return DefaultBootWsService[idx]
 }
 
@@ -75,6 +76,7 @@ func (cc *WSClient) Online() error {
 	}
 	cc.wsConn = wsConn
 	wsConn.SetPingHandler(func(appData string) error {
+		fmt.Println("ping pong time......")
 		return wsConn.WriteMessage(websocket.PongMessage, []byte{})
 	})
 	cc.reader.Run()
@@ -207,12 +209,12 @@ func (cc *WSClient) reading(stop chan struct{}) {
 }
 
 func (cc *WSClient) ShutDown() {
-	if cc.reader != nil {
+	if !cc.IsOnline {
 		return
 	}
 	cc.callback.WebSocketClosed()
 	cc.reader.Stop()
 	cc.wsConn.Close()
 	cc.IsOnline = false
-	cc.reader = nil
+	fmt.Println("websocket client shutdown......")
 }
