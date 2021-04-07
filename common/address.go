@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/hex"
+	"fmt"
 	"github.com/ninjahome/bls-wallet/bls"
 )
 
@@ -16,11 +17,12 @@ var (
 	InvalidAddr Address
 )
 
-func (a *Address) SetBytes(b []byte) {
-	if len(b) > len(a) {
-		panic("not same length")
+func (a *Address) SetBytes(b []byte) error {
+	if len(b) != len(a) {
+		return fmt.Errorf("invalid byte for address")
 	}
 	copy(a[:], b)
+	return nil
 }
 
 //
@@ -57,7 +59,7 @@ func HexToAddress(s string) (addr Address, err error) {
 	if err != nil {
 		return
 	}
-	addr.SetBytes(bts)
+	err = addr.SetBytes(bts)
 	return
 }
 
@@ -66,8 +68,7 @@ func (a *Address) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	a.SetBytes(bts)
-	return nil
+	return a.SetBytes(bts)
 }
 
 func (a *Address) MarshalText() ([]byte, error) {
@@ -82,15 +83,10 @@ func (a *Address) String() string {
 	return a.Hex()
 }
 
-func BytesToAddress(b []byte) Address {
-	var a Address
-	a.SetBytes(b)
-	return a
-}
-
-func PubKeyToAddr(p *bls.PublicKey) Address {
+func PubKeyToAddr(p *bls.PublicKey) (addr Address, err error) {
 	pubBytes := p.Serialize()
-	return BytesToAddress(pubBytes)
+	err = addr.SetBytes(pubBytes)
+	return
 }
 
 func AddrToPub(a *Address) (*bls.PublicKey, error) {

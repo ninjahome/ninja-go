@@ -3,6 +3,7 @@ package iosLib
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ninjahome/ninja-go/common"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/service/client"
 	"github.com/ninjahome/ninja-go/wallet"
@@ -112,4 +113,12 @@ func WriteMessage(to string, payload []byte) error {
 	}
 
 	return _inst.websocket.Write(to, payload)
+}
+
+func IsValidNinjaAddr(addr string) bool {
+	_, err := common.HexToAddress(addr)
+	if err != nil {
+		return false
+	}
+	return true
 }

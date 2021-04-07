@@ -54,10 +54,11 @@ func NewKey() *Key {
 func NewLightKey(light bool) *Key {
 	sec := GeneratePriKey()
 	id := uuid.NewRandom()
+	addr, _ := common.PubKeyToAddr(sec.GetPublicKey())
 	key := &Key{
 		Light:      light,
 		ID:         id,
-		Address:    common.PubKeyToAddr(sec.GetPublicKey()),
+		Address:    addr,
 		privateKey: sec,
 	}
 	return key

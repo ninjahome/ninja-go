@@ -242,9 +242,13 @@ func DecryptKey(keyJson []byte, auth string) (*Key, error) {
 		return nil, err
 	}
 	pub := sec.GetPublicKey()
+	addr, err := common.PubKeyToAddr(pub)
+	if err != nil {
+		return nil, err
+	}
 	return &Key{
 		ID:         keyID,
-		Address:    common.PubKeyToAddr(pub),
+		Address:    addr,
 		privateKey: &sec,
 	}, nil
 }
