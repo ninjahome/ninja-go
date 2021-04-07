@@ -9,11 +9,23 @@ import (
 	"github.com/ninjahome/ninja-go/utils/thread"
 	"github.com/ninjahome/ninja-go/wallet"
 	"google.golang.org/protobuf/proto"
+	"math/rand"
 	"net/url"
 )
 
+var (
+	DefaultBootWsService = []string{
+		"202.182.101.145:6666",
+		"167.179.78.33:6666",
+		"198.13.44.159:6666",
+	}
+
+	ErrUnknownMsg    = fmt.Errorf("unknown websocket message")
+	ErrNoMsgCallback = fmt.Errorf("no message reciver")
+)
+
 type WSClient struct {
-	isOnline bool
+	IsOnline bool
 	endpoint string
 	wsConn   *websocket.Conn
 	key      *wallet.Key
@@ -22,10 +34,10 @@ type WSClient struct {
 	peerKeys map[string][]byte
 }
 
-var (
-	ErrUnknownMsg    = fmt.Errorf("unknown websocket message")
-	ErrNoMsgCallback = fmt.Errorf("no message reciver")
-)
+func RandomBootNode() string {
+	idx := rand.Intn(len(DefaultBootWsService))
+	return DefaultBootWsService[idx]
+}
 
 type CliCallBack interface {
 	ImmediateMessage(*pbs.WSCryptoMsg) error
@@ -41,7 +53,7 @@ func NewWSClient(addr string, key *wallet.Key, cb CliCallBack) (*WSClient, error
 	cc := &WSClient{
 		endpoint: addr,
 		key:      key,
-		isOnline: false,
+		IsOnline: false,
 		peerKeys: make(map[string][]byte),
 		callback: cb,
 	}
@@ -63,7 +75,6 @@ func (cc *WSClient) Online() error {
 	}
 	cc.wsConn = wsConn
 	wsConn.SetPingHandler(func(appData string) error {
-		//fmt.Println("ping pong time......")
 		return wsConn.WriteMessage(websocket.PongMessage, []byte{})
 	})
 	cc.reader.Run()
@@ -98,7 +109,7 @@ func (cc *WSClient) getAesKey(to string) ([]byte, error) {
 }
 
 func (cc *WSClient) Write(to string, body []byte) error {
-	if !cc.isOnline {
+	if !cc.IsOnline {
 		return fmt.Errorf("please online yourself first")
 	}
 	key, err := cc.getAesKey(to)
@@ -140,7 +151,7 @@ func (cc *WSClient) procMsgFromServer() error {
 		if !ack.OlAck.Success {
 			return fmt.Errorf("online failed")
 		}
-		cc.isOnline = true
+		cc.IsOnline = true
 	case pbs.WsMsgType_ImmediateMsg:
 		msgWrap, ok := wsMsg.Payload.(*pbs.WsMsg_Message)
 		if !ok {
@@ -202,6 +213,6 @@ func (cc *WSClient) ShutDown() {
 	cc.callback.WebSocketClosed()
 	cc.reader.Stop()
 	cc.wsConn.Close()
-	cc.isOnline = false
+	cc.IsOnline = false
 	cc.reader = nil
 }
