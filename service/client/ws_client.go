@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"math/rand"
 	"net/url"
+	"time"
 )
 
 var (
@@ -35,8 +36,8 @@ type WSClient struct {
 }
 
 func RandomBootNode() string {
+	rand.Seed(time.Now().UnixNano())
 	idx := rand.Intn(len(DefaultBootWsService))
-	fmt.Println("======>", idx)
 	return DefaultBootWsService[idx]
 }
 
