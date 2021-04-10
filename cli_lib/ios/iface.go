@@ -26,6 +26,7 @@ func ActiveAddress() string {
 type IosApp struct {
 	key       *wallet.Key
 	cb        AppCallBack
+	wsEnd     string
 	websocket *client.WSClient
 }
 
@@ -54,24 +55,30 @@ type AppCallBack interface {
 	UnreadMsg(jsonData []byte) error
 }
 
-func InitApp(cipherTxt, auth, addr string, callback AppCallBack) error {
-	key, err := wallet.LoadKeyFromJsonStr(cipherTxt, auth)
-	if err != nil {
-		return err
-	}
+func ConfigApp(addr string, callback AppCallBack) {
+
 	if addr == "" {
 		addr = client.RandomBootNode()
 	}
 	fmt.Println("======>", addr)
-	ws, err := client.NewWSClient(addr, key, _inst) //202.182.101.145//167.179.78.33//127.0.0.1//
+	_inst.wsEnd = addr
+	_inst.cb = callback
+}
+
+func ActiveWallet(cipherTxt, auth string) error {
+	fmt.Println("debug infos:", cipherTxt, auth)
+	key, err := wallet.LoadKeyFromJsonStr(cipherTxt, auth)
 	if err != nil {
 		return err
 	}
-
 	_inst.key = key
-	_inst.cb = callback
+	ws, err := client.NewWSClient(_inst.wsEnd, key, _inst) //202.182.101.145//167.179.78.33//127.0.0.1//
+	if err != nil {
+		return err
+	}
 	_inst.websocket = ws
-	return _inst.websocket.Online()
+
+	return ws.Online()
 }
 
 func WalletIsOpen() bool {
@@ -93,6 +100,7 @@ func WSOnline() error {
 
 	return _inst.websocket.Online()
 }
+
 func WSOffline() {
 	if _inst.websocket == nil {
 		fmt.Println("nil, no need to offline")
