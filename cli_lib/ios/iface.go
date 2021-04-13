@@ -66,7 +66,6 @@ func ConfigApp(addr string, callback AppCallBack) {
 }
 
 func ActiveWallet(cipherTxt, auth string) error {
-	fmt.Println("debug infos:", cipherTxt, auth)
 	key, err := wallet.LoadKeyFromJsonStr(cipherTxt, auth)
 	if err != nil {
 		return err
