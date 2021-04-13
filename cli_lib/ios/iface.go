@@ -28,6 +28,13 @@ type IosApp struct {
 	cb        AppCallBack
 	wsEnd     string
 	websocket *client.WSClient
+	unreadSeq int64
+}
+
+func (i IosApp) OnlineSuccess() {
+	if err := _inst.websocket.PullUnreadMsg(i.unreadSeq); err != nil {
+		fmt.Println(err.Error())
+	}
 }
 
 func (i IosApp) ImmediateMessage(msg *pbs.WSCryptoMsg) error {
@@ -40,6 +47,7 @@ func (i IosApp) WebSocketClosed() {
 
 func (i IosApp) UnreadMsg(ack *pbs.WSUnreadAck) error {
 	payload := ack.Payload
+
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return err
@@ -47,7 +55,7 @@ func (i IosApp) UnreadMsg(ack *pbs.WSUnreadAck) error {
 	return i.cb.UnreadMsg(data)
 }
 
-var _inst = &IosApp{}
+var _inst = &IosApp{unreadSeq: 0}
 
 type AppCallBack interface {
 	ImmediateMessage(from, to string, payload []byte, time int64) error

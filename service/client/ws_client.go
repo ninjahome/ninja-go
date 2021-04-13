@@ -45,6 +45,7 @@ type CliCallBack interface {
 	ImmediateMessage(*pbs.WSCryptoMsg) error
 	WebSocketClosed()
 	UnreadMsg(*pbs.WSUnreadAck) error
+	OnlineSuccess()
 }
 
 func NewWSClient(addr string, key *wallet.Key, cb CliCallBack) (*WSClient, error) {
@@ -84,7 +85,7 @@ func (cc *WSClient) Online() error {
 	return nil
 }
 
-func (cc *WSClient) PullMsg(startSeq int64) error {
+func (cc *WSClient) PullUnreadMsg(startSeq int64) error {
 	request := &pbs.WSPullUnread{
 		Receiver:     cc.key.Address.String(),
 		FromUnixTime: startSeq,
@@ -155,6 +156,7 @@ func (cc *WSClient) procMsgFromServer() error {
 			return fmt.Errorf("online failed")
 		}
 		cc.IsOnline = true
+		go cc.callback.OnlineSuccess()
 	case pbs.WsMsgType_ImmediateMsg:
 		msgWrap, ok := wsMsg.Payload.(*pbs.WsMsg_Message)
 		if !ok {

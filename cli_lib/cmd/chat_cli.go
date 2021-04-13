@@ -46,7 +46,7 @@ func (w MacChatCli) writeFromStdio(term *terminal.Terminal, state *terminal.Stat
 	if err := w.wsCli.Online(); err != nil {
 		panic(err)
 	}
-	if err := w.wsCli.PullMsg(0); err != nil {
+	if err := w.wsCli.PullUnreadMsg(0); err != nil {
 		panic(err)
 	}
 
