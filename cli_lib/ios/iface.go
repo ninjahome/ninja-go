@@ -1,6 +1,7 @@
 package iosLib
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/ninjahome/ninja-go/common"
@@ -53,6 +54,14 @@ func (i IosApp) UnreadMsg(ack *pbs.WSUnreadAck) error {
 		return err
 	}
 	return i.cb.UnreadMsg(data)
+}
+
+func UnmarshalGoByte(s string) []byte {
+	b, e := base64.StdEncoding.DecodeString(s)
+	if e != nil {
+		return nil
+	}
+	return b
 }
 
 var _inst = &IosApp{unreadSeq: 0}
