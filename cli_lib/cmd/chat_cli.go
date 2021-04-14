@@ -16,6 +16,12 @@ type MacChatCli struct {
 	contactCli *client.ContactCli
 }
 
+func (w MacChatCli) OnlineSuccess() {
+	if err := w.wsCli.PullUnreadMsg(0); err != nil {
+		fmt.Println(err)
+	}
+}
+
 func (w MacChatCli) ImmediateMessage(msg *pbs.WSCryptoMsg) error {
 	fmt.Printf("\r\n%s\r\n>", string(msg.PayLoad))
 	fmt.Printf("\r\n%s\r\n>", msg.From)
