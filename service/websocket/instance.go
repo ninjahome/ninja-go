@@ -93,7 +93,7 @@ func (ws *Service) StartService(nodeID string) {
 		ln, err := net.Listen("tcp4", endPoint)
 		if err != nil {
 			utils.LogInst().Error().Str("end", endPoint).
-				Str("Contact Serve", err.Error()).
+				Str("Websocket Serve", err.Error()).
 				Send()
 			return
 		}
