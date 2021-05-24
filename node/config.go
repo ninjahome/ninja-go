@@ -128,6 +128,7 @@ type Config struct {
 	PsConf             *pubSubConfig      `json:"pub_sub"`
 	DHTConf            *dhtConfig         `json:"dht"`
 	ConnMngConf        *connManagerConfig `json:"connManager"`
+	SrvPost            bool               `json:"srv_post,omitempty"`
 }
 
 func (c Config) String() string {
@@ -195,6 +196,14 @@ func InitConfig(c *Config) {
 func (c *Config) initStreamWorker(h host.Host) {
 	h.SetStreamHandler(StreamSyncOnline, websocket.Inst().OnlineMapQuery)
 	h.SetStreamHandler(StreamContactQuery, contact.Inst().ContactQueryFromP2pNetwork)
+}
+
+func GetSrvPost() bool {
+	return _nodeConfig.getSrvPost()
+}
+
+func (c *Config)getSrvPost() bool  {
+	return c.SrvPost
 }
 
 func (c *Config) initOptions() []libp2p.Option {

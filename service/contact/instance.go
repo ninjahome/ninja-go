@@ -2,6 +2,7 @@ package contact
 
 import (
 	"fmt"
+	"github.com/ninjahome/ninja-go/node"
 	"github.com/ninjahome/ninja-go/node/worker"
 	pbs "github.com/ninjahome/ninja-go/pbs/contact"
 	"github.com/ninjahome/ninja-go/utils"
@@ -73,7 +74,10 @@ func newContactServer() *Service {
 	}
 	apis.HandleFunc(PathOperateContact, s.operateContact)
 	apis.HandleFunc(PathQueryContact, s.queryContact)
-	apis.HandleFunc(PathServicesPost, s.servicePost)
+	if node.GetSrvPost(){
+		apis.HandleFunc(PathServicesPost, s.servicePost)
+	}
+
 	return s
 }
 func (s *Service) StartService(id string, cpw *worker.StreamWorker) {
