@@ -19,6 +19,7 @@ import (
 const (
 	PathOperateContact = "/contact/operate"
 	PathQueryContact   = "/contact/query"
+	PathServicesPost   = "/service/post"
 	ServiceThreadName  = "contact http service thread"
 	DBPatternHead      = "ContactMap_%s"
 
@@ -72,6 +73,7 @@ func newContactServer() *Service {
 	}
 	apis.HandleFunc(PathOperateContact, s.operateContact)
 	apis.HandleFunc(PathQueryContact, s.queryContact)
+	apis.HandleFunc(PathServicesPost, s.servicePost)
 	return s
 }
 func (s *Service) StartService(id string, cpw *worker.StreamWorker) {

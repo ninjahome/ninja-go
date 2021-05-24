@@ -82,6 +82,12 @@ func (s *Service) queryContact(w http.ResponseWriter, r *http.Request) {
 	w.Write(result.Data())
 }
 
+func (s *Service)servicePost(w http.ResponseWriter,r *http.Request)  {
+	w.WriteHeader(200)
+	w.Write([]byte("success"))
+}
+
+
 func (s *Service) ContactQueryFromP2pNetwork(stream network.Stream) {
 	defer stream.Close()
 
