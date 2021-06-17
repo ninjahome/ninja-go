@@ -70,11 +70,12 @@ func (x *WsMsg) ReadOnlineFromCli(conn *websocket.Conn) (olMsg *WSOnline, messag
 	return olMsg, message, conn.WriteMessage(websocket.TextMessage, ackData)
 }
 
-func (x *WsMsg) AesCryptData(from, to string, body, key []byte) []byte {
+func (x *WsMsg) AesCryptData(from, to string, typ ChatMsgType, body, key []byte) []byte {
 
 	msg := &WSCryptoMsg{
 		From:     from,
 		To:       to,
+		Typ:      typ,
 		PayLoad:  body,
 		UnixTime: time.Now().Unix(),
 	}

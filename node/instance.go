@@ -63,6 +63,9 @@ func newNode() *NinjaNode {
 	}
 
 	systemTopics[P2pChanDebug] = n.DebugPeerMsg
+
+	contact.FGetSrvPort = GetSrvPost
+
 	utils.LogInst().Info().Str("NodeID", h.ID().String()).
 		Msgf("address:%s", h.Addrs())
 	return n

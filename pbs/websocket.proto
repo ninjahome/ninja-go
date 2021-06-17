@@ -11,6 +11,13 @@ enum WsMsgType{
   UnreadAck = 5;
 }
 
+enum ChatMsgType{
+    TextMessage = 0;
+    MapMessage = 1;
+    VoiceMessage = 2;
+    ImageMessage = 3;
+}
+
 message WSOnline{
   string UID = 1;
   int64 UnixTime = 3;
@@ -25,6 +32,7 @@ message WSOnlineAck{
 message WSCryptoMsg{
   string From = 1;
   string To = 3;
+  ChatMsgType  typ = 4;
   bytes PayLoad = 5;
   int64 UnixTime = 6;
 }

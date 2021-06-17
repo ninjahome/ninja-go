@@ -2,7 +2,6 @@ package contact
 
 import (
 	"fmt"
-	"github.com/ninjahome/ninja-go/node"
 	"github.com/ninjahome/ninja-go/node/worker"
 	pbs "github.com/ninjahome/ninja-go/pbs/contact"
 	"github.com/ninjahome/ninja-go/utils"
@@ -26,6 +25,10 @@ const (
 
 	SyncStreamDelim byte = '@'
 )
+
+var FGetSrvPort func() bool
+
+
 
 var (
 	_instance      *Service
@@ -74,7 +77,7 @@ func newContactServer() *Service {
 	}
 	apis.HandleFunc(PathOperateContact, s.operateContact)
 	apis.HandleFunc(PathQueryContact, s.queryContact)
-	if node.GetSrvPost(){
+	if FGetSrvPort(){
 		apis.HandleFunc(PathServicesPost, s.servicePost)
 	}
 
