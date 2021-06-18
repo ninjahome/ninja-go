@@ -1,9 +1,7 @@
 package androidlib
 
-
 import (
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/ninjahome/ninja-go/common"
@@ -44,32 +42,38 @@ func (a AndroidAPP) ImmediateMessage(msg *pbs.WSCryptoMsg) error {
 	if msg == nil{
 		return errors.New("msg is nil")
 	}
-	switch msg.Typ {
-	case pbs.ChatMsgType_TextMessage:
-		return a.cb.ImmediateMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
-	case pbs.ChatMsgType_MapMessage:
-		return a.cb.ImmediateMapMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
-	case pbs.ChatMsgType_ImageMessage:
-		return a.cb.ImmediateImageMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
-	case pbs.ChatMsgType_VoiceMessage:
-		return a.cb.ImmediateVoiceMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
-	default:
-		return errors.New("msg not recognize")
-	}
+	return a.callback(msg)
 }
 
 func (a AndroidAPP) WebSocketClosed() {
 	a.cb.WebSocketClosed()
 }
 
+func (a AndroidAPP)callback(msg *pbs.WSCryptoMsg) error {
+	switch msg.Typ {
+	case pbs.ChatMsgType_TextMessage:
+		return a.cb.TextMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
+	case pbs.ChatMsgType_MapMessage:
+		return a.cb.MapMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
+	case pbs.ChatMsgType_ImageMessage:
+		return a.cb.ImageMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
+	case pbs.ChatMsgType_VoiceMessage:
+		return a.cb.VoiceMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
+	default:
+		return errors.New("msg not recognize")
+	}
+
+	return nil
+}
+
 func (a AndroidAPP) UnreadMsg(ack *pbs.WSUnreadAck) error {
 	payload := ack.Payload
 
-	data, err := json.Marshal(payload)
-	if err != nil {
-		return err
+	for i:=0;i<len(payload);i++{
+		a.callback(payload[i])
 	}
-	return a.cb.UnreadMsg(data)
+
+	return nil
 }
 
 func UnmarshalGoByte(s string) []byte {
@@ -83,12 +87,11 @@ func UnmarshalGoByte(s string) []byte {
 var _inst = &AndroidAPP{unreadSeq: 0}
 
 type AppCallBack interface {
-	ImmediateVoiceMessage(from, to string, payload []byte, time int64) error
-	ImmediateImageMessage(from, to string, payload []byte, time int64) error
-	ImmediateMapMessage(from, to string, payload []byte, time int64) error
-	ImmediateMessage(from, to string, payload []byte, time int64) error
+	VoiceMessage(from, to string, payload []byte, time int64) error
+	ImageMessage(from, to string, payload []byte, time int64) error
+	MapMessage(from, to string, payload []byte, time int64) error
+	TextMessage(from, to string, payload []byte, time int64) error
 	WebSocketClosed()
-	UnreadMsg(jsonData []byte) error
 }
 
 func ConfigApp(addr string, callback AppCallBack) {

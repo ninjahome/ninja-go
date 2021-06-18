@@ -23,8 +23,6 @@ android:
 
 ios:
 	gomobile bind -v -o $(BINDIR)/iosLib.framework -target=ios github.com/ninjahome/ninja-go/cli_lib/ios
-	cp -rf bin/iosLib.framework $(tp)
-	rm -rf bin/iosLib.framework
 
 clean:
 	gomobile clean

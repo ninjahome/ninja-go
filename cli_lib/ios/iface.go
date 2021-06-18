@@ -2,7 +2,7 @@ package iosLib
 
 import (
 	"encoding/base64"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/ninjahome/ninja-go/common"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
@@ -39,7 +39,7 @@ func (i IosApp) OnlineSuccess() {
 }
 
 func (i IosApp) ImmediateMessage(msg *pbs.WSCryptoMsg) error {
-	return i.cb.ImmediateMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
+	return i.callback(msg)
 }
 
 func (i IosApp) WebSocketClosed() {
@@ -49,11 +49,29 @@ func (i IosApp) WebSocketClosed() {
 func (i IosApp) UnreadMsg(ack *pbs.WSUnreadAck) error {
 	payload := ack.Payload
 
-	data, err := json.Marshal(payload)
-	if err != nil {
-		return err
+	for j:=0;j<len(payload);j++{
+		i.callback(payload[j])
 	}
-	return i.cb.UnreadMsg(data)
+
+	return nil
+}
+
+
+func (i IosApp)callback(msg *pbs.WSCryptoMsg) error {
+	switch msg.Typ {
+	case pbs.ChatMsgType_TextMessage:
+		return i.cb.TextMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
+	case pbs.ChatMsgType_MapMessage:
+		return i.cb.MapMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
+	case pbs.ChatMsgType_ImageMessage:
+		return i.cb.ImageMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
+	case pbs.ChatMsgType_VoiceMessage:
+		return i.cb.VoiceMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
+	default:
+		return errors.New("msg not recognize")
+	}
+
+	return nil
 }
 
 func UnmarshalGoByte(s string) []byte {
@@ -67,9 +85,11 @@ func UnmarshalGoByte(s string) []byte {
 var _inst = &IosApp{unreadSeq: 0}
 
 type AppCallBack interface {
-	ImmediateMessage(from, to string, payload []byte, time int64) error
+	VoiceMessage(from, to string, payload []byte, time int64) error
+	ImageMessage(from, to string, payload []byte, time int64) error
+	MapMessage(from, to string, payload []byte, time int64) error
+	TextMessage(from, to string, payload []byte, time int64) error
 	WebSocketClosed()
-	UnreadMsg(jsonData []byte) error
 }
 
 func ConfigApp(addr string, callback AppCallBack) {
@@ -136,8 +156,48 @@ func WriteMessage(to string, payload []byte) error {
 		}
 	}
 
-	return _inst.websocket.Write(to, payload)
+	return _inst.websocket.Write(to, pbs.ChatMsgType_TextMessage, payload)
 }
+
+func WriteMapMessage(to string, payload []byte) error  {
+	if _inst.websocket == nil {
+		return fmt.Errorf("init application first please")
+	}
+	if !_inst.websocket.IsOnline {
+		if err := _inst.websocket.Online(); err != nil {
+			return err
+		}
+	}
+
+	return _inst.websocket.Write(to, pbs.ChatMsgType_MapMessage, payload)
+}
+
+func WriteImageMessage(to string, payload []byte) error  {
+	if _inst.websocket == nil {
+		return fmt.Errorf("init application first please")
+	}
+	if !_inst.websocket.IsOnline {
+		if err := _inst.websocket.Online(); err != nil {
+			return err
+		}
+	}
+
+	return _inst.websocket.Write(to, pbs.ChatMsgType_ImageMessage, payload)
+}
+
+func WriteVoiceMessage(to string, payload []byte) error  {
+	if _inst.websocket == nil {
+		return fmt.Errorf("init application first please")
+	}
+	if !_inst.websocket.IsOnline {
+		if err := _inst.websocket.Online(); err != nil {
+			return err
+		}
+	}
+
+	return _inst.websocket.Write(to,pbs.ChatMsgType_VoiceMessage, payload)
+}
+
 
 func IsValidNinjaAddr(addr string) bool {
 	_, err := common.HexToAddress(addr)

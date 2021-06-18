@@ -23,3 +23,4 @@ cli_lib/bin/ninja.aar
 /.idea/vcs.xml
 /go.sum
 /.idea/inspectionProfiles/Project_Default.xml
+cli_lib/bin/iosLib.framework/

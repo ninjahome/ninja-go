@@ -38,8 +38,8 @@ const (
 	DefaultConnGrace         = time.Minute
 
 	DHTPrefix                    = "ninja"
-	MainChain             ChanID = 1
-	TestChain             ChanID = 2
+	MainChain             	ChanID = 1
+	TestChain             	ChanID = 2
 	P2pOnLineValidateTime        = 2 * time.Second
 
 	P2pChanDebug = "/0.1/Global/TEST"
