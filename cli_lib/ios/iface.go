@@ -34,6 +34,16 @@ type IosApp struct {
 	unreadSeq int64
 }
 
+var _inst = &IosApp{unreadSeq: 0}
+
+type AppCallBack interface {
+	VoiceMessage(from, to string, payload []byte, length int, time int64) error
+	ImageMessage(from, to string, payload []byte, time int64) error
+	LocationMessage(from, to string, l, a float32, name string, time int64) error
+	TextMessage(from, to string, payload string, time int64) error
+	WebSocketClosed()
+}
+
 func (i IosApp) OnlineSuccess() {
 	if err := _inst.websocket.PullUnreadMsg(i.unreadSeq); err != nil {
 		fmt.Println(err.Error())
@@ -118,17 +128,6 @@ func UnmarshalGoByte(s string) []byte {
 	}
 	return b
 }
-
-var _inst = &IosApp{unreadSeq: 0}
-
-type AppCallBack interface {
-	VoiceMessage(from, to string, payload []byte, length int, time int64) error
-	ImageMessage(from, to string, payload []byte, time int64) error
-	LocationMessage(from, to string, l, a float32, name string, time int64) error
-	TextMessage(from, to string, payload string, time int64) error
-	WebSocketClosed()
-}
-
 func ConfigApp(addr string, callback AppCallBack) {
 
 	if addr == "" {
