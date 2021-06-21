@@ -112,7 +112,7 @@ func (cc *WSClient) getAesKey(to string) ([]byte, error) {
 	return key, nil
 }
 
-func (cc *WSClient) Write(to string, typ pbs.ChatMsgType, body []byte) error {
+func (cc *WSClient) Write(to string, body []byte) error {
 	if !cc.IsOnline {
 		return fmt.Errorf("please online yourself first")
 	}
@@ -125,7 +125,7 @@ func (cc *WSClient) Write(to string, typ pbs.ChatMsgType, body []byte) error {
 	msgWrap := &pbs.WsMsg{}
 
 	if err := cc.wsConn.WriteMessage(websocket.TextMessage,
-		msgWrap.AesCryptData(from, to, typ, body, key)); err != nil {
+		msgWrap.AesCryptData(from, to, body, key)); err != nil {
 		return err
 	}
 	return nil

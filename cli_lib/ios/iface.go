@@ -4,10 +4,12 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/ninjahome/ninja-go/cli_lib/chat_msg"
 	"github.com/ninjahome/ninja-go/common"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/service/client"
 	"github.com/ninjahome/ninja-go/wallet"
+	"google.golang.org/protobuf/proto"
 )
 
 func NewWallet(auth string) string {
@@ -49,29 +51,64 @@ func (i IosApp) WebSocketClosed() {
 func (i IosApp) UnreadMsg(ack *pbs.WSUnreadAck) error {
 	payload := ack.Payload
 
-	for j:=0;j<len(payload);j++{
-		i.callback(payload[j])
+	for j := 0; j < len(payload); j++ {
+		if err := i.callback(payload[j]); err != nil {
+			//TODO::notify app to know the failure
+			continue
+		}
 	}
-
 	return nil
 }
 
+func (i IosApp) callback(msg *pbs.WSCryptoMsg) error {
 
-func (i IosApp)callback(msg *pbs.WSCryptoMsg) error {
-	switch msg.Typ {
-	case pbs.ChatMsgType_TextMessage:
-		return i.cb.TextMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
-	case pbs.ChatMsgType_MapMessage:
-		return i.cb.MapMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
-	case pbs.ChatMsgType_ImageMessage:
-		return i.cb.ImageMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
-	case pbs.ChatMsgType_VoiceMessage:
-		return i.cb.VoiceMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
+	chatMessage := &chat_msg.ChatMessage{}
+	if err := proto.Unmarshal(msg.PayLoad, chatMessage); err != nil {
+		return err
+	}
+	switch chatMessage.Payload.(type) {
+
+	case *chat_msg.ChatMessage_PlainTxt:
+
+		rawData := chatMessage.Payload.(*chat_msg.ChatMessage_PlainTxt)
+
+		return i.cb.TextMessage(msg.From,
+			msg.To,
+			rawData.PlainTxt,
+			msg.UnixTime)
+
+	case *chat_msg.ChatMessage_Image:
+
+		rawData := chatMessage.Payload.(*chat_msg.ChatMessage_Image)
+
+		return i.cb.ImageMessage(msg.From,
+			msg.To,
+			rawData.Image,
+			msg.UnixTime)
+
+	case *chat_msg.ChatMessage_Voice:
+
+		voiceMessage := chatMessage.Payload.(*chat_msg.ChatMessage_Voice).Voice
+
+		return i.cb.VoiceMessage(msg.From,
+			msg.To,
+			voiceMessage.Data,
+			int(voiceMessage.Length),
+			msg.UnixTime)
+
+	case *chat_msg.ChatMessage_Location:
+
+		locationMessage := chatMessage.Payload.(*chat_msg.ChatMessage_Location).Location
+
+		return i.cb.LocationMessage(msg.From,
+			msg.To,
+			locationMessage.Latitude,
+			locationMessage.Latitude,
+			locationMessage.Name,
+			msg.UnixTime)
 	default:
 		return errors.New("msg not recognize")
 	}
-
-	return nil
 }
 
 func UnmarshalGoByte(s string) []byte {
@@ -85,10 +122,10 @@ func UnmarshalGoByte(s string) []byte {
 var _inst = &IosApp{unreadSeq: 0}
 
 type AppCallBack interface {
-	VoiceMessage(from, to string, payload []byte, time int64) error
+	VoiceMessage(from, to string, payload []byte, length int, time int64) error
 	ImageMessage(from, to string, payload []byte, time int64) error
-	MapMessage(from, to string, payload []byte, time int64) error
-	TextMessage(from, to string, payload []byte, time int64) error
+	LocationMessage(from, to string, l, a float32, name string, time int64) error
+	TextMessage(from, to string, payload string, time int64) error
 	WebSocketClosed()
 }
 
@@ -146,7 +183,23 @@ func WSOffline() {
 	_inst.websocket.ShutDown()
 }
 
-func WriteMessage(to string, payload []byte) error {
+func WriteMessage(to string, plainTxt string) error {
+	if _inst.websocket == nil {
+		return fmt.Errorf("init application first please")
+	}
+	if !_inst.websocket.IsOnline {
+		if err := _inst.websocket.Online(); err != nil {
+			return err
+		}
+	}
+	rawData, err := chat_msg.WrapPlainTxt(plainTxt)
+	if err != nil {
+		return err
+	}
+	return _inst.websocket.Write(to, rawData)
+}
+
+func WriteLocationMessage(to string, longitude, latitude float32, name string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -156,10 +209,15 @@ func WriteMessage(to string, payload []byte) error {
 		}
 	}
 
-	return _inst.websocket.Write(to, pbs.ChatMsgType_TextMessage, payload)
+	rawData, err := chat_msg.WrapLocation(longitude, latitude, name)
+	if err != nil {
+		return err
+	}
+
+	return _inst.websocket.Write(to, rawData)
 }
 
-func WriteMapMessage(to string, payload []byte) error  {
+func WriteImageMessage(to string, payload []byte) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -169,10 +227,14 @@ func WriteMapMessage(to string, payload []byte) error  {
 		}
 	}
 
-	return _inst.websocket.Write(to, pbs.ChatMsgType_MapMessage, payload)
+	rawData, err := chat_msg.WrapImage(payload)
+	if err != nil {
+		return err
+	}
+	return _inst.websocket.Write(to, rawData)
 }
 
-func WriteImageMessage(to string, payload []byte) error  {
+func WriteVoiceMessage(to string, payload []byte, len int) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -182,22 +244,13 @@ func WriteImageMessage(to string, payload []byte) error  {
 		}
 	}
 
-	return _inst.websocket.Write(to, pbs.ChatMsgType_ImageMessage, payload)
-}
-
-func WriteVoiceMessage(to string, payload []byte) error  {
-	if _inst.websocket == nil {
-		return fmt.Errorf("init application first please")
-	}
-	if !_inst.websocket.IsOnline {
-		if err := _inst.websocket.Online(); err != nil {
-			return err
-		}
+	rawData, err := chat_msg.WrapVoice(payload, len)
+	if err != nil {
+		return err
 	}
 
-	return _inst.websocket.Write(to,pbs.ChatMsgType_VoiceMessage, payload)
+	return _inst.websocket.Write(to, rawData)
 }
-
 
 func IsValidNinjaAddr(addr string) bool {
 	_, err := common.HexToAddress(addr)

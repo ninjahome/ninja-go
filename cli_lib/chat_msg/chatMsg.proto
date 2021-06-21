@@ -1,0 +1,30 @@
+syntax = "proto3";
+package pbs;
+option go_package = "github.com/ninjahome/ninja-go/cli_lib/chat_msg;chat_msg";
+
+enum MsgType{
+  PlainTxtT = 0;
+  ImageT = 1;
+  VoiceT = 2;
+  LocationT = 3;
+}
+
+message Voice{
+  int32 Length = 1;
+  bytes Data = 2;
+}
+
+message Location{
+  string Name = 1;
+  float Longitude = 2;
+  float Latitude = 3;
+}
+
+message ChatMessage{
+  oneof payload{
+    string PlainTxt = 2;
+    bytes Image = 3;
+    Voice voice = 4;
+    Location location = 5;
+  }
+}

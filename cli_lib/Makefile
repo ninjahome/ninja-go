@@ -3,10 +3,10 @@ BINDIR=bin
 .PHONY: mac android ios test
 
 all: mac android ios test
-#
-#pbs:
-#	cd pbs/ && $(MAKE)
-#
+
+pbs:
+	cd chat_msg/ && $(MAKE)
+
 
 tp:=./bin
 
