@@ -5,7 +5,7 @@ import (
 	"github.com/polydawn/refmt/json"
 	"github.com/sideshow/apns2"
 	"github.com/sideshow/apns2/certificate"
-	log "github.com/sirupsen/logrus"
+	"log"
 )
 
 const(
