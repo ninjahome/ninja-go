@@ -412,7 +412,7 @@ func (ws *Service) SyncDevInfoFromPeerNodes(stream network.Stream) error {
 			return err
 		}else{
 			if IsReadEnd(buf[:n]){
-				utils.LogInst().Warn().Str("sync dev info", "success").Send()
+				utils.LogInst().Info().Str("sync dev info", "success").Send()
 				return nil
 			}
 
@@ -535,11 +535,11 @@ func (ws *Service)DevtokensQuery(stream network.Stream)  {
 
 		resp = nil
 		diack = nil
+	}
 
-		if _,err:=rw.Commit();err!=nil{
-			utils.LogInst().Warn().Str("devinfo ack error", err.Error()).Send()
-			return
-		}
+	if _,err:=rw.Commit();err!=nil{
+		utils.LogInst().Warn().Str("devinfo ack error", err.Error()).Send()
+		return
 	}
 
 	utils.LogInst().Info().Str("devinfo ack", "success").Send()
