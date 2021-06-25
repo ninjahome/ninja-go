@@ -38,7 +38,7 @@ type Config struct {
 	WsIP                   string         `json:"ws.ip"`
 	WsPort                 int16          `json:"ws.port"`
 	DataBaseDir            string         `json:"ws.msg.database"`
-	CertDir               string         `json:"ws.cert.file"`
+	CertDir                string         `json:"ws.cert.file"`
 }
 
 func (c Config) String() string {

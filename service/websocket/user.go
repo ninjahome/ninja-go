@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"bufio"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -394,6 +395,9 @@ func (ws *Service) SyncDevInfoFromPeerNodes(stream network.Stream) error {
 
 	streamMsg:=&pbs2.StreamMsg{}
 	data:=streamMsg.SyncDevInfo("TODO::wallet key and sig")
+
+	fmt.Println("send sync dev:",hex.EncodeToString(data))
+
 	if _,err:=rw.Write(data);err!=nil{
 		return err
 	}
@@ -455,6 +459,7 @@ func (ws *Service)DevtokensQuery(stream network.Stream)  {
 		return
 	}
 	buf = buf[:n]
+	fmt.Println("rcv sync dev info:",hex.EncodeToString(buf))
 	streamMsg := &pbs2.StreamMsg{}
 	if err := proto.Unmarshal(buf, streamMsg); err != nil {
 		utils.LogInst().Warn().Str("devinfo parse stream", err.Error()).Send()
