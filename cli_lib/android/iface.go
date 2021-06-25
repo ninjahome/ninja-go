@@ -4,10 +4,13 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/ninjahome/ninja-go/cli_lib/chat_msg"
 	"github.com/ninjahome/ninja-go/common"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/service/client"
+	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/wallet"
+	"google.golang.org/protobuf/proto"
 )
 
 func NewWallet(auth string) string {
@@ -49,32 +52,69 @@ func (a AndroidAPP) WebSocketClosed() {
 	a.cb.WebSocketClosed()
 }
 
-func (a AndroidAPP)callback(msg *pbs.WSCryptoMsg) error {
-	switch msg.Typ {
-	case pbs.ChatMsgType_TextMessage:
-		return a.cb.TextMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
-	case pbs.ChatMsgType_MapMessage:
-		return a.cb.MapMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
-	case pbs.ChatMsgType_ImageMessage:
-		return a.cb.ImageMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
-	case pbs.ChatMsgType_VoiceMessage:
-		return a.cb.VoiceMessage(msg.From, msg.To, msg.PayLoad, msg.UnixTime)
+func (i AndroidAPP) UnreadMsg(ack *pbs.WSUnreadAck) error {
+	payload := ack.Payload
+
+	for j := 0; j < len(payload); j++ {
+		if err := i.callback(payload[j]); err != nil {
+			//TODO::notify app to know the failure
+			continue
+		}
+	}
+	return nil
+}
+
+func (i AndroidAPP) callback(msg *pbs.WSCryptoMsg) error {
+
+	chatMessage := &chat_msg.ChatMessage{}
+	if err := proto.Unmarshal(msg.PayLoad, chatMessage); err != nil {
+		return err
+	}
+	switch chatMessage.Payload.(type) {
+
+	case *chat_msg.ChatMessage_PlainTxt:
+
+		rawData := chatMessage.Payload.(*chat_msg.ChatMessage_PlainTxt)
+
+		return i.cb.TextMessage(msg.From,
+			msg.To,
+			rawData.PlainTxt,
+			msg.UnixTime)
+
+	case *chat_msg.ChatMessage_Image:
+
+		rawData := chatMessage.Payload.(*chat_msg.ChatMessage_Image)
+
+		return i.cb.ImageMessage(msg.From,
+			msg.To,
+			rawData.Image,
+			msg.UnixTime)
+
+	case *chat_msg.ChatMessage_Voice:
+
+		voiceMessage := chatMessage.Payload.(*chat_msg.ChatMessage_Voice).Voice
+
+		return i.cb.VoiceMessage(msg.From,
+			msg.To,
+			voiceMessage.Data,
+			int(voiceMessage.Length),
+			msg.UnixTime)
+
+	case *chat_msg.ChatMessage_Location:
+
+		locationMessage := chatMessage.Payload.(*chat_msg.ChatMessage_Location).Location
+
+		return i.cb.LocationMessage(msg.From,
+			msg.To,
+			locationMessage.Latitude,
+			locationMessage.Latitude,
+			locationMessage.Name,
+			msg.UnixTime)
 	default:
 		return errors.New("msg not recognize")
 	}
-
-	return nil
 }
 
-func (a AndroidAPP) UnreadMsg(ack *pbs.WSUnreadAck) error {
-	payload := ack.Payload
-
-	for i:=0;i<len(payload);i++{
-		a.callback(payload[i])
-	}
-
-	return nil
-}
 
 func UnmarshalGoByte(s string) []byte {
 	b, e := base64.StdEncoding.DecodeString(s)
@@ -87,12 +127,13 @@ func UnmarshalGoByte(s string) []byte {
 var _inst = &AndroidAPP{unreadSeq: 0}
 
 type AppCallBack interface {
-	VoiceMessage(from, to string, payload []byte, time int64) error
+	VoiceMessage(from, to string, payload []byte, length int, time int64) error
 	ImageMessage(from, to string, payload []byte, time int64) error
-	MapMessage(from, to string, payload []byte, time int64) error
-	TextMessage(from, to string, payload []byte, time int64) error
+	LocationMessage(from, to string, l, a float32, name string, time int64) error
+	TextMessage(from, to string, payload string, time int64) error
 	WebSocketClosed()
 }
+
 
 func ConfigApp(addr string, callback AppCallBack) {
 
@@ -104,13 +145,14 @@ func ConfigApp(addr string, callback AppCallBack) {
 	_inst.cb = callback
 }
 
-func ActiveWallet(cipherTxt, auth string) error {
+func ActiveWallet(cipherTxt, auth string,devtoken string) error {
+
 	key, err := wallet.LoadKeyFromJsonStr(cipherTxt, auth)
 	if err != nil {
 		return err
 	}
 	_inst.key = key
-	ws, err := client.NewWSClient(_inst.wsEnd, key, _inst) //202.182.101.145//167.179.78.33//127.0.0.1//
+	ws, err := client.NewWSClient(devtoken,_inst.wsEnd, websocket.DevTypeAndroid,key, _inst) //202.182.101.145//167.179.78.33//127.0.0.1//
 	if err != nil {
 		return err
 	}
