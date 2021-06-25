@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ninjahome/ninja-go/node/worker"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
+	"github.com/ninjahome/ninja-go/service/push"
 	"github.com/ninjahome/ninja-go/utils"
 	"google.golang.org/protobuf/proto"
 )
@@ -40,6 +41,19 @@ func (ws *Service) procIM(msg *pbs.WsMsg) error {
 		utils.LogInst().Debug().Str("Receiver", im.To).
 			Str("Status", "offline").Send()
 		key := IMDBKey(im.To, im.UnixTime)
+
+		if dt,typ,err:=ws.GetToken(im.To);err!=nil{
+			utils.LogInst().Debug().Str("procIM", im.To).
+				Str("Status", "not found in db").Send()
+		}else{
+			if typ == DevTypeIOS{
+				ws.iosPush.IOSPushMessage("you have a message",dt)
+			}else if typ == DevTypeAndroid{
+				ext:=make(map[string]string)
+				push.AndroidMessagePush("you have a message",dt,ext)
+			}
+		}
+
 		return ws.dataBase.Put(key, im.MustData(), nil)
 	}
 

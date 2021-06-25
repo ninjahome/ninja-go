@@ -158,46 +158,7 @@ func WriteMessage(to string, payload []byte) error {
 		}
 	}
 
-	return _inst.websocket.Write(to, pbs.ChatMsgType_TextMessage, payload)
-}
-
-func WriteMapMessage(to string, payload []byte) error  {
-	if _inst.websocket == nil {
-		return fmt.Errorf("init application first please")
-	}
-	if !_inst.websocket.IsOnline {
-		if err := _inst.websocket.Online(); err != nil {
-			return err
-		}
-	}
-
-	return _inst.websocket.Write(to, pbs.ChatMsgType_MapMessage, payload)
-}
-
-func WriteImageMessage(to string, payload []byte) error  {
-	if _inst.websocket == nil {
-		return fmt.Errorf("init application first please")
-	}
-	if !_inst.websocket.IsOnline {
-		if err := _inst.websocket.Online(); err != nil {
-			return err
-		}
-	}
-
-	return _inst.websocket.Write(to, pbs.ChatMsgType_ImageMessage, payload)
-}
-
-func WriteVoiceMessage(to string, payload []byte) error  {
-	if _inst.websocket == nil {
-		return fmt.Errorf("init application first please")
-	}
-	if !_inst.websocket.IsOnline {
-		if err := _inst.websocket.Online(); err != nil {
-			return err
-		}
-	}
-
-	return _inst.websocket.Write(to,pbs.ChatMsgType_VoiceMessage, payload)
+	return _inst.websocket.Write(to,  payload)
 }
 
 

@@ -8,6 +8,8 @@ enum StreamMType{
   MTOnlineSync = 1;
   MTContactSync = 2;
   MTContactAck = 3;
+  MTDevInfoSync = 4;
+  MTDevInfoAck = 5;
 }
 
 message StreamMsg{
@@ -17,11 +19,27 @@ message StreamMsg{
     OnlineMap onlineAck = 5;
     ContactSync contactSync = 3;
     ContactAck contactAck = 4;
+    DevInfoSync diSync = 6;
+    DevInfoAck diAck = 7;
   }
 }
 
 message OnlineSync{
   string nodeID = 1;
+}
+
+message DevInfoSync{
+    string nodeId = 1;
+}
+
+message DevInfo{
+    string uid = 1;
+    string devToken = 2;
+    int32  devTyp = 3;
+}
+
+message DevInfoAck{
+    repeated DevInfo dis = 1;
 }
 
 message OnlineMap{

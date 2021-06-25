@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/ninjahome/ninja-go/utils"
+	"log"
 	"net/http"
+	"os"
+	"path"
 	"path/filepath"
 	"time"
 )
@@ -20,6 +23,8 @@ const (
 	DefaultUnreadMsgNoPerQuery = 1 << 13
 	DefaultHandShakeTimeOut    = time.Second * 3
 	DefaultDataBaseDir         = "Msg"
+	DefaultCertDir             = "cert"
+	DefaultCertFile			   = "ios.p12"
 )
 
 type Config struct {
@@ -33,6 +38,7 @@ type Config struct {
 	WsIP                   string         `json:"ws.ip"`
 	WsPort                 int16          `json:"ws.port"`
 	DataBaseDir            string         `json:"ws.msg.database"`
+	CertDir               string         `json:"ws.cert.file"`
 }
 
 func (c Config) String() string {
@@ -47,6 +53,7 @@ func (c Config) String() string {
 	s += fmt.Sprintf("\nws ip:\t\t\t%s", c.WsIP)
 	s += fmt.Sprintf("\nmessage database dir:\t%s", c.DataBaseDir)
 	s += fmt.Sprintf("\nws port:\t\t%d", c.WsPort)
+	s += fmt.Sprintf("\r\nCert file:\t\t%s",c.GetCertFile())
 	s += fmt.Sprintf("\n-------------------------------------------------------\n")
 	return s
 }
@@ -59,11 +66,23 @@ func InitConfig(c *Config) {
 
 func DefaultConfig(isMain bool, base string) *Config {
 
-	var dir string
+	var (
+		dir string
+		certdir string
+	)
+
 	if isMain {
 		dir = filepath.Join(base, string(filepath.Separator), DefaultDataBaseDir)
+		certdir = path.Join(base,DefaultCertDir)
 	} else {
 		dir = filepath.Join(base, string(filepath.Separator), DefaultDataBaseDir+"_test")
+		certdir = path.Join(base,DefaultCertDir+"_test")
+	}
+
+	if !utils.FileExists(certdir) {
+		if err := os.Mkdir(certdir, os.ModePerm); err != nil {
+			log.Println("create cert dif failed")
+		}
 	}
 
 	return &Config{
@@ -77,7 +96,12 @@ func DefaultConfig(isMain bool, base string) *Config {
 		WsIP:                   DefaultHost,
 		WsPort:                 DefaultWsPort,
 		DataBaseDir:            dir,
+		CertDir: 				certdir,
 	}
+}
+
+func (c *Config)GetCertFile() string  {
+	return path.Join(c.CertDir,DefaultCertFile)
 }
 
 func (c *Config) newUpGrader() *websocket.Upgrader {

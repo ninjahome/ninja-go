@@ -14,6 +14,8 @@ enum WsMsgType{
 message WSOnline{
   string UID = 1;
   int64 UnixTime = 3;
+  string devToken = 4;
+  int32  devTyp = 5;
 }
 
 

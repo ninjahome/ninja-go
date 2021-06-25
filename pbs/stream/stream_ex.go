@@ -9,6 +9,20 @@ func (x *StreamMsg) SyncOnline(nodeId string) []byte {
 	return data
 }
 
+func (x *StreamMsg)SyncDevInfo(nodeId string) []byte  {
+	x.MTyp = StreamMType_MTDevInfoSync
+	x.Payload = &StreamMsg_DiSync{
+		DiSync: &DevInfoSync{
+			NodeId: nodeId,
+		},
+	}
+
+	data,_:=proto.Marshal(x)
+
+	return data
+
+}
+
 func (x *StreamMsg) SyncOnlineAck(uid []string) []byte {
 	x.MTyp = StreamMType_MTOnlineAck
 	x.Payload = &StreamMsg_OnlineAck{OnlineAck: &OnlineMap{UID: uid}}

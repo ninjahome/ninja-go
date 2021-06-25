@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/ninjahome/ninja-go/node/worker"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
+	"github.com/ninjahome/ninja-go/service/push"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/thread"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -22,6 +23,7 @@ type Service struct {
 	upGrader *websocket.Upgrader
 	server   *http.Server
 	dataBase *leveldb.DB
+	iosPush  *push.IOSPush
 
 	userTable            *UserTable
 	onlineSet            *OnlineMap
@@ -68,6 +70,11 @@ func newWebSocket() *Service {
 	if err != nil {
 		return nil
 	}
+
+
+	iosPush:=push.NewIOSPush(_wsConfig.GetCertFile())
+
+
 	ws := &Service{
 		upGrader:           _wsConfig.newUpGrader(),
 		apis:               apis,
@@ -77,6 +84,7 @@ func newWebSocket() *Service {
 		msgFromClientQueue: make(chan *pbs.WsMsg, _wsConfig.WsMsgNoFromCli),
 		threads:            make(map[string]*thread.Thread),
 		dataBase:           db,
+		iosPush: 		    iosPush,
 	}
 	ws.apis.HandleFunc(CPUserOnline, ws.online)
 	return ws
@@ -157,6 +165,9 @@ func (ws *Service) wsCliMsgDispatch(stop chan struct{}) {
 			return
 
 		case msg := <-ws.msgFromClientQueue:
+			if msg == nil{
+				return
+			}
 			switch msg.Typ {
 			case pbs.WsMsgType_ImmediateMsg:
 				if err := ws.procIM(msg); err != nil {

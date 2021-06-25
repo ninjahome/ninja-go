@@ -25,7 +25,14 @@ var (
 	ErrNoMsgCallback = fmt.Errorf("no message reciver")
 )
 
+const (
+	DevType_IOS = 1
+	DevType_Android = 2
+)
+
 type WSClient struct {
+	DevTyp int
+	DeviceToken string
 	IsOnline bool
 	endpoint string
 	wsConn   *websocket.Conn
@@ -48,12 +55,16 @@ type CliCallBack interface {
 	OnlineSuccess()
 }
 
-func NewWSClient(addr string, key *wallet.Key, cb CliCallBack) (*WSClient, error) {
+//devType DevType_IOS/DevType_Android
+
+func NewWSClient(deviceToken, addr string, devType int, key *wallet.Key, cb CliCallBack) (*WSClient, error) {
 	if key == nil || !key.IsOpen() {
 		return nil, fmt.Errorf("ivnalid key")
 	}
 
 	cc := &WSClient{
+		DevTyp: devType,
+		DeviceToken: deviceToken,
 		endpoint: addr,
 		key:      key,
 		IsOnline: false,
@@ -73,7 +84,7 @@ func (cc *WSClient) Online() error {
 	}
 
 	onlineMsg := &pbs.WsMsg{}
-	if err := onlineMsg.Online(wsConn, cc.key); err != nil {
+	if err := onlineMsg.Online(wsConn, cc.key,cc.DeviceToken,cc.DevTyp); err != nil {
 		return err
 	}
 	cc.wsConn = wsConn

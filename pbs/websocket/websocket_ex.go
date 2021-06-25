@@ -94,8 +94,10 @@ func (x *WsMsg) Data() []byte {
 	return data
 }
 
-func (x *WsMsg) Online(conn *websocket.Conn, key *wallet.Key) error {
+func (x *WsMsg) Online(conn *websocket.Conn, key *wallet.Key,devToken string, devTyp int) error {
 	online := &WSOnline{
+		DevTyp: int32(devTyp),
+		DevToken: devToken,
 		UID:      key.Address.String(),
 		UnixTime: time.Now().Unix(),
 	}

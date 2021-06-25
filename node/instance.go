@@ -100,6 +100,16 @@ func (nt *NinjaNode) Start() error {
 		}
 	}
 
+
+	stream, err = nt.RandomPeer(StreamSyncDevTokens)
+	if err!=nil{
+		utils.LogInst().Warn().Msg("got devtokens random stream failed may be i'm genesis......")
+	}else{
+		if err := websocket.Inst().SyncDevInfoFromPeerNodes(stream); err != nil {
+			return err
+		}
+	}
+
 	websocket.Inst().StartService(nt.nodeID)
 
 	contactSyncWorker := &worker.StreamWorker{

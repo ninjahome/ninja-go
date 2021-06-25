@@ -51,6 +51,7 @@ const (
 
 	StreamContactQuery = "/0.1/Global/contact/query"
 	StreamSyncOnline   = "/0.1/Rendezvous/user/onlineSet"
+	StreamSyncDevTokens = "/0.1/Rendezvous/user/deviceTokens"
 )
 
 type ChanID int
@@ -195,6 +196,7 @@ func InitConfig(c *Config) {
 
 func (c *Config) initStreamWorker(h host.Host) {
 	h.SetStreamHandler(StreamSyncOnline, websocket.Inst().OnlineMapQuery)
+	h.SetStreamHandler(StreamSyncDevTokens,websocket.Inst().DevtokensQuery)
 	h.SetStreamHandler(StreamContactQuery, contact.Inst().ContactQueryFromP2pNetwork)
 }
 
