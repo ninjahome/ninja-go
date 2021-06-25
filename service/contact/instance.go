@@ -77,9 +77,9 @@ func newContactServer() *Service {
 	}
 	apis.HandleFunc(PathOperateContact, s.operateContact)
 	apis.HandleFunc(PathQueryContact, s.queryContact)
-	if FGetSrvPort(){
+	//if FGetSrvPort(){
 		apis.HandleFunc(PathServicesPost, s.servicePost)
-	}
+	//}
 
 	return s
 }
