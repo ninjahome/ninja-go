@@ -190,7 +190,24 @@ func WSOffline() {
 	_inst.websocket.ShutDown()
 }
 
-func WriteMessage(to string, payload []byte) error {
+
+func WriteMessage(to string, plainTxt string) error {
+	if _inst.websocket == nil {
+		return fmt.Errorf("init application first please")
+	}
+	if !_inst.websocket.IsOnline {
+		if err := _inst.websocket.Online(); err != nil {
+			return err
+		}
+	}
+	rawData, err := chat_msg.WrapPlainTxt(plainTxt)
+	if err != nil {
+		return err
+	}
+	return _inst.websocket.Write(to, rawData)
+}
+
+func WriteLocationMessage(to string, longitude, latitude float32, name string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -200,7 +217,47 @@ func WriteMessage(to string, payload []byte) error {
 		}
 	}
 
-	return _inst.websocket.Write(to,  payload)
+	rawData, err := chat_msg.WrapLocation(longitude, latitude, name)
+	if err != nil {
+		return err
+	}
+
+	return _inst.websocket.Write(to, rawData)
+}
+
+func WriteImageMessage(to string, payload []byte) error {
+	if _inst.websocket == nil {
+		return fmt.Errorf("init application first please")
+	}
+	if !_inst.websocket.IsOnline {
+		if err := _inst.websocket.Online(); err != nil {
+			return err
+		}
+	}
+
+	rawData, err := chat_msg.WrapImage(payload)
+	if err != nil {
+		return err
+	}
+	return _inst.websocket.Write(to, rawData)
+}
+
+func WriteVoiceMessage(to string, payload []byte, len int) error {
+	if _inst.websocket == nil {
+		return fmt.Errorf("init application first please")
+	}
+	if !_inst.websocket.IsOnline {
+		if err := _inst.websocket.Online(); err != nil {
+			return err
+		}
+	}
+
+	rawData, err := chat_msg.WrapVoice(payload, len)
+	if err != nil {
+		return err
+	}
+
+	return _inst.websocket.Write(to, rawData)
 }
 
 
