@@ -106,7 +106,7 @@ func (i AndroidAPP) callback(msg *pbs.WSCryptoMsg) error {
 
 		return i.cb.LocationMessage(msg.From,
 			msg.To,
-			locationMessage.Latitude,
+			locationMessage.Longitude,
 			locationMessage.Latitude,
 			locationMessage.Name,
 			msg.UnixTime)
