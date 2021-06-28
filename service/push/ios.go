@@ -2,9 +2,9 @@ package push
 
 import (
 	"crypto/tls"
-	"github.com/polydawn/refmt/json"
 	"github.com/sideshow/apns2"
 	"github.com/sideshow/apns2/certificate"
+	"github.com/sideshow/apns2/payload"
 	"log"
 )
 
@@ -45,16 +45,7 @@ func (ip *IOSPush)IOSPushMessage(alert string, devToken string) error  {
 	notification.DeviceToken = devToken
 	notification.Topic = AppBundle
 
-	payload:=&PayloadContent{
-		Aps: &ApsContent{},
-	}
-
-	payload.Aps.Alert = alert
-	payload.Aps.Badge = 1
-
-	j,_:=json.Marshal(payload)
-
-	notification.Payload = j
+	notification.Payload = payload.NewPayload().Alert(alert).Badge(1)
 
 	res,err:=ip.client.Push(notification)
 	if err!=nil{
