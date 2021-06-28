@@ -118,6 +118,7 @@ func (c *Config) newUpGrader() *websocket.Upgrader {
 
 func (c *Config) newWSServer(handler http.Handler) *http.Server {
 	return &http.Server{
+
 		Handler: handler,
 	}
 }

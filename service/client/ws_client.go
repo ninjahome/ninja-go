@@ -78,7 +78,13 @@ func NewWSClient(deviceToken, addr string, devType int, key *wallet.Key, cb CliC
 
 func (cc *WSClient) Online() error {
 	u := url.URL{Scheme: "ws", Host: cc.endpoint, Path: websocket2.CPUserOnline}
-	wsConn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+
+	dialer:=websocket.DefaultDialer
+
+	dialer.ReadBufferSize = websocket2.DefaultWsBuffer
+	dialer.WriteBufferSize = websocket2.DefaultWsBuffer
+
+	wsConn, _, err := dialer.Dial(u.String(), nil)
 	if err != nil {
 		return err
 	}
