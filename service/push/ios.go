@@ -41,6 +41,9 @@ func NewIOSPush(certfile string) *IOSPush {
 }
 
 func (ip *IOSPush)IOSPushMessage(alert string, devToken string) error  {
+
+	ip.client.CloseIdleConnections()
+
 	notification := &apns2.Notification{}
 	notification.DeviceToken = devToken
 	notification.Topic = AppBundle
