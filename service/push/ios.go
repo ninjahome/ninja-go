@@ -32,7 +32,7 @@ func NewIOSPush(certfile string) *IOSPush {
 	if err!=nil{
 		return nil
 	}
-	client := apns2.NewClient(cert).Production()
+	client := apns2.NewClient(cert).Development()
 
 	return &IOSPush{
 		client: client,
