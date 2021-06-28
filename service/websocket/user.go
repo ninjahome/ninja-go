@@ -137,7 +137,7 @@ const(
 	DevInfoDBKeyHead = "Deviceinfodbkey_0"
 	DevInfoDBKeyEnd = "Deviceinfodbkey_1"
 	SyncBuflength = 2048
-	SyncDevInfoCount = 20
+	SyncDevInfoCount = 10
 	DevTypeIOS = 1
 	DevTypeAndroid = 2
 	DevTypeMac = 3
