@@ -58,7 +58,7 @@ func AndroidMessagePush(title string, deviceToken string, extralDatas map[string
 	// 必填 通知栏提示文字
 	body.Ticker = title
 	// 必填 通知标题
-	body.Title = "xxx"
+	body.Title = title
 	// 必填 通知文字描述
 	body.Text = title
 	// 打开Android端的Activity
