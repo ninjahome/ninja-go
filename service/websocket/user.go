@@ -140,6 +140,7 @@ const(
 	SyncDevInfoCount = 20
 	DevTypeIOS = 1
 	DevTypeAndroid = 2
+	DevTypeMac = 3
 
 )
 
@@ -215,7 +216,9 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 		return err
 	}
 
-	utils.LogInst().Debug().Str("WS New User", wu.UID).Send()
+	ui:=fmt.Sprintf("uid:%s, devtoken:%s, devTyp:%d",wu.UID,wu.devToken,wu.devTyp)
+
+	utils.LogInst().Debug().Str("WS New User", ui).Send()
 
 	return nil
 }
@@ -282,7 +285,9 @@ func (ws *Service) onlineFromOtherPeer(msg *pbs.WsMsg) error {
 	}
 	ws.onlineSet.add(body.Online.UID)
 	ws.SaveToken(body.Online.UID,body.Online.DevToken,int(body.Online.DevTyp))
-	utils.LogInst().Debug().Str("online", body.Online.UID).Send()
+	ui:=fmt.Sprintf("uid: %s, devtoken:%s, devTyp:%d",
+		body.Online.UID,body.Online.DevToken,body.Online.DevTyp)
+	utils.LogInst().Debug().Str("p2p online", ui).Send()
 	return nil
 }
 
@@ -429,6 +434,8 @@ func (ws *Service) SyncDevInfoFromPeerNodes(stream network.Stream) error {
 			if diack!= nil && diack.DiAck != nil{
 				for i:=0;i<len(diack.DiAck.Dis);i++{
 					di:=diack.DiAck.Dis[i]
+					ui:=fmt.Sprintf("uuid: %s, devtoken:%s, devtyp: %d",di.Uid,di.DevToken,di.DevTyp)
+					utils.LogInst().Warn().Str("sync dev info from peer",ui).Send()
 
 					if err:=ws.SaveToken(di.Uid,di.DevToken,int(di.DevTyp));err!=nil{
 						utils.LogInst().Warn().Str("sync dev info: save to db error", di.Uid).Send()
@@ -510,6 +517,8 @@ func (ws *Service)DevtokensQuery(stream network.Stream)  {
 			DevToken: di.DevToken,
 		}
 
+		ui:=fmt.Sprintf("uuid: %s, devtoken:%s, devtyp: %d",pbdi.Uid,pbdi.DevToken,pbdi.DevTyp)
+		utils.LogInst().Warn().Str("query dev info by peer",ui).Send()
 		diack.Dis = append(diack.Dis,pbdi)
 
 		if len(diack.Dis) >= SyncDevInfoCount{
