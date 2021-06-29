@@ -146,7 +146,7 @@ func (ws *Service) online(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	webSocket.SetReadLimit(int64(_wsConfig.WsIOBufferSize))
+	//webSocket.SetReadLimit(int64(_wsConfig.WsIOBufferSize))
 	webSocket.SetReadDeadline(time.Now().Add(_wsConfig.PongWait))
 	webSocket.SetPongHandler(func(string) error { webSocket.SetReadDeadline(time.Now().Add(_wsConfig.PongWait)); return nil })
 
