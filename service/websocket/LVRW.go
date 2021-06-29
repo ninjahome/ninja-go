@@ -135,7 +135,7 @@ func (lv *LVRederWriter)ReadFull(buf []byte) (int,error) {
 			return 0,errors.New("buf not enough")
 		}
 
-		copy(buf[:totalLen],tmpbuf[:n])
+		copy(buf[totalLen:],tmpbuf[:n])
 		totalLen += n
 	}
 }

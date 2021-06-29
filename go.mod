@@ -21,7 +21,6 @@ require (
 	github.com/polydawn/refmt v0.0.0-20201211092308-30ac6d18308e
 	github.com/rs/zerolog v1.21.0
 	github.com/sideshow/apns2 v0.20.0
-	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/warpfork/go-wish v0.0.0-20200122115046-b9ea61034e4a // indirect

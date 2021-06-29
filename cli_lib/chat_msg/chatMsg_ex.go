@@ -29,8 +29,8 @@ func WrapImage(data []byte) ([]byte, error) {
 func WrapLocation(l, a float32, name string) ([]byte, error) {
 	chatMessage := &ChatMessage{
 		Payload: &ChatMessage_Location{Location: &Location{
-			Latitude:  l,
-			Longitude: a,
+			Latitude:  a,
+			Longitude: l,
 			Name:      name,
 		}},
 	}
