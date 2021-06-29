@@ -31,7 +31,6 @@ func (lv *LVRederWriter)Read(p []byte) (n int, err error)  {
 	if err!=nil{
 		return 0, err
 	}
-
 	if n != lvHeadLen{
 		return 0,errors.New("read error")
 	}
@@ -42,13 +41,10 @@ func (lv *LVRederWriter)Read(p []byte) (n int, err error)  {
 		return 0,err
 	}
 
-
 	n,err =  lv.ReadWriter.Read(p)
-
 	if err!=nil{
 		return 0, err
 	}
-
 	if n != int(nl){
 		err = fmt.Errorf("read not correct, nl: %d, n: %d",nl,n)
 		return 0,err
@@ -58,7 +54,7 @@ func (lv *LVRederWriter)Read(p []byte) (n int, err error)  {
 }
 
 func IsReadEnd(p []byte) bool  {
-	if len(p) == lvHeadLen{
+	if len(p) == len(lvEndDelim){
 		if string(p) == lvEndDelim{
 			return true
 		}
@@ -76,7 +72,6 @@ func (lv *LVRederWriter)Write(p []byte) (n int, err error)  {
 
 	buf:=make([]byte,lvHeadLen)
 	binary.BigEndian.PutUint32(buf,uint32(np))
-
 	n,err = lv.ReadWriter.Write(buf)
 	if err!=nil{
 		return 0, err
