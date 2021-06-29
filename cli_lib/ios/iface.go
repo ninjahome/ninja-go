@@ -113,7 +113,7 @@ func (i IosApp) callback(msg *pbs.WSCryptoMsg) error {
 
 		return i.cb.LocationMessage(msg.From,
 			msg.To,
-			locationMessage.Latitude,
+			locationMessage.Longitude,
 			locationMessage.Latitude,
 			locationMessage.Name,
 			msg.UnixTime)
@@ -203,6 +203,7 @@ func WriteMessage(to string, plainTxt string) error {
 
 func WriteLocationMessage(to string, longitude, latitude float32, name string) error {
 	if _inst.websocket == nil {
+		return fmt.Errorf("init application first please")
 		return fmt.Errorf("init application first please")
 	}
 	if !_inst.websocket.IsOnline {
