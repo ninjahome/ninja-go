@@ -48,7 +48,8 @@ func (ip *IOSPush)IOSPushMessage(alert string, devToken string) error  {
 	notification.DeviceToken = devToken
 	notification.Topic = AppBundle
 
-	notification.Payload = payload.NewPayload().Alert(alert).Badge(1)
+
+	notification.Payload = payload.NewPayload().Alert(alert).Badge(1).SoundName("default")
 
 	res,err:=ip.client.Push(notification)
 	if err!=nil{
