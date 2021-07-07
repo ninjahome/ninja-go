@@ -47,7 +47,6 @@ func (ws *Service) procIM(msg *pbs.WsMsg) error {
 				Str("Status", "not found in db").Send()
 		}else{
 			if typ == DevTypeIOS{
-
 				ui:=fmt.Sprintf("ios: uid: %s , token: %s, typ: %d",im.To,dt,typ)
 				utils.LogInst().Debug().Str("procIM ", im.To).
 					Str("Status", "not found in db").Send()

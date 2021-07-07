@@ -35,7 +35,7 @@ type WSClient struct {
 	DeviceToken string
 	IsOnline bool
 	endpoint string
-	wsConn   *websocket.Conn
+	wsConn   *websocket2.SafeWsConn
 	key      *wallet.Key
 	reader   *thread.Thread
 	callback CliCallBack
@@ -76,6 +76,8 @@ func NewWSClient(deviceToken, addr string, devType int, key *wallet.Key, cb CliC
 	return cc, nil
 }
 
+
+
 func (cc *WSClient) Online() error {
 	u := url.URL{Scheme: "ws", Host: cc.endpoint, Path: websocket2.CPUserOnline}
 
@@ -93,10 +95,13 @@ func (cc *WSClient) Online() error {
 	if err := onlineMsg.Online(wsConn, cc.key,cc.DeviceToken,cc.DevTyp); err != nil {
 		return err
 	}
-	cc.wsConn = wsConn
-	wsConn.SetPingHandler(func(appData string) error {
+	swsc:=&websocket2.SafeWsConn{
+		Conn:wsConn,
+	}
+	cc.wsConn = swsc
+	swsc.SetPingHandler(func(appData string) error {
 		fmt.Println("ping pong time......")
-		return wsConn.WriteMessage(websocket.PongMessage, []byte{})
+		return swsc.WriteMessage(websocket.PongMessage, []byte{})
 	})
 	cc.reader.Run()
 	return nil

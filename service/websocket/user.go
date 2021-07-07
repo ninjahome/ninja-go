@@ -20,11 +20,25 @@ import (
 	"time"
 )
 
+
+
+type SafeWsConn struct {
+	*websocket.Conn
+	writeLock sync.Mutex
+}
+
+func (sws *SafeWsConn)WriteMessage(messageType int, data []byte) error  {
+	sws.writeLock.Lock()
+	defer sws.writeLock.Unlock()
+
+	return sws.Conn.WriteMessage(messageType, data)
+}
+
 type wsUser struct {
 	lock           sync.RWMutex
 	UID            string
 	OnLineTime     time.Time
-	cliWsConn      *websocket.Conn
+	cliWsConn      *SafeWsConn
 	msgFromCliChan chan *pbs.WsMsg
 	msgToCliChan   chan *pbs.WsMsg
 	devToken	   string
@@ -115,6 +129,7 @@ func (u *wsUser) writing(stop chan struct{}) {
 				utils.LogInst().Warn().Str("WS write ping", err.Error()).Send()
 				return
 			}
+			//u.cliWsConn.WriteControl()
 		}
 	}
 }
@@ -136,6 +151,8 @@ type DevInfo struct {
 const(
 	DevInfoDBKeyHead = "Deviceinfodbkey_0"
 	DevInfoDBKeyEnd = "Deviceinfodbkey_1"
+	NinjaInfoDBKeyHead = "NinjaInfoDBKey_0"
+	NinjaInfoDBKeyEnd = "NinjaInfoDBKey_1"
 	SyncBuflength = 2048
 	SyncDevInfoCount = 10
 	DevTypeIOS = 1
@@ -144,8 +161,36 @@ const(
 
 )
 
+func ninjaKeyGet(devToken string, devTyp int) string {
+	return fmt.Sprintf(NinjaInfoDBKeyHead+"_%s_%d",devToken,devTyp)
+}
+
+func (ws *Service)saveNinjaInfo(uid, devToken string, devTyp int) error  {
+	o:=&opt.WriteOptions{
+		Sync: true,
+	}
+
+	return ws.dataBase.Put([]byte(ninjaKeyGet(devToken,devTyp)),[]byte(uid),o)
+}
+
+func (ws *Service)getNinjaInfo(devToken string, devTyp int) (string,error)  {
+	v,err:=ws.dataBase.Get([]byte(ninjaKeyGet(devToken,devTyp)),nil)
+	if err!=nil{
+		return "", err
+	}
+
+	return string(v),nil
+}
+
 
 func (ws *Service)SaveToken(uid,devToken string, devTyp int) error  {
+	if v,err:=ws.getNinjaInfo(devToken,devTyp);err==nil{
+		if string(v) != uid{
+			//delete old uid
+			ws.dataBase.Delete([]byte(DevInfoDBKeyHead+v),&opt.WriteOptions{Sync: true})
+		}
+	}
+
 	o:=&opt.WriteOptions{
 		Sync: true,
 	}
@@ -156,6 +201,8 @@ func (ws *Service)SaveToken(uid,devToken string, devTyp int) error  {
 	}
 
 	j,_:=json.Marshal(*di)
+
+	ws.saveNinjaInfo(uid,devToken,devTyp)
 
 	return ws.dataBase.Put([]byte(DevInfoDBKeyHead+uid),j,o)
 }
@@ -188,7 +235,7 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 	wu := &wsUser{
 		devToken: online.DevToken,
 		devTyp: int(online.DevTyp),
-		cliWsConn:      conn,
+		cliWsConn:      &SafeWsConn{Conn:conn},
 		UID:            online.UID,
 		OnLineTime:     time.Now(),
 		msgFromCliChan: ws.msgFromClientQueue,
@@ -477,7 +524,6 @@ func (ws *Service)DevtokensQuery(stream network.Stream)  {
 		utils.LogInst().Warn().Str("devinfo parse stream", "not a sync dev info msg").Send()
 		return
 	}
-
 
 	iter:=ws.dataBase.NewIterator(&util.Range{Start: []byte(DevInfoDBKeyHead), Limit: []byte(DevInfoDBKeyEnd)},nil)
 	defer iter.Release()
