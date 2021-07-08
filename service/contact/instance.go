@@ -28,8 +28,6 @@ const (
 
 var FGetSrvPort func() bool
 
-
-
 var (
 	_instance      *Service
 	once           sync.Once
@@ -78,7 +76,7 @@ func newContactServer() *Service {
 	apis.HandleFunc(PathOperateContact, s.operateContact)
 	apis.HandleFunc(PathQueryContact, s.queryContact)
 	//if FGetSrvPort(){
-		apis.HandleFunc(PathServicesPost, s.servicePost)
+	apis.HandleFunc(PathServicesPost, s.servicePost)
 	//}
 
 	return s

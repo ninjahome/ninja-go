@@ -24,7 +24,7 @@ const (
 	DefaultHandShakeTimeOut    = time.Second * 3
 	DefaultDataBaseDir         = "Msg"
 	DefaultCertDir             = "cert"
-	DefaultCertFile			   = "ios.p12"
+	DefaultCertFile            = "ios.p12"
 )
 
 type Config struct {
@@ -53,7 +53,7 @@ func (c Config) String() string {
 	s += fmt.Sprintf("\nws ip:\t\t\t%s", c.WsIP)
 	s += fmt.Sprintf("\nmessage database dir:\t%s", c.DataBaseDir)
 	s += fmt.Sprintf("\nws port:\t\t%d", c.WsPort)
-	s += fmt.Sprintf("\r\nCert file:\t\t%s",c.GetCertFile())
+	s += fmt.Sprintf("\r\nCert file:\t\t%s", c.GetCertFile())
 	s += fmt.Sprintf("\n-------------------------------------------------------\n")
 	return s
 }
@@ -67,16 +67,16 @@ func InitConfig(c *Config) {
 func DefaultConfig(isMain bool, base string) *Config {
 
 	var (
-		dir string
+		dir     string
 		certdir string
 	)
 
 	if isMain {
 		dir = filepath.Join(base, string(filepath.Separator), DefaultDataBaseDir)
-		certdir = path.Join(base,DefaultCertDir)
+		certdir = path.Join(base, DefaultCertDir)
 	} else {
 		dir = filepath.Join(base, string(filepath.Separator), DefaultDataBaseDir+"_test")
-		certdir = path.Join(base,DefaultCertDir+"_test")
+		certdir = path.Join(base, DefaultCertDir+"_test")
 	}
 
 	if !utils.FileExists(certdir) {
@@ -96,12 +96,12 @@ func DefaultConfig(isMain bool, base string) *Config {
 		WsIP:                   DefaultHost,
 		WsPort:                 DefaultWsPort,
 		DataBaseDir:            dir,
-		CertDir: 				certdir,
+		CertDir:                certdir,
 	}
 }
 
-func (c *Config)GetCertFile() string  {
-	return path.Join(c.CertDir,DefaultCertFile)
+func (c *Config) GetCertFile() string {
+	return path.Join(c.CertDir, DefaultCertFile)
 }
 
 func (c *Config) newUpGrader() *websocket.Upgrader {

@@ -8,12 +8,12 @@ import (
 	"log"
 )
 
-const(
+const (
 	AppBundle = "com.hop.ninja.light"
 )
 
 type IOSPush struct {
-	cert tls.Certificate
+	cert   tls.Certificate
 	client *apns2.Client
 }
 
@@ -28,19 +28,19 @@ type PayloadContent struct {
 }
 
 func NewIOSPush(certfile string) *IOSPush {
-	cert,err:=certificate.FromP12File(certfile,"")
-	if err!=nil{
+	cert, err := certificate.FromP12File(certfile, "")
+	if err != nil {
 		return nil
 	}
 	client := apns2.NewClient(cert).Production()
 
 	return &IOSPush{
 		client: client,
-		cert: cert,
+		cert:   cert,
 	}
 }
 
-func (ip *IOSPush)IOSPushMessage(alert string, devToken string) error  {
+func (ip *IOSPush) IOSPushMessage(alert string, devToken string) error {
 
 	ip.client.CloseIdleConnections()
 
@@ -48,15 +48,14 @@ func (ip *IOSPush)IOSPushMessage(alert string, devToken string) error  {
 	notification.DeviceToken = devToken
 	notification.Topic = AppBundle
 
-
 	notification.Payload = payload.NewPayload().Alert(alert).Badge(1).SoundName("default")
 
-	res,err:=ip.client.Push(notification)
-	if err!=nil{
-		log.Println("ios send notification error",err)
+	res, err := ip.client.Push(notification)
+	if err != nil {
+		log.Println("ios send notification error", err)
 		return err
 	}
-	log.Println("ios send notification success",devToken,res.StatusCode, res.ApnsID, res.Reason)
+	log.Println("ios send notification success", devToken, res.StatusCode, res.ApnsID, res.Reason)
 
 	return nil
 }

@@ -27,7 +27,7 @@ var (
 )
 
 const (
-	DevType_IOS = 1
+	DevType_IOS     = 1
 	DevType_Android = 2
 )
 
@@ -36,24 +36,23 @@ type SafeWriteConn struct {
 	writeLock sync.Mutex
 }
 
-func (swc *SafeWriteConn)WriteMessage(messageType int, data []byte) error  {
+func (swc *SafeWriteConn) WriteMessage(messageType int, data []byte) error {
 	swc.writeLock.Lock()
 	defer swc.writeLock.Unlock()
 
-	return swc.Conn.WriteMessage(messageType,data)
+	return swc.Conn.WriteMessage(messageType, data)
 }
 
-
 type WSClient struct {
-	DevTyp int
+	DevTyp      int
 	DeviceToken string
-	IsOnline bool
-	endpoint string
-	wsConn   *SafeWriteConn
-	key      *wallet.Key
-	reader   *thread.Thread
-	callback CliCallBack
-	peerKeys map[string][]byte
+	IsOnline    bool
+	endpoint    string
+	wsConn      *SafeWriteConn
+	key         *wallet.Key
+	reader      *thread.Thread
+	callback    CliCallBack
+	peerKeys    map[string][]byte
 }
 
 func RandomBootNode() string {
@@ -77,13 +76,13 @@ func NewWSClient(deviceToken, addr string, devType int, key *wallet.Key, cb CliC
 	}
 
 	cc := &WSClient{
-		DevTyp: devType,
+		DevTyp:      devType,
 		DeviceToken: deviceToken,
-		endpoint: addr,
-		key:      key,
-		IsOnline: false,
-		peerKeys: make(map[string][]byte),
-		callback: cb,
+		endpoint:    addr,
+		key:         key,
+		IsOnline:    false,
+		peerKeys:    make(map[string][]byte),
+		callback:    cb,
 	}
 
 	cc.reader = thread.NewThread(cc.reading)
@@ -93,7 +92,7 @@ func NewWSClient(deviceToken, addr string, devType int, key *wallet.Key, cb CliC
 func (cc *WSClient) Online() error {
 	u := url.URL{Scheme: "ws", Host: cc.endpoint, Path: websocket2.CPUserOnline}
 
-	dialer:=websocket.DefaultDialer
+	dialer := websocket.DefaultDialer
 
 	dialer.ReadBufferSize = websocket2.DefaultWsBuffer
 	dialer.WriteBufferSize = websocket2.DefaultWsBuffer
@@ -104,11 +103,11 @@ func (cc *WSClient) Online() error {
 	}
 
 	onlineMsg := &pbs.WsMsg{}
-	if err := onlineMsg.Online(wsConn, cc.key,cc.DeviceToken,cc.DevTyp); err != nil {
+	if err := onlineMsg.Online(wsConn, cc.key, cc.DeviceToken, cc.DevTyp); err != nil {
 		return err
 	}
 
-	swc:=&SafeWriteConn{Conn:wsConn}
+	swc := &SafeWriteConn{Conn: wsConn}
 
 	cc.wsConn = swc
 	wsConn.SetPingHandler(func(appData string) error {

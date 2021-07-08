@@ -9,7 +9,7 @@ func (x *StreamMsg) SyncOnline(nodeId string) []byte {
 	return data
 }
 
-func (x *StreamMsg)SyncDevInfo(nodeId string) []byte  {
+func (x *StreamMsg) SyncDevInfo(nodeId string) []byte {
 	x.MTyp = StreamMType_MTDevInfoSync
 	x.Payload = &StreamMsg_DiSync{
 		DiSync: &DevInfoSync{
@@ -17,7 +17,7 @@ func (x *StreamMsg)SyncDevInfo(nodeId string) []byte  {
 		},
 	}
 
-	data,_:=proto.Marshal(x)
+	data, _ := proto.Marshal(x)
 
 	return data
 

@@ -5,19 +5,18 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/astaxie/beego/httplib"
 	"log"
 	"strconv"
 	"time"
-	"github.com/astaxie/beego/httplib"
 )
 
-var hostUmengPush ="http://msg.umeng.com"
+var hostUmengPush = "http://msg.umeng.com"
 var uploadPath = "/upload"
 var postPath = "/api/send"
 
-var appKeyAndroid ="60a723d4d827ab124e923f62"
-var masterSecreptAndroid ="1h3foewyyxhclfpalpprugwazbcvvdcw"
-
+var appKeyAndroid = "60a723d4d827ab124e923f62"
+var masterSecreptAndroid = "1h3foewyyxhclfpalpprugwazbcvvdcw"
 
 var pushProductionMode = "true"
 
@@ -47,9 +46,8 @@ type BodyAndroid struct {
 	Activity   string `json:"activity"`
 }
 
-
 func AndroidMessagePush(title string, deviceToken string, extralDatas map[string]string) {
-	if deviceToken == ""{
+	if deviceToken == "" {
 		log.Println("device Token must not null")
 		return
 	}
@@ -81,9 +79,8 @@ func AndroidMessagePush(title string, deviceToken string, extralDatas map[string
 	messageAndroid.Type = "unicast"
 	messageAndroid.DeviceTokens = deviceToken
 
-		// 打开聊天
+	// 打开聊天
 	body.Activity = pushAndroidActityChat
-
 
 	timeInt64 := time.Now().Unix()
 	timestamp := strconv.FormatInt(timeInt64, 10)

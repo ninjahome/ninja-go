@@ -71,9 +71,7 @@ func newWebSocket() *Service {
 		return nil
 	}
 
-
-	iosPush:=push.NewIOSPush(_wsConfig.GetCertFile())
-
+	iosPush := push.NewIOSPush(_wsConfig.GetCertFile())
 
 	ws := &Service{
 		upGrader:           _wsConfig.newUpGrader(),
@@ -84,7 +82,7 @@ func newWebSocket() *Service {
 		msgFromClientQueue: make(chan *pbs.WsMsg, _wsConfig.WsMsgNoFromCli),
 		threads:            make(map[string]*thread.Thread),
 		dataBase:           db,
-		iosPush: 		    iosPush,
+		iosPush:            iosPush,
 	}
 	ws.apis.HandleFunc(CPUserOnline, ws.online)
 	return ws
@@ -165,7 +163,7 @@ func (ws *Service) wsCliMsgDispatch(stop chan struct{}) {
 			return
 
 		case msg := <-ws.msgFromClientQueue:
-			if msg == nil{
+			if msg == nil {
 				return
 			}
 			switch msg.Typ {

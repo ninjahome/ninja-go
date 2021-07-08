@@ -140,14 +140,14 @@ func ConfigApp(addr string, callback AppCallBack) {
 }
 
 //
-func ActiveWallet(cipherTxt, auth string,devToken string) error {
+func ActiveWallet(cipherTxt, auth string, devToken string) error {
 
 	key, err := wallet.LoadKeyFromJsonStr(cipherTxt, auth)
 	if err != nil {
 		return err
 	}
 	_inst.key = key
-	ws, err := client.NewWSClient(devToken,_inst.wsEnd, websocket.DevTypeIOS,key, _inst) //202.182.101.145//167.179.78.33//127.0.0.1//
+	ws, err := client.NewWSClient(devToken, _inst.wsEnd, websocket.DevTypeIOS, key, _inst) //202.182.101.145//167.179.78.33//127.0.0.1//
 	if err != nil {
 		return err
 	}

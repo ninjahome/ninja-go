@@ -38,8 +38,8 @@ const (
 	DefaultConnGrace         = time.Minute
 
 	DHTPrefix                    = "ninja"
-	MainChain             	ChanID = 1
-	TestChain             	ChanID = 2
+	MainChain             ChanID = 1
+	TestChain             ChanID = 2
 	P2pOnLineValidateTime        = 2 * time.Second
 
 	P2pChanDebug = "/0.1/Global/TEST"
@@ -49,8 +49,8 @@ const (
 	P2pChanUnreadMsg      = "/0.1/Global/message/unread"
 	P2pChanContactOperate = "/0.1/Global/contact/operate"
 
-	StreamContactQuery = "/0.1/Global/contact/query"
-	StreamSyncOnline   = "/0.1/Rendezvous/user/onlineSet"
+	StreamContactQuery  = "/0.1/Global/contact/query"
+	StreamSyncOnline    = "/0.1/Rendezvous/user/onlineSet"
 	StreamSyncDevTokens = "/0.1/Rendezvous/user/deviceTokens"
 )
 
@@ -196,7 +196,7 @@ func InitConfig(c *Config) {
 
 func (c *Config) initStreamWorker(h host.Host) {
 	h.SetStreamHandler(StreamSyncOnline, websocket.Inst().OnlineMapQuery)
-	h.SetStreamHandler(StreamSyncDevTokens,websocket.Inst().DevtokensQuery)
+	h.SetStreamHandler(StreamSyncDevTokens, websocket.Inst().DevtokensQuery)
 	h.SetStreamHandler(StreamContactQuery, contact.Inst().ContactQueryFromP2pNetwork)
 }
 
@@ -204,7 +204,7 @@ func GetSrvPost() bool {
 	return _nodeConfig.getSrvPost()
 }
 
-func (c *Config)getSrvPost() bool  {
+func (c *Config) getSrvPost() bool {
 	return c.SrvPost
 }
 

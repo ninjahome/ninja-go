@@ -42,23 +42,23 @@ func (ws *Service) procIM(msg *pbs.WsMsg) error {
 			Str("Status", "offline").Send()
 		key := IMDBKey(im.To, im.UnixTime)
 
-		if dt,typ,err:=ws.GetToken(im.To);err!=nil{
+		if dt, typ, err := ws.GetToken(im.To); err != nil {
 			utils.LogInst().Debug().Str("procIM", im.To).
 				Str("Status", "not found in db").Send()
-		}else{
-			if typ == DevTypeIOS{
-				ui:=fmt.Sprintf("ios: uid: %s , token: %s, typ: %d",im.To,dt,typ)
+		} else {
+			if typ == DevTypeIOS {
+				ui := fmt.Sprintf("ios: uid: %s , token: %s, typ: %d", im.To, dt, typ)
 				utils.LogInst().Debug().Str("procIM ", im.To).
 					Str("Status", "not found in db").Send()
 				utils.LogInst().Debug().Str("procIM begin to push", ui).Send()
-				ws.iosPush.IOSPushMessage("you have a message",dt)
-			}else if typ == DevTypeAndroid{
-				ui:=fmt.Sprintf("android: uid: %s , token: %s, typ: %d",im.To,dt,typ)
+				ws.iosPush.IOSPushMessage("you have a message", dt)
+			} else if typ == DevTypeAndroid {
+				ui := fmt.Sprintf("android: uid: %s , token: %s, typ: %d", im.To, dt, typ)
 				utils.LogInst().Debug().Str("procIM begin to push", ui).Send()
 				utils.LogInst().Debug().Str("procIM ", im.To).
 					Str("Status", "not found in db").Send()
-				ext:=make(map[string]string)
-				push.AndroidMessagePush("you have a message",dt,ext)
+				ext := make(map[string]string)
+				push.AndroidMessagePush("you have a message", dt, ext)
 			}
 		}
 

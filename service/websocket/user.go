@@ -22,9 +22,8 @@ import (
 
 type WsMsgBuffer struct {
 	messageType int
-	data interface{}
+	data        interface{}
 }
-
 
 type wsUser struct {
 	lock           sync.RWMutex
@@ -33,10 +32,10 @@ type wsUser struct {
 	cliWsConn      *websocket.Conn
 	msgFromCliChan chan *pbs.WsMsg
 	//msgToCliChan   chan *pbs.WsMsg
-	msgToCliChan    chan *WsMsgBuffer
-	devToken	   string
-	devTyp         int
-	kaTimer        *time.Ticker
+	msgToCliChan chan *WsMsgBuffer
+	devToken     string
+	devTyp       int
+	kaTimer      *time.Ticker
 }
 
 func (u *wsUser) offLine() {
@@ -133,7 +132,7 @@ func (u *wsUser) writing(stop chan struct{}) {
 			//	return
 			//}
 
-			u.msgToCliChan <- &WsMsgBuffer{messageType: websocket.PingMessage,data: []byte{}}
+			u.msgToCliChan <- &WsMsgBuffer{messageType: websocket.PingMessage, data: []byte{}}
 
 			//u.cliWsConn.WriteControl()
 		}
@@ -141,7 +140,7 @@ func (u *wsUser) writing(stop chan struct{}) {
 }
 
 func (u *wsUser) writeToCli(msg *pbs.WsMsg) error {
-	u.msgToCliChan <- &WsMsgBuffer{messageType: websocket.TextMessage,data: msg}
+	u.msgToCliChan <- &WsMsgBuffer{messageType: websocket.TextMessage, data: msg}
 	return nil
 }
 
@@ -150,84 +149,81 @@ func (u *wsUser) String() string {
 }
 
 type DevInfo struct {
-	DevToken string   `json:"t"`
-	DevTyp   int      `json:"typ"`
+	DevToken string `json:"t"`
+	DevTyp   int    `json:"typ"`
 }
 
-const(
-	DevInfoDBKeyHead = "Deviceinfodbkey_0"
-	DevInfoDBKeyEnd = "Deviceinfodbkey_1"
+const (
+	DevInfoDBKeyHead   = "Deviceinfodbkey_0"
+	DevInfoDBKeyEnd    = "Deviceinfodbkey_1"
 	NinjaInfoDBKeyHead = "NinjaInfoDBKey_0"
-	NinjaInfoDBKeyEnd = "NinjaInfoDBKey_1"
-	SyncBuflength = 2048
-	SyncDevInfoCount = 10
-	DevTypeIOS = 1
-	DevTypeAndroid = 2
-	DevTypeMac = 3
-
+	NinjaInfoDBKeyEnd  = "NinjaInfoDBKey_1"
+	SyncBuflength      = 2048
+	SyncDevInfoCount   = 10
+	DevTypeIOS         = 1
+	DevTypeAndroid     = 2
+	DevTypeMac         = 3
 )
 
 func ninjaKeyGet(devToken string, devTyp int) string {
-	return fmt.Sprintf(NinjaInfoDBKeyHead+"_%s_%d",devToken,devTyp)
+	return fmt.Sprintf(NinjaInfoDBKeyHead+"_%s_%d", devToken, devTyp)
 }
 
-func (ws *Service)saveNinjaInfo(uid, devToken string, devTyp int) error  {
-	o:=&opt.WriteOptions{
+func (ws *Service) saveNinjaInfo(uid, devToken string, devTyp int) error {
+	o := &opt.WriteOptions{
 		Sync: true,
 	}
 
-	return ws.dataBase.Put([]byte(ninjaKeyGet(devToken,devTyp)),[]byte(uid),o)
+	return ws.dataBase.Put([]byte(ninjaKeyGet(devToken, devTyp)), []byte(uid), o)
 }
 
-func (ws *Service)getNinjaInfo(devToken string, devTyp int) (string,error)  {
-	v,err:=ws.dataBase.Get([]byte(ninjaKeyGet(devToken,devTyp)),nil)
-	if err!=nil{
+func (ws *Service) getNinjaInfo(devToken string, devTyp int) (string, error) {
+	v, err := ws.dataBase.Get([]byte(ninjaKeyGet(devToken, devTyp)), nil)
+	if err != nil {
 		return "", err
 	}
 
-	return string(v),nil
+	return string(v), nil
 }
 
-
-func (ws *Service)SaveToken(uid,devToken string, devTyp int) error  {
-	if v,err:=ws.getNinjaInfo(devToken,devTyp);err==nil{
-		if string(v) != uid{
+func (ws *Service) SaveToken(uid, devToken string, devTyp int) error {
+	if v, err := ws.getNinjaInfo(devToken, devTyp); err == nil {
+		if string(v) != uid {
 			//delete old uid
-			ws.dataBase.Delete([]byte(DevInfoDBKeyHead+v),&opt.WriteOptions{Sync: true})
+			ws.dataBase.Delete([]byte(DevInfoDBKeyHead+v), &opt.WriteOptions{Sync: true})
 		}
 	}
 
-	o:=&opt.WriteOptions{
+	o := &opt.WriteOptions{
 		Sync: true,
 	}
 
-	di:=&DevInfo{
-		DevTyp: devTyp,
+	di := &DevInfo{
+		DevTyp:   devTyp,
 		DevToken: devToken,
 	}
 
-	j,_:=json.Marshal(*di)
+	j, _ := json.Marshal(*di)
 
-	ws.saveNinjaInfo(uid,devToken,devTyp)
+	ws.saveNinjaInfo(uid, devToken, devTyp)
 
-	return ws.dataBase.Put([]byte(DevInfoDBKeyHead+uid),j,o)
+	return ws.dataBase.Put([]byte(DevInfoDBKeyHead+uid), j, o)
 }
 
-func (ws *Service)GetToken(uid string) (string, int, error)  {
-	dibytes,err:=ws.dataBase.Get([]byte(DevInfoDBKeyHead+uid),nil)
-	if err!=nil{
-		return "",0,err
+func (ws *Service) GetToken(uid string) (string, int, error) {
+	dibytes, err := ws.dataBase.Get([]byte(DevInfoDBKeyHead+uid), nil)
+	if err != nil {
+		return "", 0, err
 	}
-	di:=&DevInfo{}
+	di := &DevInfo{}
 
-	err=json.Unmarshal(dibytes,di)
-	if err!=nil{
-		return "",0,err
+	err = json.Unmarshal(dibytes, di)
+	if err != nil {
+		return "", 0, err
 	}
 
-	return di.DevToken,di.DevTyp,nil
+	return di.DevToken, di.DevTyp, nil
 }
-
 
 func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 
@@ -239,8 +235,8 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 	}
 
 	wu := &wsUser{
-		devToken: online.DevToken,
-		devTyp: int(online.DevTyp),
+		devToken:       online.DevToken,
+		devTyp:         int(online.DevTyp),
 		cliWsConn:      conn,
 		UID:            online.UID,
 		OnLineTime:     time.Now(),
@@ -249,7 +245,7 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 		msgToCliChan:   make(chan *WsMsgBuffer, _wsConfig.MaxUnreadMsgNoPerQuery),
 	}
 	ws.onlineSet.add(wu.UID)
-	ws.SaveToken(wu.UID,wu.devToken,wu.devTyp)
+	ws.SaveToken(wu.UID, wu.devToken, wu.devTyp)
 	ws.userTable.add(wu)
 
 	tid := fmt.Sprintf("chat read:%s", wu.UID)
@@ -269,7 +265,7 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 		return err
 	}
 
-	ui:=fmt.Sprintf("uid:%s, devtoken:%s, devTyp:%d",wu.UID,wu.devToken,wu.devTyp)
+	ui := fmt.Sprintf("uid:%s, devtoken:%s, devTyp:%d", wu.UID, wu.devToken, wu.devTyp)
 
 	utils.LogInst().Debug().Str("WS New User", ui).Send()
 
@@ -337,9 +333,9 @@ func (ws *Service) onlineFromOtherPeer(msg *pbs.WsMsg) error {
 		return fmt.Errorf("this is an attack")
 	}
 	ws.onlineSet.add(body.Online.UID)
-	ws.SaveToken(body.Online.UID,body.Online.DevToken,int(body.Online.DevTyp))
-	ui:=fmt.Sprintf("uid: %s, devtoken:%s, devTyp:%d",
-		body.Online.UID,body.Online.DevToken,body.Online.DevTyp)
+	ws.SaveToken(body.Online.UID, body.Online.DevToken, int(body.Online.DevTyp))
+	ui := fmt.Sprintf("uid: %s, devtoken:%s, devTyp:%d",
+		body.Online.UID, body.Online.DevToken, body.Online.DevTyp)
 	utils.LogInst().Debug().Str("p2p online", ui).Send()
 	return nil
 }
@@ -432,65 +428,62 @@ func (ws *Service) OnlineMapQuery(stream network.Stream) {
 	}
 }
 
-func GetUUIDFromDBDevInfoKey(key []byte) (string,error)  {
-	if len(key) <= len(DevInfoDBKeyHead){
-		return "",errors.New("not a  device key")
+func GetUUIDFromDBDevInfoKey(key []byte) (string, error) {
+	if len(key) <= len(DevInfoDBKeyHead) {
+		return "", errors.New("not a  device key")
 	}
 
-	uk:=key[len(DevInfoDBKeyHead):]
+	uk := key[len(DevInfoDBKeyHead):]
 
-	return string(uk),nil
+	return string(uk), nil
 
 }
-
-
-
 
 func (ws *Service) SyncDevInfoFromPeerNodes(stream network.Stream) error {
 	defer stream.Close()
 
-	rw:=NewLVRW(stream,SyncBuflength)
+	rw := NewLVRW(stream, SyncBuflength)
 
-	streamMsg:=&pbs2.StreamMsg{}
-	data:=streamMsg.SyncDevInfo("TODO::wallet key and sig")
+	streamMsg := &pbs2.StreamMsg{}
+	data := streamMsg.SyncDevInfo("TODO::wallet key and sig")
 
-	fmt.Println("send sync dev:",hex.EncodeToString(data))
+	fmt.Println("send sync dev:", hex.EncodeToString(data))
 
-	if _,err:=rw.Write(data);err!=nil{
+	if _, err := rw.Write(data); err != nil {
 		return err
 	}
 
-	if _,err:=rw.Commit();err!=nil{
+	if _, err := rw.Commit(); err != nil {
 		return err
 	}
 
-	for{
-		buf:=make([]byte,SyncBuflength)
-		if n,err:=rw.Read(buf);err!=nil{
+	for {
+		buf := make([]byte, SyncBuflength)
+		if n, err := rw.Read(buf); err != nil {
 			return err
-		}else{
-			if IsReadEnd(buf[:n]){
+		} else {
+			if IsReadEnd(buf[:n]) {
 				utils.LogInst().Info().Str("sync dev info", "success").Send()
 				return nil
 			}
 
-			resp:=&pbs2.StreamMsg{}
-			if err:=proto.Unmarshal(buf[:n],resp);err!=nil{
+			resp := &pbs2.StreamMsg{}
+			if err := proto.Unmarshal(buf[:n], resp); err != nil {
 				utils.LogInst().Warn().Str("sync dev info", err.Error()).Send()
 				return fmt.Errorf("sync dev info, unmarshal stream msg failed")
 			}
-			diack,ok:=resp.Payload.(*pbs2.StreamMsg_DiAck)
-			if !ok{
+			diack, ok := resp.Payload.(*pbs2.StreamMsg_DiAck)
+			if !ok {
 				utils.LogInst().Warn().Str("sync dev info: cast data", "failed").Send()
 				return fmt.Errorf("sync dev info, cast data failed")
 			}
-			if diack!= nil && diack.DiAck != nil{
-				for i:=0;i<len(diack.DiAck.Dis);i++{
-					di:=diack.DiAck.Dis[i]
-					ui:=fmt.Sprintf("uuid: %s, devtoken:%s, devtyp: %d",di.Uid,di.DevToken,di.DevTyp)
-					utils.LogInst().Warn().Str("sync dev info from peer",ui).Send()
+			if diack != nil && diack.DiAck != nil {
+				for i := 0; i < len(diack.DiAck.Dis); i++ {
+					di := diack.DiAck.Dis[i]
+					ui := fmt.Sprintf("uuid: %s, devtoken:%s, devtyp: %d", di.Uid, di.DevToken, di.DevTyp)
+					utils.LogInst().Warn().Str("sync dev info from peer", ui).Send()
 
-					if err:=ws.SaveToken(di.Uid,di.DevToken,int(di.DevTyp));err!=nil{
+					if err := ws.SaveToken(di.Uid, di.DevToken, int(di.DevTyp)); err != nil {
 						utils.LogInst().Warn().Str("sync dev info: save to db error", di.Uid).Send()
 					}
 
@@ -505,33 +498,32 @@ func (ws *Service) SyncDevInfoFromPeerNodes(stream network.Stream) error {
 
 }
 
-
-func (ws *Service)DevtokensQuery(stream network.Stream)  {
+func (ws *Service) DevtokensQuery(stream network.Stream) {
 	defer stream.Close()
 
-	rw:=NewLVRW(stream,SyncBuflength)
+	rw := NewLVRW(stream, SyncBuflength)
 
-	buf:=make([]byte,SyncBuflength)
+	buf := make([]byte, SyncBuflength)
 
-	n,err:=rw.ReadFull(buf)
-	if err!=nil{
+	n, err := rw.ReadFull(buf)
+	if err != nil {
 		utils.LogInst().Warn().Str("read dev info query", err.Error()).Send()
 		return
 	}
 	buf = buf[:n]
-	fmt.Println("rcv sync dev info:",hex.EncodeToString(buf))
+	fmt.Println("rcv sync dev info:", hex.EncodeToString(buf))
 	streamMsg := &pbs2.StreamMsg{}
 	if err := proto.Unmarshal(buf, streamMsg); err != nil {
 		utils.LogInst().Warn().Str("devinfo parse stream", err.Error()).Send()
 		return
 	}
 
-	if streamMsg.MTyp != pbs2.StreamMType_MTDevInfoSync{
+	if streamMsg.MTyp != pbs2.StreamMType_MTDevInfoSync {
 		utils.LogInst().Warn().Str("devinfo parse stream", "not a sync dev info msg").Send()
 		return
 	}
 
-	iter:=ws.dataBase.NewIterator(&util.Range{Start: []byte(DevInfoDBKeyHead), Limit: []byte(DevInfoDBKeyEnd)},nil)
+	iter := ws.dataBase.NewIterator(&util.Range{Start: []byte(DevInfoDBKeyHead), Limit: []byte(DevInfoDBKeyEnd)}, nil)
 	defer iter.Release()
 
 	var uuid string
@@ -539,44 +531,42 @@ func (ws *Service)DevtokensQuery(stream network.Stream)  {
 	var resp *pbs2.StreamMsg
 	var diack *pbs2.DevInfoAck
 
-	for iter.Next(){
-		uuid,err = GetUUIDFromDBDevInfoKey(iter.Key())
-		if err!=nil{
+	for iter.Next() {
+		uuid, err = GetUUIDFromDBDevInfoKey(iter.Key())
+		if err != nil {
 			continue
 		}
 
-		di:=&DevInfo{}
+		di := &DevInfo{}
 
-		err=json.Unmarshal(iter.Value(),di)
-		if err!=nil{
+		err = json.Unmarshal(iter.Value(), di)
+		if err != nil {
 			continue
 		}
 
-		if resp == nil{
+		if resp == nil {
 			resp = &pbs2.StreamMsg{}
 			resp.MTyp = pbs2.StreamMType_MTDevInfoAck
 
-			diack=&pbs2.DevInfoAck{
-
-			}
+			diack = &pbs2.DevInfoAck{}
 
 			resp.Payload = &pbs2.StreamMsg_DiAck{DiAck: diack}
 		}
 
-		pbdi:=&pbs2.DevInfo{
-			Uid: uuid,
-			DevTyp: int32(di.DevTyp),
+		pbdi := &pbs2.DevInfo{
+			Uid:      uuid,
+			DevTyp:   int32(di.DevTyp),
 			DevToken: di.DevToken,
 		}
 
-		ui:=fmt.Sprintf("uuid: %s, devtoken:%s, devtyp: %d",pbdi.Uid,pbdi.DevToken,pbdi.DevTyp)
-		utils.LogInst().Warn().Str("query dev info by peer",ui).Send()
-		diack.Dis = append(diack.Dis,pbdi)
+		ui := fmt.Sprintf("uuid: %s, devtoken:%s, devtyp: %d", pbdi.Uid, pbdi.DevToken, pbdi.DevTyp)
+		utils.LogInst().Warn().Str("query dev info by peer", ui).Send()
+		diack.Dis = append(diack.Dis, pbdi)
 
-		if len(diack.Dis) >= SyncDevInfoCount{
+		if len(diack.Dis) >= SyncDevInfoCount {
 			data, _ := proto.Marshal(resp)
-			_,err:=rw.Write(data)
-			if err!=nil{
+			_, err := rw.Write(data)
+			if err != nil {
 				utils.LogInst().Warn().Str("devinfo ack error", err.Error()).Send()
 				return
 			}
@@ -586,10 +576,10 @@ func (ws *Service)DevtokensQuery(stream network.Stream)  {
 		}
 	}
 
-	if resp != nil{
+	if resp != nil {
 		data, _ := proto.Marshal(resp)
-		_,err:=rw.Write(data)
-		if err!=nil{
+		_, err := rw.Write(data)
+		if err != nil {
 			utils.LogInst().Warn().Str("devinfo ack error", err.Error()).Send()
 			return
 		}
@@ -598,7 +588,7 @@ func (ws *Service)DevtokensQuery(stream network.Stream)  {
 		diack = nil
 	}
 
-	if _,err:=rw.Commit();err!=nil{
+	if _, err := rw.Commit(); err != nil {
 		utils.LogInst().Warn().Str("devinfo ack error", err.Error()).Send()
 		return
 	}

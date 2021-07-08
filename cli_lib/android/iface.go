@@ -42,7 +42,7 @@ func (a AndroidAPP) OnlineSuccess() {
 }
 
 func (a AndroidAPP) ImmediateMessage(msg *pbs.WSCryptoMsg) error {
-	if msg == nil{
+	if msg == nil {
 		return errors.New("msg is nil")
 	}
 	return a.callback(msg)
@@ -115,7 +115,6 @@ func (i AndroidAPP) callback(msg *pbs.WSCryptoMsg) error {
 	}
 }
 
-
 func UnmarshalGoByte(s string) []byte {
 	b, e := base64.StdEncoding.DecodeString(s)
 	if e != nil {
@@ -134,7 +133,6 @@ type AppCallBack interface {
 	WebSocketClosed()
 }
 
-
 func ConfigApp(addr string, callback AppCallBack) {
 
 	if addr == "" {
@@ -145,14 +143,14 @@ func ConfigApp(addr string, callback AppCallBack) {
 	_inst.cb = callback
 }
 
-func ActiveWallet(cipherTxt, auth string,devtoken string) error {
+func ActiveWallet(cipherTxt, auth string, devtoken string) error {
 
 	key, err := wallet.LoadKeyFromJsonStr(cipherTxt, auth)
 	if err != nil {
 		return err
 	}
 	_inst.key = key
-	ws, err := client.NewWSClient(devtoken,_inst.wsEnd, websocket.DevTypeAndroid,key, _inst) //202.182.101.145//167.179.78.33//127.0.0.1//
+	ws, err := client.NewWSClient(devtoken, _inst.wsEnd, websocket.DevTypeAndroid, key, _inst) //202.182.101.145//167.179.78.33//127.0.0.1//
 	if err != nil {
 		return err
 	}
@@ -189,7 +187,6 @@ func WSOffline() {
 
 	_inst.websocket.ShutDown()
 }
-
 
 func WriteMessage(to string, plainTxt string) error {
 	if _inst.websocket == nil {
@@ -259,7 +256,6 @@ func WriteVoiceMessage(to string, payload []byte, len int) error {
 
 	return _inst.websocket.Write(to, rawData)
 }
-
 
 func IsValidNinjaAddr(addr string) bool {
 	_, err := common.HexToAddress(addr)
