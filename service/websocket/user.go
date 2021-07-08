@@ -20,27 +20,20 @@ import (
 	"time"
 )
 
-
-
-type SafeWsConn struct {
-	*websocket.Conn
-	writeLock sync.Mutex
+type WsMsgBuffer struct {
+	messageType int
+	data interface{}
 }
 
-func (sws *SafeWsConn)WriteMessage(messageType int, data []byte) error  {
-	sws.writeLock.Lock()
-	defer sws.writeLock.Unlock()
-
-	return sws.Conn.WriteMessage(messageType, data)
-}
 
 type wsUser struct {
 	lock           sync.RWMutex
 	UID            string
 	OnLineTime     time.Time
-	cliWsConn      *SafeWsConn
+	cliWsConn      *websocket.Conn
 	msgFromCliChan chan *pbs.WsMsg
-	msgToCliChan   chan *pbs.WsMsg
+	//msgToCliChan   chan *pbs.WsMsg
+	msgToCliChan    chan *WsMsgBuffer
 	devToken	   string
 	devTyp         int
 	kaTimer        *time.Ticker
@@ -107,13 +100,23 @@ func (u *wsUser) writing(stop chan struct{}) {
 				return
 			}
 
+			var msg *pbs.WsMsg
+
+			switch message.data.(type) {
+			case []byte:
+				u.cliWsConn.WriteMessage(message.messageType, message.data.([]byte))
+				continue
+			case *pbs.WsMsg:
+				msg = message.data.(*pbs.WsMsg)
+			}
+
 			w, err := u.cliWsConn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				utils.LogInst().Warn().Str("WS get next writer ", err.Error()).Send()
 				return
 			}
 
-			_, err = w.Write(message.Data())
+			_, err = w.Write(msg.Data())
 			if err := w.Close(); err != nil {
 				utils.LogInst().Warn().Str("WS write ", err.Error()).Send()
 				return
@@ -125,17 +128,20 @@ func (u *wsUser) writing(stop chan struct{}) {
 				utils.LogInst().Warn().Str("WS write deadline", err.Error()).Send()
 				return
 			}
-			if err := u.cliWsConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				utils.LogInst().Warn().Str("WS write ping", err.Error()).Send()
-				return
-			}
+			//if err := u.cliWsConn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+			//	utils.LogInst().Warn().Str("WS write ping", err.Error()).Send()
+			//	return
+			//}
+
+			u.msgToCliChan <- &WsMsgBuffer{messageType: websocket.PingMessage,data: []byte{}}
+
 			//u.cliWsConn.WriteControl()
 		}
 	}
 }
 
 func (u *wsUser) writeToCli(msg *pbs.WsMsg) error {
-	u.msgToCliChan <- msg
+	u.msgToCliChan <- &WsMsgBuffer{messageType: websocket.TextMessage,data: msg}
 	return nil
 }
 
@@ -235,12 +241,12 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 	wu := &wsUser{
 		devToken: online.DevToken,
 		devTyp: int(online.DevTyp),
-		cliWsConn:      &SafeWsConn{Conn:conn},
+		cliWsConn:      conn,
 		UID:            online.UID,
 		OnLineTime:     time.Now(),
 		msgFromCliChan: ws.msgFromClientQueue,
 		kaTimer:        time.NewTicker(_wsConfig.PingPeriod),
-		msgToCliChan:   make(chan *pbs.WsMsg, _wsConfig.MaxUnreadMsgNoPerQuery),
+		msgToCliChan:   make(chan *WsMsgBuffer, _wsConfig.MaxUnreadMsgNoPerQuery),
 	}
 	ws.onlineSet.add(wu.UID)
 	ws.SaveToken(wu.UID,wu.devToken,wu.devTyp)

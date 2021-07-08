@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"math/rand"
 	"net/url"
+	"sync"
 	"time"
 )
 
@@ -30,12 +31,25 @@ const (
 	DevType_Android = 2
 )
 
+type SafeWriteConn struct {
+	*websocket.Conn
+	writeLock sync.Mutex
+}
+
+func (swc *SafeWriteConn)WriteMessage(messageType int, data []byte) error  {
+	swc.writeLock.Lock()
+	defer swc.writeLock.Unlock()
+
+	return swc.Conn.WriteMessage(messageType,data)
+}
+
+
 type WSClient struct {
 	DevTyp int
 	DeviceToken string
 	IsOnline bool
 	endpoint string
-	wsConn   *websocket2.SafeWsConn
+	wsConn   *SafeWriteConn
 	key      *wallet.Key
 	reader   *thread.Thread
 	callback CliCallBack
@@ -76,8 +90,6 @@ func NewWSClient(deviceToken, addr string, devType int, key *wallet.Key, cb CliC
 	return cc, nil
 }
 
-
-
 func (cc *WSClient) Online() error {
 	u := url.URL{Scheme: "ws", Host: cc.endpoint, Path: websocket2.CPUserOnline}
 
@@ -95,13 +107,13 @@ func (cc *WSClient) Online() error {
 	if err := onlineMsg.Online(wsConn, cc.key,cc.DeviceToken,cc.DevTyp); err != nil {
 		return err
 	}
-	swsc:=&websocket2.SafeWsConn{
-		Conn:wsConn,
-	}
-	cc.wsConn = swsc
-	swsc.SetPingHandler(func(appData string) error {
+
+	swc:=&SafeWriteConn{Conn:wsConn}
+
+	cc.wsConn = swc
+	wsConn.SetPingHandler(func(appData string) error {
 		fmt.Println("ping pong time......")
-		return swsc.WriteMessage(websocket.PongMessage, []byte{})
+		return swc.WriteMessage(websocket.PongMessage, []byte{})
 	})
 	cc.reader.Run()
 	return nil

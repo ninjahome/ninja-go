@@ -140,7 +140,7 @@ func ConfigApp(addr string, callback AppCallBack) {
 	if addr == "" {
 		addr = client.RandomBootNode()
 	}
-	fmt.Println("======>", addr)
+	//fmt.Println("======>", addr)
 	_inst.wsEnd = addr
 	_inst.cb = callback
 }
