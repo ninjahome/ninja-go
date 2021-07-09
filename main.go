@@ -82,6 +82,10 @@ func init() {
 	NodeAddrShowCmd.Flags().StringVarP(&param.password, "password", "p", "",
 		"ninja addr -p|--password [PASSWORD]")
 
+	NodeAddrShowCmd.Flags().StringVarP(&param.network, "network",
+		"n", cmd.MainNet,
+		"ninja -n|--network ["+cmd.MainNet+"|"+cmd.TestNet+"] default is "+cmd.MainNet+".")
+
 	rootCmd.AddCommand(cmd.InitCmd)
 	rootCmd.AddCommand(cmd.WalletCmd)
 	rootCmd.AddCommand(cmd.DebugCmd)
