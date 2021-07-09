@@ -246,8 +246,6 @@ func nodeAddrShow(c *cobra.Command, _ []string) {
 		panic(err)
 	}
 
-
-
 	activeKey := wallet.Inst().KeyInUsed()
 	if activeKey == nil {
 		panic("no valid key right now")
