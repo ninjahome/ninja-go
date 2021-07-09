@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/ninjahome/ninja-go/cmd"
 	"github.com/ninjahome/ninja-go/node"
 	"github.com/ninjahome/ninja-go/service/contact"
@@ -78,9 +79,13 @@ func init() {
 	flags.Int16Var(&param.wsPort, "ws.port", -1,
 		"ninja --ws.port [Port]")
 
+	NodeAddrShowCmd.Flags().StringVarP(&param.password, "password", "p", "",
+		"ninja addr -p|--password [PASSWORD]")
+
 	rootCmd.AddCommand(cmd.InitCmd)
 	rootCmd.AddCommand(cmd.WalletCmd)
 	rootCmd.AddCommand(cmd.DebugCmd)
+	rootCmd.AddCommand(NodeAddrShowCmd)
 }
 
 func main() {
@@ -181,13 +186,11 @@ func mainRun(_ *cobra.Command, _ []string) {
 		panic(err)
 	}
 
-
+	thread.NewThreadWithName(cmd.ThreadName, cmd.StartCmdRpc).Run()
 
 	if err := node.Inst().Start(); err != nil {
 		panic(err)
 	}
-	thread.NewThreadWithName(cmd.ThreadName, cmd.StartCmdRpc).Run()
-
 
 	waitShutdownSignal()
 }
@@ -211,4 +214,47 @@ func waitShutdownSignal() {
 	sig := <-sigCh
 	node.Inst().ShutDown()
 	fmt.Printf("\n>>>>>>>>>>process finished(%s)<<<<<<<<<<\n", sig)
+}
+
+var NodeAddrShowCmd = &cobra.Command{
+	Use:   "addr",
+	Short: "show node addr (peer id)",
+	Long:  `TODO::.`,
+	Run:   nodeAddrShow,
+}
+
+
+func nodeAddrShow(c *cobra.Command, _ []string) {
+	if param.password == "" {
+		fmt.Println("Password=>")
+		pw, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+		if err != nil {
+			panic(err)
+		}
+		param.password = string(pw)
+	}
+
+	if err := initNinjaConfig(); err != nil {
+		panic(err)
+	}
+
+	if err := initWalletKey(); err != nil {
+		panic(err)
+	}
+
+
+
+	activeKey := wallet.Inst().KeyInUsed()
+	if activeKey == nil {
+		panic("no valid key right now")
+	}
+	key, err := activeKey.CastEd25519Key()
+	if err != nil {
+		panic(err)
+	}
+
+	id,_:=peer.IDFromPrivateKey(key)
+
+	fmt.Println("Node Addr:",id.String())
+
 }

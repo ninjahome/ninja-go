@@ -235,8 +235,8 @@ func (c *Config) initOptions() []libp2p.Option {
 		panic(err)
 	}
 
-	id,_:=peer.IDFromPrivateKey(key)
-	fmt.Println("--------->>>>>>local id from key is :",id.String())
+	//id,_:=peer.IDFromPrivateKey(key)
+
 
 	connManager := CNM.NewConnManager(c.ConnMngConf.LowWater,
 		c.ConnMngConf.HighWater,
