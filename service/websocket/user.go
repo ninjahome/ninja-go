@@ -16,6 +16,8 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"google.golang.org/protobuf/proto"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -169,6 +171,29 @@ func ninjaKeyGet(devToken string, devTyp int) string {
 	return fmt.Sprintf(NinjaInfoDBKeyHead+"_%s_%d", devToken, devTyp)
 }
 
+func ninjaKeyDerive(key string) (devToken string, devTyp int,err error)  {
+
+	hlen:=len(NinjaInfoDBKeyHead)+1
+
+	if len(key) <= hlen{
+		return "",0,errors.New("Head Len error")
+	}
+
+	devs:=strings.Split(key[len(NinjaInfoDBKeyHead)+1:],"_")
+
+	if len(devs) != 2{
+		return "",0,errors.New("key not correct")
+	}
+
+	devToken = devs[0]
+	devTyp,err = strconv.Atoi(devs[1])
+	if err!=nil{
+		return "", 0, err
+	}
+
+	return
+}
+
 func (ws *Service) saveNinjaInfo(uid, devToken string, devTyp int) error {
 	o := &opt.WriteOptions{
 		Sync: true,
@@ -188,7 +213,7 @@ func (ws *Service) getNinjaInfo(devToken string, devTyp int) (string, error) {
 
 func (ws *Service) SaveToken(uid, devToken string, devTyp int) error {
 	if v, err := ws.getNinjaInfo(devToken, devTyp); err == nil {
-		if string(v) != uid {
+		if v != uid {
 			//delete old uid
 			ws.dataBase.Delete([]byte(DevInfoDBKeyHead+v), &opt.WriteOptions{Sync: true})
 		}
@@ -595,3 +620,4 @@ func (ws *Service) DevtokensQuery(stream network.Stream) {
 
 	utils.LogInst().Info().Str("devinfo ack", "success").Send()
 }
+

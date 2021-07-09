@@ -12,19 +12,19 @@ const (
 	lvHeadLen  int    = 4
 )
 
-type LVRederWriter struct {
+type LVReaderWriter struct {
 	io.ReadWriter
 	buflen int
 }
 
-func NewLVRW(rw io.ReadWriter, buflen int) *LVRederWriter {
-	return &LVRederWriter{
+func NewLVRW(rw io.ReadWriter, buflen int) *LVReaderWriter {
+	return &LVReaderWriter{
 		ReadWriter: rw,
 		buflen:     buflen,
 	}
 }
 
-func (lv *LVRederWriter) Read(p []byte) (n int, err error) {
+func (lv *LVReaderWriter) Read(p []byte) (n int, err error) {
 
 	buf := make([]byte, lvHeadLen)
 	n, err = lv.ReadWriter.Read(buf)
@@ -62,7 +62,7 @@ func IsReadEnd(p []byte) bool {
 	return false
 }
 
-func (lv *LVRederWriter) Write(p []byte) (n int, err error) {
+func (lv *LVReaderWriter) Write(p []byte) (n int, err error) {
 	np := len(p)
 	if np > lv.buflen {
 		err = fmt.Errorf("write check error,np:%d, buflen: %d", np, lv.buflen)
@@ -92,7 +92,7 @@ func (lv *LVRederWriter) Write(p []byte) (n int, err error) {
 	return n, nil
 }
 
-func (lv *LVRederWriter) Commit() (n int, err error) {
+func (lv *LVReaderWriter) Commit() (n int, err error) {
 	buf := make([]byte, lvHeadLen)
 	binary.BigEndian.PutUint32(buf, uint32(lvHeadLen))
 
@@ -112,7 +112,7 @@ func (lv *LVRederWriter) Commit() (n int, err error) {
 	return n, nil
 }
 
-func (lv *LVRederWriter) ReadFull(buf []byte) (int, error) {
+func (lv *LVReaderWriter) ReadFull(buf []byte) (int, error) {
 	nb := len(buf)
 	totalLen := 0
 	for {
