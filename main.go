@@ -181,11 +181,13 @@ func mainRun(_ *cobra.Command, _ []string) {
 		panic(err)
 	}
 
-	thread.NewThreadWithName(cmd.ThreadName, cmd.StartCmdRpc).Run()
+
 
 	if err := node.Inst().Start(); err != nil {
 		panic(err)
 	}
+	thread.NewThreadWithName(cmd.ThreadName, cmd.StartCmdRpc).Run()
+
 
 	waitShutdownSignal()
 }
