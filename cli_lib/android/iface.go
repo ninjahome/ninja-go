@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ninjahome/ninja-go/cli_lib/chat_msg"
+	"github.com/ninjahome/ninja-go/cli_lib/utils"
 	"github.com/ninjahome/ninja-go/common"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	"github.com/ninjahome/ninja-go/service/client"
@@ -263,4 +264,8 @@ func IsValidNinjaAddr(addr string) bool {
 		return false
 	}
 	return true
+}
+
+func IconIndex(id string,mod int) uint32 {
+	return utils.ID2IconIdx(id,mod)
 }
