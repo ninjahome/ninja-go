@@ -265,6 +265,6 @@ func IsValidNinjaAddr(addr string) bool {
 }
 
 
-func IconIndex(id string,mod int) uint32 {
-	return utils.ID2IconIdx(id,mod)
+func IconIndex(id string,mod int) int64 {
+	return int64(utils.ID2IconIdx(id,mod))
 }
