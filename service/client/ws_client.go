@@ -17,9 +17,9 @@ import (
 
 var (
 	DefaultBootWsService = []string{
-		"202.182.101.145:6666",
-		"167.179.78.33:6666",
-		"198.13.44.159:6666",
+		"39.99.198.143:6666",
+		"47.113.87.58:6666",
+		//"198.13.44.159:6666",
 	}
 
 	ErrUnknownMsg    = fmt.Errorf("unknown websocket message")
