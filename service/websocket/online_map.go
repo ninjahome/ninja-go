@@ -25,8 +25,8 @@ func (m *OnlineMap) contains(to string) bool {
 }
 
 func (m *OnlineMap) del(uid string) {
-	m.RLock()
-	defer m.RUnlock()
+	m.Lock()
+	defer m.Unlock()
 	delete(m.lines, uid)
 }
 
