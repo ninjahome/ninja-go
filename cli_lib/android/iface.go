@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/ninjahome/ninja-go/cli_lib/chat_msg"
+	"github.com/ninjahome/ninja-go/cli_lib/clientMsg/unicast"
 	"github.com/ninjahome/ninja-go/cli_lib/utils"
 	"github.com/ninjahome/ninja-go/common"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
@@ -30,7 +30,8 @@ func ActiveAddress() string {
 
 type AndroidAPP struct {
 	key       *wallet.Key
-	cb        AppCallBack
+	unicast   UnicastCallBack
+	multicast MulticastCallBack
 	wsEnd     string
 	websocket *client.WSClient
 	unreadSeq int64
@@ -50,7 +51,7 @@ func (a AndroidAPP) ImmediateMessage(msg *pbs.WSCryptoMsg) error {
 }
 
 func (a AndroidAPP) WebSocketClosed() {
-	a.cb.WebSocketClosed()
+	a.unicast.WebSocketClosed()
 }
 
 func (i AndroidAPP) UnreadMsg(ack *pbs.WSUnreadAck) error {
@@ -67,45 +68,45 @@ func (i AndroidAPP) UnreadMsg(ack *pbs.WSUnreadAck) error {
 
 func (i AndroidAPP) callback(msg *pbs.WSCryptoMsg) error {
 
-	chatMessage := &chat_msg.ChatMessage{}
+	chatMessage := &unicast.ChatMessage{}
 	if err := proto.Unmarshal(msg.PayLoad, chatMessage); err != nil {
 		return err
 	}
 	switch chatMessage.Payload.(type) {
 
-	case *chat_msg.ChatMessage_PlainTxt:
+	case *unicast.ChatMessage_PlainTxt:
 
-		rawData := chatMessage.Payload.(*chat_msg.ChatMessage_PlainTxt)
+		rawData := chatMessage.Payload.(*unicast.ChatMessage_PlainTxt)
 
-		return i.cb.TextMessage(msg.From,
+		return i.unicast.TextMessage(msg.From,
 			msg.To,
 			rawData.PlainTxt,
 			msg.UnixTime)
 
-	case *chat_msg.ChatMessage_Image:
+	case *unicast.ChatMessage_Image:
 
-		rawData := chatMessage.Payload.(*chat_msg.ChatMessage_Image)
+		rawData := chatMessage.Payload.(*unicast.ChatMessage_Image)
 
-		return i.cb.ImageMessage(msg.From,
+		return i.unicast.ImageMessage(msg.From,
 			msg.To,
 			rawData.Image,
 			msg.UnixTime)
 
-	case *chat_msg.ChatMessage_Voice:
+	case *unicast.ChatMessage_Voice:
 
-		voiceMessage := chatMessage.Payload.(*chat_msg.ChatMessage_Voice).Voice
+		voiceMessage := chatMessage.Payload.(*unicast.ChatMessage_Voice).Voice
 
-		return i.cb.VoiceMessage(msg.From,
+		return i.unicast.VoiceMessage(msg.From,
 			msg.To,
 			voiceMessage.Data,
 			int(voiceMessage.Length),
 			msg.UnixTime)
 
-	case *chat_msg.ChatMessage_Location:
+	case *unicast.ChatMessage_Location:
 
-		locationMessage := chatMessage.Payload.(*chat_msg.ChatMessage_Location).Location
+		locationMessage := chatMessage.Payload.(*unicast.ChatMessage_Location).Location
 
-		return i.cb.LocationMessage(msg.From,
+		return i.unicast.LocationMessage(msg.From,
 			msg.To,
 			locationMessage.Longitude,
 			locationMessage.Latitude,
@@ -126,7 +127,7 @@ func UnmarshalGoByte(s string) []byte {
 
 var _inst = &AndroidAPP{unreadSeq: 0}
 
-type AppCallBack interface {
+type UnicastCallBack interface {
 	VoiceMessage(from, to string, payload []byte, length int, time int64) error
 	ImageMessage(from, to string, payload []byte, time int64) error
 	LocationMessage(from, to string, l, a float32, name string, time int64) error
@@ -134,14 +135,16 @@ type AppCallBack interface {
 	WebSocketClosed()
 }
 
-func ConfigApp(addr string, callback AppCallBack) {
+
+func ConfigApp(addr string, unicast UnicastCallBack, multicast MulticastCallBack) {
 
 	if addr == "" {
 		addr = client.RandomBootNode()
 	}
 	//fmt.Println("======>", addr)
 	_inst.wsEnd = addr
-	_inst.cb = callback
+	_inst.unicast = unicast
+	_inst.multicast = multicast
 }
 
 func ActiveWallet(cipherTxt, auth string, devtoken string) error {
@@ -189,6 +192,7 @@ func WSOffline() {
 	_inst.websocket.ShutDown()
 }
 
+
 func WriteMessage(to string, plainTxt string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
@@ -198,7 +202,7 @@ func WriteMessage(to string, plainTxt string) error {
 			return err
 		}
 	}
-	rawData, err := chat_msg.WrapPlainTxt(plainTxt)
+	rawData, err := unicast.WrapPlainTxt(plainTxt)
 	if err != nil {
 		return err
 	}
@@ -215,13 +219,15 @@ func WriteLocationMessage(to string, longitude, latitude float32, name string) e
 		}
 	}
 
-	rawData, err := chat_msg.WrapLocation(longitude, latitude, name)
+	rawData, err := unicast.WrapLocation(longitude, latitude, name)
 	if err != nil {
 		return err
 	}
 
 	return _inst.websocket.Write(to, rawData)
 }
+
+
 
 func WriteImageMessage(to string, payload []byte) error {
 	if _inst.websocket == nil {
@@ -233,7 +239,7 @@ func WriteImageMessage(to string, payload []byte) error {
 		}
 	}
 
-	rawData, err := chat_msg.WrapImage(payload)
+	rawData, err := unicast.WrapImage(payload)
 	if err != nil {
 		return err
 	}
@@ -250,7 +256,7 @@ func WriteVoiceMessage(to string, payload []byte, len int) error {
 		}
 	}
 
-	rawData, err := chat_msg.WrapVoice(payload, len)
+	rawData, err := unicast.WrapVoice(payload, len)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,5 @@
 syntax = "proto3";
-package pbs;
-option go_package = "github.com/ninjahome/ninja-go/cli_lib/chat_msg;chat_msg";
+option go_package = "github.com/ninjahome/ninja-go/cli_lib/clientMsg/unicast;unicast";
 
 enum MsgType{
   PlainTxtT = 0;

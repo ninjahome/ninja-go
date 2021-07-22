@@ -1,5 +1,5 @@
 syntax = "proto3";
-package pbs;
+
 option go_package = "github.com/ninjahome/ninja-go/pbs/websocket;websocket";
 
 enum WsMsgType{
@@ -31,6 +31,19 @@ message WSCryptoMsg{
   int64 UnixTime = 6;
 }
 
+message GroupEncryptKey{
+    string MemberId = 1;
+    bytes EncryptKey = 2;
+}
+
+
+message WSCryptoGroupMsg{
+    string From = 1;
+    repeated GroupEncryptKey To = 2;
+    bytes PayLoad = 3;
+    int64 UnixTime = 4;
+}
+
 message WSPullUnread{
   string Receiver = 1;
   int64 FromUnixTime = 2;
@@ -52,5 +65,6 @@ message WsMsg{
     WSCryptoMsg message = 6;
     WSPullUnread unread = 7;
     WSUnreadAck unreadAck = 8;
+    WSCryptoGroupMsg groupMessage = 9;
   };
 }

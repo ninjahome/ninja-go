@@ -89,6 +89,26 @@ func (x *WsMsg) AesCryptData(from, to string, body, key []byte) []byte {
 	return data
 }
 
+func (x *WsMsg)AesCryptGData(from string, to []*GroupEncryptKey,body, key []byte) []byte  {
+	msg := &WSCryptoGroupMsg{
+		From: from,
+		To: to,
+		UnixTime: time.Now().Unix(),
+	}
+	dst, _ := openssl.AesECBEncrypt(body, key, openssl.PKCS7_PADDING)
+	msg.PayLoad = dst
+
+	x.Typ = WsMsgType_ImmediateMsg
+	x.Payload = &WsMsg_GroupMessage{
+		GroupMessage: msg,
+	}
+
+	data, _:=proto.Marshal(x)
+
+	return data
+
+}
+
 func (x *WsMsg) Data() []byte {
 	data, _ := proto.Marshal(x)
 	return data
@@ -115,7 +135,7 @@ func (x *WsMsg) Online(conn *websocket.Conn, key *wallet.Key, devToken string, d
 		return err
 	}
 
-	err = conn.WriteMessage(websocket.TextMessage, xData)
+	err = conn.WriteMessage(websocket.BinaryMessage, xData)
 	if err != nil {
 		return err
 	}

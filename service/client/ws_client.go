@@ -10,7 +10,9 @@ import (
 	"github.com/ninjahome/ninja-go/wallet"
 	"google.golang.org/protobuf/proto"
 	"math/rand"
+	crand "crypto/rand"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 )
@@ -128,7 +130,7 @@ func (cc *WSClient) PullUnreadMsg(startSeq int64) error {
 		Typ:     pbs.WsMsgType_PullUnread,
 		Payload: &pbs.WsMsg_Unread{Unread: request},
 	}
-	return cc.wsConn.WriteMessage(websocket.TextMessage, msgWrap.Data())
+	return cc.wsConn.WriteMessage(websocket.BinaryMessage, msgWrap.Data())
 }
 
 func (cc *WSClient) getAesKey(to string) ([]byte, error) {
@@ -145,6 +147,74 @@ func (cc *WSClient) getAesKey(to string) ([]byte, error) {
 	return key, nil
 }
 
+func getGMsgKey() []byte {
+	key:=make([]byte,32)
+	for{
+		if n,err:=crand.Read(key);err!=nil{
+			continue
+		}else if n!= len(key){
+			continue
+		}
+
+		return key
+	}
+}
+
+func (cc *WSClient)groupEncryptKey(to []string) (gekey []*pbs.GroupEncryptKey, key []byte, err error)  {
+	from := strings.ToLower(cc.key.Address.String())
+	gkey := getGMsgKey()
+
+	gekey  = make([]*pbs.GroupEncryptKey,0)
+
+
+	for i:=0;i<len(to);i++{
+		lto:=strings.ToLower(to[i])
+		if from == lto {
+			continue
+		}
+		if tokey,err:=cc.getAesKey(lto);err!=nil{
+			return nil,nil,err
+		}else{
+
+			dst, _ := openssl.AesECBEncrypt(gkey, tokey, openssl.PKCS7_PADDING)
+
+			ek:=&pbs.GroupEncryptKey{
+				MemberId: lto,
+				EncryptKey: dst,
+			}
+
+			gekey = append(gekey,ek)
+		}
+	}
+
+	return gekey, gkey,nil
+}
+
+
+func (cc *WSClient)GWrite(to []string, body []byte)  error {
+	if !cc.IsOnline {
+		return fmt.Errorf("please online yourself first")
+	}
+	if !cc.IsOnline {
+		return fmt.Errorf("please online yourself first")
+	}
+
+	gekey, gkey, err := cc.groupEncryptKey(to)
+	if err != nil {
+		return err
+	}
+
+	from := cc.key.Address.String()
+
+	msgWrap := &pbs.WsMsg{}
+
+	if err := cc.wsConn.WriteMessage(websocket.BinaryMessage,
+		msgWrap.AesCryptGData(from, gekey, body, gkey)); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (cc *WSClient) Write(to string, body []byte) error {
 	if !cc.IsOnline {
 		return fmt.Errorf("please online yourself first")
@@ -157,7 +227,7 @@ func (cc *WSClient) Write(to string, body []byte) error {
 	from := cc.key.Address.String()
 	msgWrap := &pbs.WsMsg{}
 
-	if err := cc.wsConn.WriteMessage(websocket.TextMessage,
+	if err := cc.wsConn.WriteMessage(websocket.BinaryMessage,
 		msgWrap.AesCryptData(from, to, body, key)); err != nil {
 		return err
 	}

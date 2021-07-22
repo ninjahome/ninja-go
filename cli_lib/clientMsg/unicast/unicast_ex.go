@@ -1,6 +1,8 @@
-package chat_msg
+package unicast
 
-import "google.golang.org/protobuf/proto"
+import (
+	"google.golang.org/protobuf/proto"
+)
 
 func WrapPlainTxt(txt string) ([]byte, error) {
 	chatMessage := &ChatMessage{

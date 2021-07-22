@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/ninjahome/ninja-go/cli_lib/chat_msg"
+	"github.com/ninjahome/ninja-go/cli_lib/clientMsg/unicast"
 	"github.com/ninjahome/ninja-go/cli_lib/utils"
 	"github.com/ninjahome/ninja-go/common"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
@@ -74,33 +74,33 @@ func (i IosApp) UnreadMsg(ack *pbs.WSUnreadAck) error {
 
 func (i IosApp) callback(msg *pbs.WSCryptoMsg) error {
 
-	chatMessage := &chat_msg.ChatMessage{}
+	chatMessage := &unicast.ChatMessage{}
 	if err := proto.Unmarshal(msg.PayLoad, chatMessage); err != nil {
 		return err
 	}
 	switch chatMessage.Payload.(type) {
 
-	case *chat_msg.ChatMessage_PlainTxt:
+	case *unicast.ChatMessage_PlainTxt:
 
-		rawData := chatMessage.Payload.(*chat_msg.ChatMessage_PlainTxt)
+		rawData := chatMessage.Payload.(*unicast.ChatMessage_PlainTxt)
 
 		return i.cb.TextMessage(msg.From,
 			msg.To,
 			rawData.PlainTxt,
 			msg.UnixTime)
 
-	case *chat_msg.ChatMessage_Image:
+	case *unicast.ChatMessage_Image:
 
-		rawData := chatMessage.Payload.(*chat_msg.ChatMessage_Image)
+		rawData := chatMessage.Payload.(*unicast.ChatMessage_Image)
 
 		return i.cb.ImageMessage(msg.From,
 			msg.To,
 			rawData.Image,
 			msg.UnixTime)
 
-	case *chat_msg.ChatMessage_Voice:
+	case *unicast.ChatMessage_Voice:
 
-		voiceMessage := chatMessage.Payload.(*chat_msg.ChatMessage_Voice).Voice
+		voiceMessage := chatMessage.Payload.(*unicast.ChatMessage_Voice).Voice
 
 		return i.cb.VoiceMessage(msg.From,
 			msg.To,
@@ -108,9 +108,9 @@ func (i IosApp) callback(msg *pbs.WSCryptoMsg) error {
 			int(voiceMessage.Length),
 			msg.UnixTime)
 
-	case *chat_msg.ChatMessage_Location:
+	case *unicast.ChatMessage_Location:
 
-		locationMessage := chatMessage.Payload.(*chat_msg.ChatMessage_Location).Location
+		locationMessage := chatMessage.Payload.(*unicast.ChatMessage_Location).Location
 
 		return i.cb.LocationMessage(msg.From,
 			msg.To,
@@ -195,7 +195,7 @@ func WriteMessage(to string, plainTxt string) error {
 			return err
 		}
 	}
-	rawData, err := chat_msg.WrapPlainTxt(plainTxt)
+	rawData, err := unicast.WrapPlainTxt(plainTxt)
 	if err != nil {
 		return err
 	}
@@ -213,7 +213,7 @@ func WriteLocationMessage(to string, longitude, latitude float32, name string) e
 		}
 	}
 
-	rawData, err := chat_msg.WrapLocation(longitude, latitude, name)
+	rawData, err := unicast.WrapLocation(longitude, latitude, name)
 	if err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func WriteImageMessage(to string, payload []byte) error {
 		}
 	}
 
-	rawData, err := chat_msg.WrapImage(payload)
+	rawData, err := unicast.WrapImage(payload)
 	if err != nil {
 		return err
 	}
@@ -248,7 +248,7 @@ func WriteVoiceMessage(to string, payload []byte, len int) error {
 		}
 	}
 
-	rawData, err := chat_msg.WrapVoice(payload, len)
+	rawData, err := unicast.WrapVoice(payload, len)
 	if err != nil {
 		return err
 	}

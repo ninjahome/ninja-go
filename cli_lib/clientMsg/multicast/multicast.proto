@@ -1,0 +1,31 @@
+syntax = "proto3";
+option go_package = "github.com/ninjahome/ninja-go/cli_lib/clientMsg/multicast;multicast";
+
+import "github.com/ninjahome/ninja-go/cli_lib/clientMsg/unicast/unicast.proto";
+import "github.com/ninjahome/ninja-go/pbs/websocket.proto";
+
+enum GroupMessageType{
+    CreateGroupT=0;
+    QuitGroupT = 1;
+    JoinGroupT = 2;
+    DismisGroupT = 3;
+    SyncGroup = 4;
+    ChatMessageT = 5;
+}
+
+
+message GroupDesc{
+    string GroupName = 1;
+    string GroupId = 2;
+    string GroupOwner= 3;
+    repeated GroupEncryptKey Groupmember = 4;
+}
+
+
+
+message GroupMessage{
+    GroupMessageType GroupMsgTyp = 1;
+    GroupDesc Group = 2;
+    ChatMessage chatMsg = 3;
+}
+
