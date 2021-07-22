@@ -29,6 +29,7 @@ type Service struct {
 	onlineSet            *OnlineMap
 	msgFromClientQueue   chan *pbs.WsMsg
 	threads              map[string]*thread.Thread
+	threadsLock          *sync.Mutex
 	onOffLineP2pWorker   *worker.TopicWorker
 	IMP2pWorker          *worker.TopicWorker
 	unreadP2pQueryWorker *worker.TopicWorker
@@ -80,6 +81,7 @@ func newWebSocket() *Service {
 		userTable:          newUserTable(),
 		onlineSet:          newOnlineSet(),
 		msgFromClientQueue: make(chan *pbs.WsMsg, _wsConfig.WsMsgNoFromCli),
+		threadsLock:        &sync.Mutex{},
 		threads:            make(map[string]*thread.Thread),
 		dataBase:           db,
 		iosPush:            iosPush,
@@ -91,7 +93,9 @@ func newWebSocket() *Service {
 func (ws *Service) StartService(nodeID string) {
 	ws.id = nodeID
 	dspThread := thread.NewThreadWithName(DispatchThreadName, ws.wsCliMsgDispatch)
+	ws.threadsLock.Lock()
 	ws.threads[DispatchThreadName] = dspThread
+	ws.threadsLock.Unlock()
 
 	srvThread := thread.NewThreadWithName(WSThreadName, func(_ chan struct{}) {
 		utils.LogInst().Info().Str("Websocket Serve", "Start up").Send()
@@ -107,7 +111,9 @@ func (ws *Service) StartService(nodeID string) {
 		utils.LogInst().Err(err).Str("Websocket Serve", "Exit").Send()
 		ws.ShutDown()
 	})
+	ws.threadsLock.Lock()
 	ws.threads[WSThreadName] = srvThread
+	ws.threadsLock.Unlock()
 
 	dspThread.Run()
 	srvThread.Run()
@@ -116,7 +122,9 @@ func (ws *Service) StartService(nodeID string) {
 }
 
 func (ws *Service) ShutDown() {
+	ws.threadsLock.Lock()
 	if ws.threads == nil {
+		ws.threadsLock.Unlock()
 		return
 	}
 	utils.LogInst().Warn().Msg("websocket service thread shutting down......")
@@ -124,6 +132,7 @@ func (ws *Service) ShutDown() {
 		t.Stop()
 	}
 	ws.threads = nil
+	ws.threadsLock.Unlock()
 
 	_ = ws.dataBase.Close()
 	_ = ws.server.Close()
