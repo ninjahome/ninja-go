@@ -313,6 +313,10 @@ func (cc *WSClient) reading(stop chan struct{}) {
 	}
 }
 
+func (ws *WSClient)Address() string  {
+	return ws.key.Address.String()
+}
+
 func (cc *WSClient) ShutDown() {
 	if !cc.IsOnline {
 		return

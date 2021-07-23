@@ -264,6 +264,25 @@ func WriteVoiceMessage(to string, payload []byte, len int) error {
 	return _inst.websocket.Write(to, rawData)
 }
 
+
+func SyncGroup(to string, groupId string) error  {
+	if _inst.websocket == nil {
+		return fmt.Errorf("init application first please")
+	}
+	if !_inst.websocket.IsOnline {
+		if err := _inst.websocket.Online(); err != nil {
+			return err
+		}
+	}
+
+	rawData, err := unicast.WrapSyncGroup(groupId)
+	if err != nil {
+		return err
+	}
+
+	return _inst.websocket.Write(to, rawData)
+}
+
 func IsValidNinjaAddr(addr string) bool {
 	_, err := common.HexToAddress(addr)
 	if err != nil {

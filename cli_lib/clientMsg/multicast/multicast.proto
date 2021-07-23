@@ -7,11 +7,12 @@ import "github.com/ninjahome/ninja-go/cli_lib/clientMsg/unicast/unicast.proto";
 enum GroupMessageType{
     CreateGroupT=0;
     QuitGroupT = 1;
-    JoinGroupT = 2;
-    DismisGroupT = 3;
-    SyncGroupT = 4;
-    SyncGroupAckT = 5;
-    ChatMessageT = 6;
+    KickOutUserT = 2;
+    JoinGroupT = 3;
+    DismisGroupT = 4;
+    SyncGroupT = 5;
+    SyncGroupAckT = 6;
+    ChatMessageT = 7;
 }
 
 message GroupDesc{
@@ -31,14 +32,14 @@ message QuitGroupDesc{
     string GroupId = 2;
 }
 
-
 message GroupMessage{
     GroupMessageType GroupMsgTyp = 1;
     oneof payload{
         GroupDesc groupInfo = 2;
         JoinGroupDesc joinGroupInfo = 3;
         string GroupId = 4;
-        ChatMessage chatMsg = 5;
+        QuitGroupDesc quitGroupInfo = 5;
+        ChatMessage chatMsg = 6;
     }
 }
 

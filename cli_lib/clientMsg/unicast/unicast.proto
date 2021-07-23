@@ -6,6 +6,7 @@ enum MsgType{
   ImageT = 1;
   VoiceT = 2;
   LocationT = 3;
+  SyncGroup = 4;
 }
 
 message Voice{
@@ -25,5 +26,6 @@ message ChatMessage{
     bytes Image = 3;
     Voice voice = 4;
     Location location = 5;
+    string SyncGroupId = 6;
   }
 }

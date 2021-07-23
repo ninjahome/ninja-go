@@ -60,3 +60,17 @@ func WrapVoice(p []byte, l int) ([]byte, error) {
 
 	return rawData, nil
 }
+
+func WrapSyncGroup(groupId string) ([]byte,error)  {
+	chatMessage := &ChatMessage{
+		Payload: &ChatMessage_SyncGroupId{SyncGroupId: groupId},
+	}
+
+	rawData, err := proto.Marshal(chatMessage)
+	if err != nil {
+		return nil, err
+	}
+
+	return rawData, nil
+
+}
