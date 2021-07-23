@@ -10,9 +10,8 @@ enum GroupMessageType{
     KickOutUserT = 2;
     JoinGroupT = 3;
     DismisGroupT = 4;
-    SyncGroupT = 5;
-    SyncGroupAckT = 6;
-    ChatMessageT = 7;
+    SyncGroupAckT = 5;
+    ChatMessageT = 6;
 }
 
 message GroupDesc{
@@ -32,6 +31,17 @@ message QuitGroupDesc{
     string GroupId = 2;
 }
 
+
+message SyncGroupAck{
+    GroupDesc groupInfo = 1;
+    repeated string MemberId = 2;
+}
+
+message ChatMesageDesc{
+    string GroupId = 1;
+    ChatMessage chatMsg = 2;
+}
+
 message GroupMessage{
     GroupMessageType GroupMsgTyp = 1;
     oneof payload{
@@ -39,7 +49,8 @@ message GroupMessage{
         JoinGroupDesc joinGroupInfo = 3;
         string GroupId = 4;
         QuitGroupDesc quitGroupInfo = 5;
-        ChatMessage chatMsg = 6;
+        SyncGroupAck syncGroupAck = 6;
+        ChatMesageDesc chatMsg = 7;
     }
 }
 

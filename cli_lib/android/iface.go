@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/ninjahome/ninja-go/cli_lib/clientMsg/multicast"
 	"github.com/ninjahome/ninja-go/cli_lib/clientMsg/unicast"
 	"github.com/ninjahome/ninja-go/cli_lib/utils"
 	"github.com/ninjahome/ninja-go/common"
@@ -11,6 +12,7 @@ import (
 	"github.com/ninjahome/ninja-go/service/client"
 	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/wallet"
+	"github.com/polydawn/refmt/json"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -47,8 +49,22 @@ func (a AndroidAPP) ImmediateMessage(msg *pbs.WSCryptoMsg) error {
 	if msg == nil {
 		return errors.New("msg is nil")
 	}
-	return a.callback(msg)
+	return a.unicastMsg(msg)
 }
+
+func (a AndroidAPP)ImmediateGMessage(msg *pbs.WSCryptoGroupMsg) error {
+	if msg == nil{
+		return errors.New("msg is nil")
+	}
+
+	var to []string
+	for i:=0;i<len(msg.To);i++{
+		to = append(to,msg.To[i].MemberId)
+	}
+
+	return a.multicastMsg(to,msg)
+}
+
 
 func (a AndroidAPP) WebSocketClosed() {
 	a.unicast.WebSocketClosed()
@@ -58,7 +74,7 @@ func (i AndroidAPP) UnreadMsg(ack *pbs.WSUnreadAck) error {
 	payload := ack.Payload
 
 	for j := 0; j < len(payload); j++ {
-		if err := i.callback(payload[j]); err != nil {
+		if err := i.unicastMsg(payload[j]); err != nil {
 			//TODO::notify app to know the failure
 			continue
 		}
@@ -66,7 +82,7 @@ func (i AndroidAPP) UnreadMsg(ack *pbs.WSUnreadAck) error {
 	return nil
 }
 
-func (i AndroidAPP) callback(msg *pbs.WSCryptoMsg) error {
+func (i AndroidAPP) unicastMsg(msg *pbs.WSCryptoMsg) error {
 
 	chatMessage := &unicast.ChatMessage{}
 	if err := proto.Unmarshal(msg.PayLoad, chatMessage); err != nil {
@@ -112,10 +128,40 @@ func (i AndroidAPP) callback(msg *pbs.WSCryptoMsg) error {
 			locationMessage.Latitude,
 			locationMessage.Name,
 			msg.UnixTime)
+	case *unicast.ChatMessage_SyncGroupId:
+		grouId:=chatMessage.Payload.(*unicast.ChatMessage_SyncGroupId).SyncGroupId
+
+		groupInfo:=i.multicast.SyncGroup(grouId)
+
+		if groupInfo == ""{
+			fmt.Println("no group in cell phone")
+			return nil
+		}
+
+		gi:=&GroupInfo{}
+		if err:=json.Unmarshal([]byte(groupInfo),gi);err!=nil{
+			fmt.Println(err)
+			return nil
+		}
+
+		rawData,err:=multicast.WrapSyncGroupAck(gi.NickName,gi.MemberId,gi.OwnerId,gi.GroupId,gi.GroupName)
+		if err!=nil{
+			fmt.Println(err)
+			return nil
+		}
+
+		if err:=i.websocket.Write(msg.From,rawData);err!=nil{
+			fmt.Println(err)
+			return nil
+		}
+		return nil
 	default:
 		return errors.New("msg not recognize")
 	}
+
 }
+
+
 
 func UnmarshalGoByte(s string) []byte {
 	b, e := base64.StdEncoding.DecodeString(s)

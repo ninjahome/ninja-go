@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"github.com/forgoer/openssl"
 	"github.com/gorilla/websocket"
@@ -65,6 +66,7 @@ func RandomBootNode() string {
 
 type CliCallBack interface {
 	ImmediateMessage(*pbs.WSCryptoMsg) error
+	ImmediateGMessage(msg *pbs.WSCryptoGroupMsg) error
 	WebSocketClosed()
 	UnreadMsg(*pbs.WSUnreadAck) error
 	OnlineSuccess()
@@ -145,6 +147,27 @@ func (cc *WSClient) getAesKey(to string) ([]byte, error) {
 	}
 	cc.peerKeys[to] = key
 	return key, nil
+}
+
+func (cc *WSClient)recoverGroupKey(from string, gekey []*pbs.GroupEncryptKey) ([]byte, error)  {
+	lfrom:=strings.ToLower(from)
+	key, err := cc.getAesKey(lfrom)
+	if err != nil {
+		return nil,err
+	}
+
+	var gkey []byte
+	for i:=0;i<len(gekey);i++{
+		if strings.ToLower(gekey[i].MemberId) == lfrom{
+			gkey = gekey[i].EncryptKey
+		}
+	}
+
+	if gkey == nil{
+		return nil,errors.New("i'm not in group")
+	}
+
+	return  openssl.AesECBDecrypt(gkey, key, openssl.PKCS7_PADDING)
 }
 
 func getGMsgKey() []byte {
@@ -261,20 +284,44 @@ func (cc *WSClient) procMsgFromServer() error {
 		cc.IsOnline = true
 		go cc.callback.OnlineSuccess()
 	case pbs.WsMsgType_ImmediateMsg:
-		msgWrap, ok := wsMsg.Payload.(*pbs.WsMsg_Message)
-		if !ok {
-			return ErrUnknownMsg
+		switch wsMsg.Payload.(type) {
+		case *pbs.WsMsg_Message:
+			msgWrap, ok := wsMsg.Payload.(*pbs.WsMsg_Message)
+			if !ok {
+				return ErrUnknownMsg
+			}
+			msg := msgWrap.Message
+			key, err := cc.getAesKey(msg.From)
+			if err != nil {
+				return err
+			}
+			dst, _ := openssl.AesECBDecrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
+			msg.PayLoad = dst
+			if err := cc.callback.ImmediateMessage(msg); err != nil {
+				return err
+			}
+		case *pbs.WsMsg_GroupMessage:
+			msgWrap, ok := wsMsg.Payload.(*pbs.WsMsg_GroupMessage)
+			if !ok {
+				return ErrUnknownMsg
+			}
+			msg := msgWrap.GroupMessage
+
+			key,err:=cc.recoverGroupKey(msg.From,msg.To)
+			if err != nil {
+				return err
+			}
+
+			dst, _ := openssl.AesECBDecrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
+			msg.PayLoad = dst
+			if err := cc.callback.ImmediateGMessage(msg); err != nil {
+				return err
+			}
+		default:
+			return errors.New("not a correct message")
+
 		}
-		msg := msgWrap.Message
-		key, err := cc.getAesKey(msg.From)
-		if err != nil {
-			return err
-		}
-		dst, _ := openssl.AesECBDecrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
-		msg.PayLoad = dst
-		if err := cc.callback.ImmediateMessage(msg); err != nil {
-			return err
-		}
+
 	case pbs.WsMsgType_UnreadAck:
 		ack, ok := wsMsg.Payload.(*pbs.WsMsg_UnreadAck)
 		if !ok {
