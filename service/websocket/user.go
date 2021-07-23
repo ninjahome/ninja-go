@@ -171,23 +171,23 @@ func ninjaKeyGet(devToken string, devTyp int) string {
 	return fmt.Sprintf(NinjaInfoDBKeyHead+"_%s_%d", devToken, devTyp)
 }
 
-func ninjaKeyDerive(key string) (devToken string, devTyp int,err error)  {
+func ninjaKeyDerive(key string) (devToken string, devTyp int, err error) {
 
-	hlen:=len(NinjaInfoDBKeyHead)+1
+	hlen := len(NinjaInfoDBKeyHead) + 1
 
-	if len(key) <= hlen{
-		return "",0,errors.New("Head Len error")
+	if len(key) <= hlen {
+		return "", 0, errors.New("Head Len error")
 	}
 
-	devs:=strings.Split(key[len(NinjaInfoDBKeyHead)+1:],"_")
+	devs := strings.Split(key[len(NinjaInfoDBKeyHead)+1:], "_")
 
-	if len(devs) != 2{
-		return "",0,errors.New("key not correct")
+	if len(devs) != 2 {
+		return "", 0, errors.New("key not correct")
 	}
 
 	devToken = devs[0]
-	devTyp,err = strconv.Atoi(devs[1])
-	if err!=nil{
+	devTyp, err = strconv.Atoi(devs[1])
+	if err != nil {
 		return "", 0, err
 	}
 
@@ -626,4 +626,3 @@ func (ws *Service) DevtokensQuery(stream network.Stream) {
 
 	utils.LogInst().Info().Str("devinfo ack", "success").Send()
 }
-

@@ -1,6 +1,7 @@
 package client
 
 import (
+	crand "crypto/rand"
 	"errors"
 	"fmt"
 	"github.com/forgoer/openssl"
@@ -11,7 +12,6 @@ import (
 	"github.com/ninjahome/ninja-go/wallet"
 	"google.golang.org/protobuf/proto"
 	"math/rand"
-	crand "crypto/rand"
 	"net/url"
 	"strings"
 	"sync"
@@ -149,33 +149,33 @@ func (cc *WSClient) getAesKey(to string) ([]byte, error) {
 	return key, nil
 }
 
-func (cc *WSClient)recoverGroupKey(from string, gekey []*pbs.GroupEncryptKey) ([]byte, error)  {
-	lfrom:=strings.ToLower(from)
+func (cc *WSClient) recoverGroupKey(from string, gekey []*pbs.GroupEncryptKey) ([]byte, error) {
+	lfrom := strings.ToLower(from)
 	key, err := cc.getAesKey(lfrom)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	var gkey []byte
-	for i:=0;i<len(gekey);i++{
-		if strings.ToLower(gekey[i].MemberId) == lfrom{
+	for i := 0; i < len(gekey); i++ {
+		if strings.ToLower(gekey[i].MemberId) == lfrom {
 			gkey = gekey[i].EncryptKey
 		}
 	}
 
-	if gkey == nil{
-		return nil,errors.New("i'm not in group")
+	if gkey == nil {
+		return nil, errors.New("i'm not in group")
 	}
 
-	return  openssl.AesECBDecrypt(gkey, key, openssl.PKCS7_PADDING)
+	return openssl.AesECBDecrypt(gkey, key, openssl.PKCS7_PADDING)
 }
 
 func getGMsgKey() []byte {
-	key:=make([]byte,32)
-	for{
-		if n,err:=crand.Read(key);err!=nil{
+	key := make([]byte, 32)
+	for {
+		if n, err := crand.Read(key); err != nil {
 			continue
-		}else if n!= len(key){
+		} else if n != len(key) {
 			continue
 		}
 
@@ -183,38 +183,36 @@ func getGMsgKey() []byte {
 	}
 }
 
-func (cc *WSClient)groupEncryptKey(to []string) (gekey []*pbs.GroupEncryptKey, key []byte, err error)  {
+func (cc *WSClient) groupEncryptKey(to []string) (gekey []*pbs.GroupEncryptKey, key []byte, err error) {
 	from := strings.ToLower(cc.key.Address.String())
 	gkey := getGMsgKey()
 
-	gekey  = make([]*pbs.GroupEncryptKey,0)
+	gekey = make([]*pbs.GroupEncryptKey, 0)
 
-
-	for i:=0;i<len(to);i++{
-		lto:=strings.ToLower(to[i])
+	for i := 0; i < len(to); i++ {
+		lto := strings.ToLower(to[i])
 		if from == lto {
 			continue
 		}
-		if tokey,err:=cc.getAesKey(lto);err!=nil{
-			return nil,nil,err
-		}else{
+		if tokey, err := cc.getAesKey(lto); err != nil {
+			return nil, nil, err
+		} else {
 
 			dst, _ := openssl.AesECBEncrypt(gkey, tokey, openssl.PKCS7_PADDING)
 
-			ek:=&pbs.GroupEncryptKey{
-				MemberId: lto,
+			ek := &pbs.GroupEncryptKey{
+				MemberId:   lto,
 				EncryptKey: dst,
 			}
 
-			gekey = append(gekey,ek)
+			gekey = append(gekey, ek)
 		}
 	}
 
-	return gekey, gkey,nil
+	return gekey, gkey, nil
 }
 
-
-func (cc *WSClient)GWrite(to []string, body []byte)  error {
+func (cc *WSClient) GWrite(to []string, body []byte) error {
 	if !cc.IsOnline {
 		return fmt.Errorf("please online yourself first")
 	}
@@ -307,7 +305,7 @@ func (cc *WSClient) procMsgFromServer() error {
 			}
 			msg := msgWrap.GroupMessage
 
-			key,err:=cc.recoverGroupKey(msg.From,msg.To)
+			key, err := cc.recoverGroupKey(msg.From, msg.To)
 			if err != nil {
 				return err
 			}
@@ -360,7 +358,7 @@ func (cc *WSClient) reading(stop chan struct{}) {
 	}
 }
 
-func (ws *WSClient)Address() string  {
+func (ws *WSClient) Address() string {
 	return ws.key.Address.String()
 }
 

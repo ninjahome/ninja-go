@@ -227,7 +227,6 @@ var NodeAddrShowCmd = &cobra.Command{
 	Run:   nodeAddrShow,
 }
 
-
 func nodeAddrShow(c *cobra.Command, _ []string) {
 	if param.password == "" {
 		fmt.Println("Password=>")
@@ -255,8 +254,8 @@ func nodeAddrShow(c *cobra.Command, _ []string) {
 		panic(err)
 	}
 
-	id,_:=peer.IDFromPrivateKey(key)
+	id, _ := peer.IDFromPrivateKey(key)
 
-	fmt.Println("Node Addr:",id.String())
+	fmt.Println("Node Addr:", id.String())
 
 }

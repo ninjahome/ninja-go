@@ -11,19 +11,17 @@ import (
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 )
 
-
-
 type GroupInfo struct {
-	GroupId string `json:"group_id"`
-	GroupName string `json:"group_name"`
-	OwnerId   string `json:"owner_id"`
-	MemberId   []string `json:"member_id"`
-	NickName []string `json:"nick_name"`
+	GroupId   string   `json:"group_id"`
+	GroupName string   `json:"group_name"`
+	OwnerId   string   `json:"owner_id"`
+	MemberId  []string `json:"member_id"`
+	NickName  []string `json:"nick_name"`
 }
 
 type MulticastCallBack interface {
 	CreateGroup(groupId, groupName, owner string, memberId, memberNickName []string) error
-	JoinGroup(from,groupId, groupName, owner string, memberId,memberNickName []string, newId string) error
+	JoinGroup(from, groupId, groupName, owner string, memberId, memberNickName []string, newId string) error
 	KickOutUser(groupId, kickId string) error
 	QuitGroup(groupId, quitId string) error
 	DismisGroup(groupId string) error
@@ -36,16 +34,16 @@ type MulticastCallBack interface {
 	TextMessage(from, groupId string, payload string, time int64) error
 }
 
-func (i AndroidAPP) multicastMsg(to []string,msg *pbs.WSCryptoGroupMsg) error{
-	groupMessage:=&multicast.GroupMessage{}
-	if err:=proto.Unmarshal(msg.PayLoad,groupMessage);err!=nil{
+func (i AndroidAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
+	groupMessage := &multicast.GroupMessage{}
+	if err := proto.Unmarshal(msg.PayLoad, groupMessage); err != nil {
 		return err
 	}
 
 	switch groupMessage.GroupMsgTyp {
 	case multicast.GroupMessageType_CreateGroupT:
-		groupInfo:=groupMessage.Payload.(*multicast.GroupMessage_GroupInfo)
-		groupDesc:=groupInfo.GroupInfo
+		groupInfo := groupMessage.Payload.(*multicast.GroupMessage_GroupInfo)
+		groupDesc := groupInfo.GroupInfo
 
 		return i.multicast.CreateGroup(groupDesc.GroupId,
 			groupDesc.GroupName,
@@ -54,8 +52,8 @@ func (i AndroidAPP) multicastMsg(to []string,msg *pbs.WSCryptoGroupMsg) error{
 			groupDesc.NickName)
 
 	case multicast.GroupMessageType_JoinGroupT:
-		jInfo:=groupMessage.Payload.(*multicast.GroupMessage_JoinGroupInfo)
-		joinGroup:=jInfo.JoinGroupInfo
+		jInfo := groupMessage.Payload.(*multicast.GroupMessage_JoinGroupInfo)
+		joinGroup := jInfo.JoinGroupInfo
 
 		return i.multicast.JoinGroup(msg.From,
 			joinGroup.GroupInfo.GroupId,
@@ -64,23 +62,23 @@ func (i AndroidAPP) multicastMsg(to []string,msg *pbs.WSCryptoGroupMsg) error{
 			to,
 			joinGroup.GroupInfo.NickName,
 			joinGroup.NewID,
-			)
+		)
 
 	case multicast.GroupMessageType_QuitGroupT:
-		quitInfo:=groupMessage.Payload.(*multicast.GroupMessage_QuitGroupInfo)
-		quitGroup:=quitInfo.QuitGroupInfo
+		quitInfo := groupMessage.Payload.(*multicast.GroupMessage_QuitGroupInfo)
+		quitGroup := quitInfo.QuitGroupInfo
 
-		return i.multicast.QuitGroup(quitGroup.GroupId,quitGroup.QuitId)
+		return i.multicast.QuitGroup(quitGroup.GroupId, quitGroup.QuitId)
 
 	case multicast.GroupMessageType_KickOutUserT:
-		kickInfo:=groupMessage.Payload.(*multicast.GroupMessage_QuitGroupInfo)
-		kickGroup:=kickInfo.QuitGroupInfo
+		kickInfo := groupMessage.Payload.(*multicast.GroupMessage_QuitGroupInfo)
+		kickGroup := kickInfo.QuitGroupInfo
 
-		return i.multicast.KickOutUser(kickGroup.GroupId,kickGroup.QuitId)
+		return i.multicast.KickOutUser(kickGroup.GroupId, kickGroup.QuitId)
 
 	case multicast.GroupMessageType_SyncGroupAckT:
-		syncGroupAck:=groupMessage.Payload.(*multicast.GroupMessage_SyncGroupAck)
-		syncGroup:=syncGroupAck.SyncGroupAck
+		syncGroupAck := groupMessage.Payload.(*multicast.GroupMessage_SyncGroupAck)
+		syncGroup := syncGroupAck.SyncGroupAck
 
 		return i.multicast.SyncGroupAck(syncGroup.GroupInfo.GroupId,
 			syncGroup.GroupInfo.GroupName,
@@ -88,15 +86,14 @@ func (i AndroidAPP) multicastMsg(to []string,msg *pbs.WSCryptoGroupMsg) error{
 			syncGroup.MemberId,
 			syncGroup.GroupInfo.NickName)
 
-
 	case multicast.GroupMessageType_ChatMessageT:
-		chatMessage:=groupMessage.Payload.(*multicast.GroupMessage_ChatMsg)
-		chatMsg:=chatMessage.ChatMsg
+		chatMessage := groupMessage.Payload.(*multicast.GroupMessage_ChatMsg)
+		chatMsg := chatMessage.ChatMsg
 
-		return i.multicastChatMsg(msg.From,chatMsg,msg.UnixTime)
+		return i.multicastChatMsg(msg.From, chatMsg, msg.UnixTime)
 
 	case multicast.GroupMessageType_DismisGroupT:
-		dismisGroup:=groupMessage.Payload.(*multicast.GroupMessage_GroupId)
+		dismisGroup := groupMessage.Payload.(*multicast.GroupMessage_GroupId)
 
 		return i.multicast.DismisGroup(dismisGroup.GroupId)
 
@@ -105,7 +102,7 @@ func (i AndroidAPP) multicastMsg(to []string,msg *pbs.WSCryptoGroupMsg) error{
 	return nil
 }
 
-func (i AndroidAPP)multicastChatMsg(from string,msg *multicast.ChatMesageDesc, ts int64) error {
+func (i AndroidAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc, ts int64) error {
 	switch msg.ChatMsg.Payload.(type) {
 
 	case *unicast.ChatMessage_PlainTxt:
@@ -152,7 +149,7 @@ func (i AndroidAPP)multicastChatMsg(from string,msg *multicast.ChatMesageDesc, t
 
 }
 
-func CreateGroup(to,nickname []string, groupId,groupName string) error  {
+func CreateGroup(to, nickname []string, groupId, groupName string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -163,74 +160,74 @@ func CreateGroup(to,nickname []string, groupId,groupName string) error  {
 		}
 	}
 
-	owner:=_inst.websocket.Address()
+	owner := _inst.websocket.Address()
 
-	rawData,err:=multicast.WrapCreateGroup(nickname,owner,groupId,groupName)
-	if err!=nil{
+	rawData, err := multicast.WrapCreateGroup(nickname, owner, groupId, groupName)
+	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to,rawData)
-	if err!=nil{
+	err = _inst.websocket.GWrite(to, rawData)
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func JoinGroup(to,nickName []string, groupId, groupName,groupOwner, newId string) error  {
+func JoinGroup(to, nickName []string, groupId, groupName, groupOwner, newId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
 	}
 	if !_inst.websocket.IsOnline {
 		if err := _inst.websocket.Online(); err != nil {
-			fmt.Println( err.Error())
+			fmt.Println(err.Error())
 			return err
 		}
 	}
 
-	rawData,err:=multicast.WrapJoinGroup(nickName,groupOwner,groupId,groupName,newId)
-	if err!=nil{
+	rawData, err := multicast.WrapJoinGroup(nickName, groupOwner, groupId, groupName, newId)
+	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to,rawData)
-	if err!=nil{
+	err = _inst.websocket.GWrite(to, rawData)
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func QuitGroup(to []string, groupId string) error  {
+func QuitGroup(to []string, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
 	}
 	if !_inst.websocket.IsOnline {
 		if err := _inst.websocket.Online(); err != nil {
-			fmt.Println( err.Error())
+			fmt.Println(err.Error())
 			return err
 		}
 	}
 
-	quitId:=_inst.websocket.Address()
+	quitId := _inst.websocket.Address()
 
-	rawData,err:=multicast.WrapQuitGroup(quitId, groupId)
-	if err!=nil{
+	rawData, err := multicast.WrapQuitGroup(quitId, groupId)
+	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to,rawData)
-	if err!=nil{
+	err = _inst.websocket.GWrite(to, rawData)
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func KickOutUser(to []string, groupId, owner,kickUserId string) error {
+func KickOutUser(to []string, groupId, owner, kickUserId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -241,25 +238,25 @@ func KickOutUser(to []string, groupId, owner,kickUserId string) error {
 		}
 	}
 
-	localUser:=_inst.websocket.Address()
-	if localUser != owner{
+	localUser := _inst.websocket.Address()
+	if localUser != owner {
 		return fmt.Errorf("only owner can kick out group member")
 	}
 
-	rawData,err:=multicast.WrapKickUser(kickUserId, groupId)
-	if err!=nil{
+	rawData, err := multicast.WrapKickUser(kickUserId, groupId)
+	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to,rawData)
-	if err!=nil{
+	err = _inst.websocket.GWrite(to, rawData)
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func DismisGroup(to []string, owner, groupId string) error  {
+func DismisGroup(to []string, owner, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -270,26 +267,25 @@ func DismisGroup(to []string, owner, groupId string) error  {
 		}
 	}
 
-	localUser:=_inst.websocket.Address()
-	if localUser != owner{
+	localUser := _inst.websocket.Address()
+	if localUser != owner {
 		return fmt.Errorf("only owner can dismis group")
 	}
 
-	rawData,err:=multicast.WrapDismisGroup(groupId)
-	if err!=nil{
+	rawData, err := multicast.WrapDismisGroup(groupId)
+	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to,rawData)
-	if err!=nil{
+	err = _inst.websocket.GWrite(to, rawData)
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-
-func WriteGroupMessage(to []string, groupId, plainTxt string) error  {
+func WriteGroupMessage(to []string, groupId, plainTxt string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -299,22 +295,21 @@ func WriteGroupMessage(to []string, groupId, plainTxt string) error  {
 		}
 	}
 
-	rawData,err:=multicast.WrapTextMesage(groupId, plainTxt)
+	rawData, err := multicast.WrapTextMesage(groupId, plainTxt)
 
-	if err!=nil{
+	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to,rawData)
-	if err!=nil{
+	err = _inst.websocket.GWrite(to, rawData)
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-
-func WriteLocationGroupMessage(to []string, longitude, latitude float32, name, groupId string) error  {
+func WriteLocationGroupMessage(to []string, longitude, latitude float32, name, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -324,22 +319,21 @@ func WriteLocationGroupMessage(to []string, longitude, latitude float32, name, g
 		}
 	}
 
-	rawData,err:=multicast.WrapLocation(longitude,latitude,name,groupId)
+	rawData, err := multicast.WrapLocation(longitude, latitude, name, groupId)
 
-	if err!=nil{
+	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to,rawData)
-	if err!=nil{
+	err = _inst.websocket.GWrite(to, rawData)
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-
-func WriteImageGroupMessage(to []string, payload []byte,groupId string) error{
+func WriteImageGroupMessage(to []string, payload []byte, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -349,21 +343,21 @@ func WriteImageGroupMessage(to []string, payload []byte,groupId string) error{
 		}
 	}
 
-	rawData,err:=multicast.WrapImage(payload,groupId)
+	rawData, err := multicast.WrapImage(payload, groupId)
 
-	if err!=nil{
+	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to,rawData)
-	if err!=nil{
+	err = _inst.websocket.GWrite(to, rawData)
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func WriteVoiceGroupMessage(to []string, payload []byte, length int,groupId string) error{
+func WriteVoiceGroupMessage(to []string, payload []byte, length int, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -373,24 +367,24 @@ func WriteVoiceGroupMessage(to []string, payload []byte, length int,groupId stri
 		}
 	}
 
-	rawData,err:=multicast.WrapVoice(payload,length,groupId)
+	rawData, err := multicast.WrapVoice(payload, length, groupId)
 
-	if err!=nil{
+	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to,rawData)
-	if err!=nil{
+	err = _inst.websocket.GWrite(to, rawData)
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func NewGroupId() string  {
-	buf:=make([]byte,32)
-	for{
-		if n,err:=rand.Read(buf);err!=nil || n!=len(buf){
+func NewGroupId() string {
+	buf := make([]byte, 32)
+	for {
+		if n, err := rand.Read(buf); err != nil || n != len(buf) {
 			continue
 		}
 		break

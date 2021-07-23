@@ -61,7 +61,7 @@ func WrapVoice(p []byte, l int) ([]byte, error) {
 	return rawData, nil
 }
 
-func WrapSyncGroup(groupId string) ([]byte,error)  {
+func WrapSyncGroup(groupId string) ([]byte, error) {
 	chatMessage := &ChatMessage{
 		Payload: &ChatMessage_SyncGroupId{SyncGroupId: groupId},
 	}

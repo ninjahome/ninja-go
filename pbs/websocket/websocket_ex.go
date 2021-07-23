@@ -89,10 +89,10 @@ func (x *WsMsg) AesCryptData(from, to string, body, key []byte) []byte {
 	return data
 }
 
-func (x *WsMsg)AesCryptGData(from string, to []*GroupEncryptKey,body, key []byte) []byte  {
+func (x *WsMsg) AesCryptGData(from string, to []*GroupEncryptKey, body, key []byte) []byte {
 	msg := &WSCryptoGroupMsg{
-		From: from,
-		To: to,
+		From:     from,
+		To:       to,
 		UnixTime: time.Now().Unix(),
 	}
 	dst, _ := openssl.AesECBEncrypt(body, key, openssl.PKCS7_PADDING)
@@ -103,7 +103,7 @@ func (x *WsMsg)AesCryptGData(from string, to []*GroupEncryptKey,body, key []byte
 		GroupMessage: msg,
 	}
 
-	data, _:=proto.Marshal(x)
+	data, _ := proto.Marshal(x)
 
 	return data
 

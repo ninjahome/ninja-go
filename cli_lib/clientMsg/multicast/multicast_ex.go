@@ -5,148 +5,141 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func WrapCreateGroup(nickName []string,owner,groupId, groupName string) ([]byte,error)  {
-	createGroup:=&GroupDesc{
-		GroupName: groupName,
+func WrapCreateGroup(nickName []string, owner, groupId, groupName string) ([]byte, error) {
+	createGroup := &GroupDesc{
+		GroupName:  groupName,
 		GroupOwner: owner,
-		NickName: nickName,
-		GroupId: groupId,
+		NickName:   nickName,
+		GroupId:    groupId,
 	}
 
-
-	gMsg:=&GroupMessage{
+	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_CreateGroupT,
 		Payload: &GroupMessage_GroupInfo{
 			GroupInfo: createGroup,
 		},
 	}
 
-	rawData,err:=proto.Marshal(gMsg)
-	if err!=nil{
+	rawData, err := proto.Marshal(gMsg)
+	if err != nil {
 		return nil, err
 	}
 
 	return rawData, nil
 }
 
-
-
-func WrapJoinGroup(nickName []string,owner,groupId, groupName,newId string) ([]byte,error)  {
-	groupDesc:=&GroupDesc{
-		GroupName: groupName,
+func WrapJoinGroup(nickName []string, owner, groupId, groupName, newId string) ([]byte, error) {
+	groupDesc := &GroupDesc{
+		GroupName:  groupName,
 		GroupOwner: owner,
-		NickName: nickName,
-		GroupId: groupId,
+		NickName:   nickName,
+		GroupId:    groupId,
 	}
 
-
-	joinGroup:=&JoinGroupDesc{
+	joinGroup := &JoinGroupDesc{
 		GroupInfo: groupDesc,
-		NewID: newId,
+		NewID:     newId,
 	}
 
-	gMsg:=&GroupMessage{
+	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_JoinGroupT,
 		Payload: &GroupMessage_JoinGroupInfo{
 			JoinGroupInfo: joinGroup,
 		},
 	}
 
-	rawData,err:=proto.Marshal(gMsg)
-	if err!=nil{
+	rawData, err := proto.Marshal(gMsg)
+	if err != nil {
 		return nil, err
 	}
 
-	return rawData,nil
+	return rawData, nil
 }
 
-func WrapQuitGroup(quitId, groupId string) ([]byte, error)  {
-	quitGroup:=&QuitGroupDesc{
+func WrapQuitGroup(quitId, groupId string) ([]byte, error) {
+	quitGroup := &QuitGroupDesc{
 		GroupId: groupId,
-		QuitId: quitId,
+		QuitId:  quitId,
 	}
 
-	gMsg:=&GroupMessage{
+	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_QuitGroupT,
 		Payload: &GroupMessage_QuitGroupInfo{
 			QuitGroupInfo: quitGroup,
 		},
 	}
 
-	rawData,err:=proto.Marshal(gMsg)
-	if err!=nil{
+	rawData, err := proto.Marshal(gMsg)
+	if err != nil {
 		return nil, err
 	}
 
-	return rawData,nil
+	return rawData, nil
 
 }
 
-
-func WrapKickUser(kickId, groupId string) ([]byte, error)  {
-	quitGroup:=&QuitGroupDesc{
+func WrapKickUser(kickId, groupId string) ([]byte, error) {
+	quitGroup := &QuitGroupDesc{
 		GroupId: groupId,
-		QuitId: kickId,
+		QuitId:  kickId,
 	}
 
-	gMsg:=&GroupMessage{
+	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_KickOutUserT,
 		Payload: &GroupMessage_QuitGroupInfo{
 			QuitGroupInfo: quitGroup,
 		},
 	}
 
-	rawData,err:=proto.Marshal(gMsg)
-	if err!=nil{
+	rawData, err := proto.Marshal(gMsg)
+	if err != nil {
 		return nil, err
 	}
 
-	return rawData,nil
+	return rawData, nil
 
 }
 
-
-func WrapDismisGroup(groupId string) ([]byte, error)  {
-	gMsg:=&GroupMessage{
+func WrapDismisGroup(groupId string) ([]byte, error) {
+	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_DismisGroupT,
 		Payload: &GroupMessage_GroupId{
 			GroupId: groupId,
 		},
 	}
 
-	rawData,err:=proto.Marshal(gMsg)
-	if err!=nil{
+	rawData, err := proto.Marshal(gMsg)
+	if err != nil {
 		return nil, err
 	}
 
-	return rawData,nil
+	return rawData, nil
 
 }
 
-func WrapSyncGroupAck(nickName,memberId []string,owner,groupId, groupName string) ([]byte,error)  {
+func WrapSyncGroupAck(nickName, memberId []string, owner, groupId, groupName string) ([]byte, error) {
 
-	groupDesc:=&GroupDesc{
-		GroupName: groupName,
+	groupDesc := &GroupDesc{
+		GroupName:  groupName,
 		GroupOwner: owner,
-		NickName: nickName,
-		GroupId: groupId,
+		NickName:   nickName,
+		GroupId:    groupId,
 	}
 
-
-	syncGroup:=&SyncGroupAck{
+	syncGroup := &SyncGroupAck{
 		GroupInfo: groupDesc,
-		MemberId: memberId,
+		MemberId:  memberId,
 	}
 
-	gMsg:=&GroupMessage{
+	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_SyncGroupAckT,
 		Payload: &GroupMessage_SyncGroupAck{
 			SyncGroupAck: syncGroup,
 		},
 	}
 
-	rawData,err:=proto.Marshal(gMsg)
-	if err!=nil{
+	rawData, err := proto.Marshal(gMsg)
+	if err != nil {
 		return nil, err
 	}
 
@@ -154,26 +147,26 @@ func WrapSyncGroupAck(nickName,memberId []string,owner,groupId, groupName string
 }
 
 func WrapTextMesage(groupid, plainTxt string) ([]byte, error) {
-	chatMessage:=&unicast.ChatMessage{
+	chatMessage := &unicast.ChatMessage{
 		Payload: &unicast.ChatMessage_PlainTxt{
 			PlainTxt: plainTxt,
 		},
 	}
 
-	chatInfo:=&ChatMesageDesc{
+	chatInfo := &ChatMesageDesc{
 		GroupId: groupid,
 		ChatMsg: chatMessage,
 	}
 
-	gMsg:=&GroupMessage{
+	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_ChatMessageT,
 		Payload: &GroupMessage_ChatMsg{
 			ChatMsg: chatInfo,
 		},
 	}
 
-	rawData,err:=proto.Marshal(gMsg)
-	if err!=nil{
+	rawData, err := proto.Marshal(gMsg)
+	if err != nil {
 		return nil, err
 	}
 
@@ -181,85 +174,85 @@ func WrapTextMesage(groupid, plainTxt string) ([]byte, error) {
 
 }
 
-func WrapLocation(l, a float32, name, groupId string) ([]byte,error)  {
-	chatMessage:=&unicast.ChatMessage{
+func WrapLocation(l, a float32, name, groupId string) ([]byte, error) {
+	chatMessage := &unicast.ChatMessage{
 		Payload: &unicast.ChatMessage_Location{
 			Location: &unicast.Location{
-				Latitude: a,
+				Latitude:  a,
 				Longitude: l,
-				Name: name,
+				Name:      name,
 			},
 		},
 	}
 
-	chatInfo:=&ChatMesageDesc{
+	chatInfo := &ChatMesageDesc{
 		GroupId: groupId,
 		ChatMsg: chatMessage,
 	}
-	gMsg:=&GroupMessage{
+	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_ChatMessageT,
 		Payload: &GroupMessage_ChatMsg{
 			ChatMsg: chatInfo,
 		},
 	}
 
-	rawData,err:=proto.Marshal(gMsg)
-	if err!=nil{
+	rawData, err := proto.Marshal(gMsg)
+	if err != nil {
 		return nil, err
 	}
 
 	return rawData, nil
 }
 
-func WrapImage(data []byte, groupId string) ([]byte,error) {
-	chatMessage:=&unicast.ChatMessage{
+func WrapImage(data []byte, groupId string) ([]byte, error) {
+	chatMessage := &unicast.ChatMessage{
 		Payload: &unicast.ChatMessage_Image{
 			Image: data,
 		},
 	}
 
-	chatInfo:=&ChatMesageDesc{
+	chatInfo := &ChatMesageDesc{
 		GroupId: groupId,
 		ChatMsg: chatMessage,
 	}
-	gMsg:=&GroupMessage{
+	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_ChatMessageT,
 		Payload: &GroupMessage_ChatMsg{
 			ChatMsg: chatInfo,
 		},
 	}
 
-	rawData,err:=proto.Marshal(gMsg)
-	if err!=nil{
+	rawData, err := proto.Marshal(gMsg)
+	if err != nil {
 		return nil, err
 	}
 
 	return rawData, nil
 }
 
-func WrapVoice(p []byte, l int, groupId string) ([]byte,error) {
-	chatMessage:=&unicast.ChatMessage{
+func WrapVoice(p []byte, l int, groupId string) ([]byte, error) {
+	chatMessage := &unicast.ChatMessage{
 		Payload: &unicast.ChatMessage_Voice{
 			Voice: &unicast.Voice{
-				Data: p,
+				Data:   p,
 				Length: int32(l),
 			},
 		},
 	}
 
-	chatInfo:=&ChatMesageDesc{
+	chatInfo := &ChatMesageDesc{
 		GroupId: groupId,
 		ChatMsg: chatMessage,
 	}
-	gMsg:=&GroupMessage{
+	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_ChatMessageT,
 		Payload: &GroupMessage_ChatMsg{
 			ChatMsg: chatInfo,
 		},
 	}
 
-	rawData,err:=proto.Marshal(gMsg)
-	if err!=nil{
+	rawData, err := proto.Marshal(gMsg)
+	if err != nil {
 		return nil, err
 	}
 

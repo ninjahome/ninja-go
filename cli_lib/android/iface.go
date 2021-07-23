@@ -52,19 +52,18 @@ func (a AndroidAPP) ImmediateMessage(msg *pbs.WSCryptoMsg) error {
 	return a.unicastMsg(msg)
 }
 
-func (a AndroidAPP)ImmediateGMessage(msg *pbs.WSCryptoGroupMsg) error {
-	if msg == nil{
+func (a AndroidAPP) ImmediateGMessage(msg *pbs.WSCryptoGroupMsg) error {
+	if msg == nil {
 		return errors.New("msg is nil")
 	}
 
 	var to []string
-	for i:=0;i<len(msg.To);i++{
-		to = append(to,msg.To[i].MemberId)
+	for i := 0; i < len(msg.To); i++ {
+		to = append(to, msg.To[i].MemberId)
 	}
 
-	return a.multicastMsg(to,msg)
+	return a.multicastMsg(to, msg)
 }
-
 
 func (a AndroidAPP) WebSocketClosed() {
 	a.unicast.WebSocketClosed()
@@ -129,28 +128,28 @@ func (i AndroidAPP) unicastMsg(msg *pbs.WSCryptoMsg) error {
 			locationMessage.Name,
 			msg.UnixTime)
 	case *unicast.ChatMessage_SyncGroupId:
-		grouId:=chatMessage.Payload.(*unicast.ChatMessage_SyncGroupId).SyncGroupId
+		grouId := chatMessage.Payload.(*unicast.ChatMessage_SyncGroupId).SyncGroupId
 
-		groupInfo:=i.multicast.SyncGroup(grouId)
+		groupInfo := i.multicast.SyncGroup(grouId)
 
-		if groupInfo == ""{
+		if groupInfo == "" {
 			fmt.Println("no group in cell phone")
 			return nil
 		}
 
-		gi:=&GroupInfo{}
-		if err:=json.Unmarshal([]byte(groupInfo),gi);err!=nil{
+		gi := &GroupInfo{}
+		if err := json.Unmarshal([]byte(groupInfo), gi); err != nil {
 			fmt.Println(err)
 			return nil
 		}
 
-		rawData,err:=multicast.WrapSyncGroupAck(gi.NickName,gi.MemberId,gi.OwnerId,gi.GroupId,gi.GroupName)
-		if err!=nil{
+		rawData, err := multicast.WrapSyncGroupAck(gi.NickName, gi.MemberId, gi.OwnerId, gi.GroupId, gi.GroupName)
+		if err != nil {
 			fmt.Println(err)
 			return nil
 		}
 
-		if err:=i.websocket.Write(msg.From,rawData);err!=nil{
+		if err := i.websocket.Write(msg.From, rawData); err != nil {
 			fmt.Println(err)
 			return nil
 		}
@@ -160,8 +159,6 @@ func (i AndroidAPP) unicastMsg(msg *pbs.WSCryptoMsg) error {
 	}
 
 }
-
-
 
 func UnmarshalGoByte(s string) []byte {
 	b, e := base64.StdEncoding.DecodeString(s)
@@ -180,7 +177,6 @@ type UnicastCallBack interface {
 	TextMessage(from, to string, payload string, time int64) error
 	WebSocketClosed()
 }
-
 
 func ConfigApp(addr string, unicast UnicastCallBack, multicast MulticastCallBack) {
 
@@ -238,7 +234,6 @@ func WSOffline() {
 	_inst.websocket.ShutDown()
 }
 
-
 func WriteMessage(to string, plainTxt string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
@@ -272,8 +267,6 @@ func WriteLocationMessage(to string, longitude, latitude float32, name string) e
 
 	return _inst.websocket.Write(to, rawData)
 }
-
-
 
 func WriteImageMessage(to string, payload []byte) error {
 	if _inst.websocket == nil {
@@ -310,8 +303,7 @@ func WriteVoiceMessage(to string, payload []byte, len int) error {
 	return _inst.websocket.Write(to, rawData)
 }
 
-
-func SyncGroup(to string, groupId string) error  {
+func SyncGroup(to string, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -337,6 +329,6 @@ func IsValidNinjaAddr(addr string) bool {
 	return true
 }
 
-func IconIndex(id string,mod int) int64 {
-	return int64(utils.ID2IconIdx(id,mod))
+func IconIndex(id string, mod int) int64 {
+	return int64(utils.ID2IconIdx(id, mod))
 }
