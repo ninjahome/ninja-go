@@ -241,17 +241,51 @@ func (c *Config) initOptions() []libp2p.Option {
 
 	//id,_:=peer.IDFromPrivateKey(key)
 
+	var addressFactory func(addrs []ma.Multiaddr) []ma.Multiaddr
+
+	var externalIP string
+	externalIP,err = utils.GetExternalIP()
+	if err!=nil{
+		utils.LogInst().Warn().Str("get external ip address", err.Error())
+	}else{
+		var extMultiAddr ma.Multiaddr
+
+		extMultiAddr, err = ma.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", externalIP, _nodeConfig.SrvPort))
+		if err != nil {
+			utils.LogInst().Warn().Str("create external multiaddr error", err.Error())
+		}else{
+			addressFactory = func(addrs []ma.Multiaddr) []ma.Multiaddr {
+				if extMultiAddr != nil {
+					addrs = append(addrs, extMultiAddr)
+				}
+				return addrs
+			}
+		}
+	}
+
 
 	connManager := CNM.NewConnManager(c.ConnMngConf.LowWater,
 		c.ConnMngConf.HighWater,
 		c.ConnMngConf.GraceTime)
-	return []libp2p.Option{
-		libp2p.ConnectionManager(connManager),
-		libp2p.ListenAddrs(listenAddr),
-		libp2p.Identity(key),
-		libp2p.EnableNATService(),
-		libp2p.ForceReachabilityPublic(),
+	if addressFactory == nil{
+		return []libp2p.Option{
+			libp2p.ConnectionManager(connManager),
+			libp2p.ListenAddrs(listenAddr),
+			libp2p.Identity(key),
+			libp2p.EnableNATService(),
+			libp2p.ForceReachabilityPublic(),
+		}
+	}else{
+		return []libp2p.Option{
+			libp2p.ConnectionManager(connManager),
+			libp2p.ListenAddrs(listenAddr),
+			libp2p.Identity(key),
+			libp2p.EnableNATService(),
+			libp2p.ForceReachabilityPublic(),
+			libp2p.AddrsFactory(addressFactory),
+		}
 	}
+
 }
 
 func (c *Config) pubSubOpts(disc discovery.Discovery) []pubsub.Option {

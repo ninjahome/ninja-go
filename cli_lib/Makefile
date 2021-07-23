@@ -19,10 +19,10 @@ mac:
 	cp mac/callback.h $(BINDIR)/
 
 android:
-	gomobile bind -v -o $(BINDIR)/ninja.aar -target=android/arm64 github.com/ninjahome/ninja-go/cli_lib/android
+	gomobile bind -v -o $(BINDIR)/ninja.aar -target=android/arm64 -ldflags=-s github.com/ninjahome/ninja-go/cli_lib/android
 
 ios:
-	gomobile bind -v -o $(BINDIR)/iosLib.framework -target=ios github.com/ninjahome/ninja-go/cli_lib/ios
+	gomobile bind -v -o $(BINDIR)/iosLib.framework -target=ios -ldflags=-s github.com/ninjahome/ninja-go/cli_lib/ios
 
 clean:
 	gomobile clean

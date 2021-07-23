@@ -275,7 +275,9 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 
 	tid := fmt.Sprintf("chat read:%s", wu.UID)
 	readTh := thread.NewThreadWithName(tid, wu.reading)
+	ws.threadsLock.Lock()
 	ws.threads[tid] = readTh
+	ws.threadsLock.Unlock()
 	readTh.Run()
 
 	tid = fmt.Sprintf("chat writer:%s", wu.UID)
@@ -283,7 +285,9 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 	writeTh.DidExit(func() {
 		ws.offlineUser(tid, wu.UID)
 	})
+	ws.threadsLock.Lock()
 	ws.threads[tid] = writeTh
+	ws.threadsLock.Unlock()
 	writeTh.Run()
 
 	if err := ws.onOffLineP2pWorker.BroadCast(rawData); err != nil {
@@ -298,7 +302,9 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 }
 
 func (ws *Service) offlineUser(threadId string, uid string) {
+	ws.threadsLock.Lock()
 	delete(ws.threads, threadId)
+	ws.threadsLock.Unlock()
 	ws.onlineSet.del(uid)
 	ws.userTable.del(uid)
 
