@@ -49,11 +49,22 @@ message WSPullUnread{
   int64 FromUnixTime = 2;
 }
 
+
+message WsUnreadAckMsg{
+    oneof CryptoMsg{
+        WSCryptoMsg Payload = 1;
+        WSCryptoGroupMsg GPayload = 2;
+    }
+}
+
 message WSUnreadAck{
   string nodeID = 1;
   string receiver = 2;
-  repeated  WSCryptoMsg payload = 3;
+  repeated  WsUnreadAckMsg payload = 3;
 }
+
+
+
 
 message WsMsg{
   bytes Hash = 1;

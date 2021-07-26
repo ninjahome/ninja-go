@@ -109,7 +109,7 @@ func (i AndroidAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc,
 
 		rawData := msg.ChatMsg.Payload.(*unicast.ChatMessage_PlainTxt)
 
-		return i.unicast.TextMessage(from,
+		return i.multicast.TextMessage(from,
 			msg.GroupId,
 			rawData.PlainTxt,
 			ts)
@@ -118,7 +118,7 @@ func (i AndroidAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc,
 
 		rawData := msg.ChatMsg.Payload.(*unicast.ChatMessage_Image)
 
-		return i.unicast.ImageMessage(from,
+		return i.multicast.ImageMessage(from,
 			msg.GroupId,
 			rawData.Image,
 			ts)
@@ -127,7 +127,7 @@ func (i AndroidAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc,
 
 		voiceMessage := msg.ChatMsg.Payload.(*unicast.ChatMessage_Voice).Voice
 
-		return i.unicast.VoiceMessage(from,
+		return i.multicast.VoiceMessage(from,
 			msg.GroupId,
 			voiceMessage.Data,
 			int(voiceMessage.Length),
@@ -137,7 +137,7 @@ func (i AndroidAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc,
 
 		locationMessage := msg.ChatMsg.Payload.(*unicast.ChatMessage_Location).Location
 
-		return i.unicast.LocationMessage(from,
+		return i.multicast.LocationMessage(from,
 			msg.GroupId,
 			locationMessage.Longitude,
 			locationMessage.Latitude,
