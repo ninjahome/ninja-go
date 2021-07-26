@@ -69,17 +69,17 @@ func (a AndroidAPP) WebSocketClosed() {
 	a.unicast.WebSocketClosed()
 }
 
-func (i AndroidAPP) UnreadMsg(ack *pbs.WSUnreadAck) error {
-	payload := ack.Payload
-
-	for j := 0; j < len(payload); j++ {
-		if err := i.unicastMsg(payload[j]); err != nil {
-			//TODO::notify app to know the failure
-			continue
-		}
-	}
-	return nil
-}
+//func (i AndroidAPP) UnreadMsg(ack *pbs.WSUnreadAck) error {
+//	payload := ack.Payload
+//
+//	for j := 0; j < len(payload); j++ {
+//		if err := i.unicastMsg(payload[j]); err != nil {
+//			//TODO::notify app to know the failure
+//			continue
+//		}
+//	}
+//	return nil
+//}
 
 func (i AndroidAPP) unicastMsg(msg *pbs.WSCryptoMsg) error {
 

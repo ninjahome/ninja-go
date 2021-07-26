@@ -346,28 +346,16 @@ func (cc *WSClient) procMsgFromServer() error {
 
 				key, err := cc.recoverGroupKey(gpayload.From, gpayload.To)
 				if err != nil {
-					return err
+					continue
 				}
 
 				dst, _ := openssl.AesECBDecrypt(gpayload.PayLoad, key, openssl.PKCS7_PADDING)
 				gpayload.PayLoad = dst
 				if err := cc.callback.ImmediateGMessage(gpayload); err != nil {
-					return err
+					continue
 				}
 			}
 		}
-
-		//for _, msg := range ack.UnreadAck.Payload {
-		//	key, err := cc.getAesKey(msg.From)
-		//	if err != nil {
-		//		return err
-		//	}
-		//	dst, _ := openssl.AesECBDecrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
-		//	msg.PayLoad = dst
-		//}
-		//if err := cc.callback.UnreadMsg(ack.UnreadAck); err != nil {
-		//	return err
-		//}
 	}
 	return nil
 }
