@@ -176,7 +176,7 @@ func CreateGroup(to, nickname []string, groupId, groupName string) error {
 	return nil
 }
 
-func JoinGroup(to, nickName []string, groupId, groupName, groupOwner, newId []string) error {
+func JoinGroup(to, nickName []string, groupId, groupName, groupOwner string, newId []string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
