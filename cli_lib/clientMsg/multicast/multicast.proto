@@ -23,7 +23,7 @@ message GroupDesc{
 
 message JoinGroupDesc{
     GroupDesc groupInfo = 1;
-    string NewID = 2;
+    repeated string NewID = 2;
 }
 
 message QuitGroupDesc{

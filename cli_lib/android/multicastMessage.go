@@ -3,6 +3,7 @@ package androidlib
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/golang/protobuf/proto"
@@ -21,9 +22,9 @@ type GroupInfo struct {
 
 type MulticastCallBack interface {
 	CreateGroup(groupId, groupName, owner string, memberId, memberNickName []string) error
-	JoinGroup(from, groupId, groupName, owner string, memberId, memberNickName []string, newId string) error
-	KickOutUser(groupId, kickId string) error
-	QuitGroup(groupId, quitId string) error
+	JoinGroup(from, groupId, groupName, owner string, memberId, memberNickName []string, newId []string) error
+	KickOutUser(from, groupId, kickId string) error
+	QuitGroup(from, groupId, quitId string) error
 	DismisGroup(groupId string) error
 	SyncGroup(groupId string) string
 	//same as CreateGroup
@@ -68,13 +69,13 @@ func (i AndroidAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 		quitInfo := groupMessage.Payload.(*multicast.GroupMessage_QuitGroupInfo)
 		quitGroup := quitInfo.QuitGroupInfo
 
-		return i.multicast.QuitGroup(quitGroup.GroupId, quitGroup.QuitId)
+		return i.multicast.QuitGroup(msg.From,quitGroup.GroupId, quitGroup.QuitId)
 
 	case multicast.GroupMessageType_KickOutUserT:
 		kickInfo := groupMessage.Payload.(*multicast.GroupMessage_QuitGroupInfo)
 		kickGroup := kickInfo.QuitGroupInfo
 
-		return i.multicast.KickOutUser(kickGroup.GroupId, kickGroup.QuitId)
+		return i.multicast.KickOutUser(msg.From,kickGroup.GroupId, kickGroup.QuitId)
 
 	case multicast.GroupMessageType_SyncGroupAckT:
 		syncGroupAck := groupMessage.Payload.(*multicast.GroupMessage_SyncGroupAck)
@@ -175,7 +176,7 @@ func CreateGroup(to, nickname []string, groupId, groupName string) error {
 	return nil
 }
 
-func JoinGroup(to, nickName []string, groupId, groupName, groupOwner, newId string) error {
+func JoinGroup(to, nickName []string, groupId, groupName, groupOwner, newId []string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -391,4 +392,28 @@ func NewGroupId() string {
 	}
 
 	return base64.StdEncoding.EncodeToString(buf)
+}
+
+
+//type GroupInfo struct {
+//	GroupId   string   `json:"group_id"`
+//	GroupName string   `json:"group_name"`
+//	OwnerId   string   `json:"owner_id"`
+//	MemberId  []string `json:"member_id"`
+//	NickName  []string `json:"nick_name"`
+//}
+
+
+func GroupInfo2Str(groupId, groupName, owner string, memberIds, nickNames []string) string {
+	gi:=&GroupInfo{
+		GroupId: groupId,
+		GroupName: groupName,
+		OwnerId: owner,
+		MemberId: memberIds,
+		NickName: nickNames,
+	}
+
+	j,_:=json.Marshal(*gi)
+
+	return string(j)
 }

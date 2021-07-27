@@ -11,11 +11,9 @@ import (
 	"github.com/ninjahome/ninja-go/utils/thread"
 	"github.com/ninjahome/ninja-go/wallet"
 	"google.golang.org/protobuf/proto"
-	"math/rand"
 	"net/url"
 	"strings"
 	"sync"
-	"time"
 )
 
 var (
@@ -59,9 +57,11 @@ type WSClient struct {
 }
 
 func RandomBootNode() string {
-	rand.Seed(time.Now().UnixNano())
-	idx := rand.Intn(len(DefaultBootWsService))
-	return DefaultBootWsService[idx]
+	//rand.Seed(time.Now().UnixNano())
+	//idx := rand.Intn(len(DefaultBootWsService))
+	//return DefaultBootWsService[idx]
+
+	return DefaultBootWsService[0]
 }
 
 type CliCallBack interface {

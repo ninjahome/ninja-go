@@ -28,7 +28,7 @@ func WrapCreateGroup(nickName []string, owner, groupId, groupName string) ([]byt
 	return rawData, nil
 }
 
-func WrapJoinGroup(nickName []string, owner, groupId, groupName, newId string) ([]byte, error) {
+func WrapJoinGroup(nickName []string, owner, groupId, groupName string, newId []string) ([]byte, error) {
 	groupDesc := &GroupDesc{
 		GroupName:  groupName,
 		GroupOwner: owner,

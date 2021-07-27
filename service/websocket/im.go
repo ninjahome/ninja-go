@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"errors"
 	"fmt"
 	"github.com/ninjahome/ninja-go/node/worker"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
@@ -24,11 +25,8 @@ func IMDBEnd(receiver string) []byte {
 	return []byte(key)
 }
 
-func (ws *Service) procIM(msg *pbs.WsMsg) error {
-	body, ok := msg.Payload.(*pbs.WsMsg_Message)
-	if !ok {
-		return fmt.Errorf("cast immediate message failed")
-	}
+func (ws *Service)_procUnicastIM(msg *pbs.WsMsg) error  {
+	body := msg.Payload.(*pbs.WsMsg_Message)
 
 	im := body.Message
 
@@ -44,7 +42,7 @@ func (ws *Service) procIM(msg *pbs.WsMsg) error {
 
 		if dt, typ, err := ws.GetToken(im.To); err != nil {
 			utils.LogInst().Debug().Str("procIM", im.To).
-				Str("Status", "not found in db").Send()
+				Str("device type", "not found in db").Send()
 		} else {
 			if typ == DevTypeIOS {
 				ui := fmt.Sprintf("ios: uid: %s , token: %s, typ: %d", im.To, dt, typ)
@@ -75,6 +73,31 @@ func (ws *Service) procIM(msg *pbs.WsMsg) error {
 		Str("Status", "on other node").Send()
 
 	return ws.IMP2pWorker.BroadCast(msg.Data())
+}
+
+func (ws *Service)_procMulticastIM(msg *pbs.WsMsg) error {
+	body := msg.Payload.(*pbs.WsMsg_GroupMessage)
+
+	gim:=body.GroupMessage
+
+	utils.LogInst().Debug().Str("From:",gim.From).Str("To","Group").Int64("time",gim.UnixTime)
+
+
+
+
+
+}
+
+func (ws *Service) procIM(msg *pbs.WsMsg) error {
+
+	switch msg.Payload.(type) {
+	case *pbs.WsMsg_Message:
+		return ws._procUnicastIM(msg)
+	case *pbs.WsMsg_GroupMessage:
+		return ws._procMulticastIM(msg)
+	default:
+		return errors.New("not a correct message type")
+	}
 }
 
 func (ws *Service) ImmediateMsgForP2pNetwork(w *worker.TopicWorker) {
