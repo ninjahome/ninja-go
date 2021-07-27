@@ -26,6 +26,7 @@ type MulticastCallBack interface {
 	KickOutUser(from, groupId, kickId string) error
 	QuitGroup(from, groupId, quitId string) error
 	DismisGroup(groupId string) error
+	//return value is from GroupInfo2Str func
 	SyncGroup(groupId string) string
 	//same as CreateGroup
 	SyncGroupAck(groupId, groupName, owner string, memberId, memberNickName []string) error

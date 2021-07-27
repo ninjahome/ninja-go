@@ -84,7 +84,7 @@ func (ws *Service)_procMulticastIM(msg *pbs.WsMsg) error {
 
 
 
-
+	return nil
 
 }
 

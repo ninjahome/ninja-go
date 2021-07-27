@@ -9,9 +9,9 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func (ws *Service) loadDbUnread(unread *pbs.WSPullUnread) ([]*pbs.WSCryptoMsg, bool) {
+func (ws *Service) loadDbUnread(unread *pbs.WSPullUnread) ([]*pbs.WsUnreadAckMsg, bool) {
 
-	buf := make([]*pbs.WSCryptoMsg, 0)
+	buf := make([]*pbs.WsUnreadAckMsg, 0)
 	var counter = 0
 	sKey := IMDBKey(unread.Receiver, unread.FromUnixTime)
 	eKey := IMDBEnd(unread.Receiver)
@@ -25,7 +25,12 @@ func (ws *Service) loadDbUnread(unread *pbs.WSPullUnread) ([]*pbs.WSCryptoMsg, b
 			continue
 		}
 		counter++
-		buf = append(buf, msgV)
+
+		m:=&pbs.WsUnreadAckMsg{
+			CryptoMsg: &pbs.WsUnreadAckMsg_Payload{Payload: msgV},
+		}
+
+		buf = append(buf, m)
 		k := iter.Key()
 		_ = ws.dataBase.Delete(k, nil)
 		if counter > _wsConfig.MaxUnreadMsgNoPerQuery {
@@ -35,6 +40,8 @@ func (ws *Service) loadDbUnread(unread *pbs.WSPullUnread) ([]*pbs.WSCryptoMsg, b
 	}
 
 	iter.Release()
+
+
 	return buf, hasMore
 }
 
