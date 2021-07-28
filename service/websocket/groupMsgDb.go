@@ -18,7 +18,7 @@ const(
 	groupMsgDBKeyEnd = "GroupMessageDBKey2"
 
 	groupMsgReceiverDBKeyHead = "GroupMsgReceiverDBKey1_%s_%s"
-	groupMsgReceiverDBKeyEnd = "GroupMsgReceiverDBKey2_%s_ffffffffffffffff"
+	groupMsgReceiverDBKeyEnd = "GroupMsgReceiverDBKey1_%s_ffffffffffffffff"
 )
 
 func int64Decimal2comparableString(i int64) string {
