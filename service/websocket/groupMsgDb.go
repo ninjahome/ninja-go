@@ -5,8 +5,9 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/btcsuite/goleveldb/leveldb"
-	"github.com/btcsuite/goleveldb/leveldb/opt"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/opt"
+
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 
 	"google.golang.org/protobuf/proto"
@@ -43,10 +44,10 @@ func groupMsgDbKey(msg *pbs.WSCryptoGroupMsg) string {
 	return fmt.Sprintf(groupMsgDBKeyHead,msg2Hash(msg),int64Decimal2comparableString(msg.UnixTime))
 }
 
-func SaveGroupMsg(db *leveldb.DB,msg *pbs.WSCryptoGroupMsg) error {
+func SaveGroupMsg(db *leveldb.DB,msg *pbs.WSCryptoGroupMsg) (groupKey string,err error) {
 	key:=groupMsgDbKey(msg)
 
-	return db.Put([]byte(key),msg.MustData(),&opt.WriteOptions{Sync: true})
+	return key,db.Put([]byte(key),msg.MustData(),&opt.WriteOptions{Sync: true})
 }
 
 func GetGroupMsg(db *leveldb.DB, key []byte) (*pbs.WSCryptoGroupMsg,error)  {

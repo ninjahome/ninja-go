@@ -82,10 +82,39 @@ func (ws *Service)_procMulticastIM(msg *pbs.WsMsg) error {
 
 	utils.LogInst().Debug().Str("From:",gim.From).Str("To","Group").Int64("time",gim.UnixTime)
 
+	allonline := true
+	otherNode := false
+	var (
+		groupKey string
+		err error
+	)
 
+	for i:=0;i<len(gim.To);i++{
+		if !ws.onlineSet.contains(gim.To[i].MemberId){
+			if allonline{
+				allonline = false
+				groupKey,err =SaveGroupMsg(ws.dataBase,gim)
+				if err!=nil{
+					return err
+				}
+			}
+
+			err = SaveReceiverGroupMsg(ws.dataBase,gim.To[i].MemberId,[]byte(groupKey),gim.UnixTime)
+			if err!=nil{
+				return err
+			}
+		}else if user,ok:=ws.userTable.get(gim.To[i].MemberId);ok{
+			return user.writeToCli(msg)
+		}else{
+			otherNode = true
+		}
+	}
+
+	if otherNode{
+		return ws.IMP2pWorker.BroadCast(msg.Data())
+	}
 
 	return nil
-
 }
 
 func (ws *Service) procIM(msg *pbs.WsMsg) error {
@@ -129,7 +158,8 @@ func (ws *Service) ImmediateMsgForP2pNetwork(w *worker.TopicWorker) {
 	}
 }
 
-func (ws *Service) peerImmediateMsg(msg *pbs.WsMsg) error {
+
+func (ws *Service) _peerImmediateMsg(msg *pbs.WsMsg) error {
 	body, ok := msg.Payload.(*pbs.WsMsg_Message)
 	if !ok {
 		return fmt.Errorf("this is not a valid p2p crypto message")
@@ -141,4 +171,38 @@ func (ws *Service) peerImmediateMsg(msg *pbs.WsMsg) error {
 	}
 	utils.LogInst().Debug().Str("Peer IM TO", body.Message.To).Send()
 	return u.writeToCli(msg)
+}
+
+
+func (ws *Service) _peerImmediateGroupMsg(msg *pbs.WsMsg) error {
+	body, ok := msg.Payload.(*pbs.WsMsg_GroupMessage)
+	if !ok {
+		return fmt.Errorf("this is not a valid p2p crypto message")
+	}
+
+	gim:=body.GroupMessage
+
+	for i:=0;i<len(gim.To);i++{
+		u, ok := ws.userTable.get(gim.To[i].MemberId)
+		if !ok {
+			continue
+		}
+		utils.LogInst().Debug().Str("Peer Group IM TO", gim.To[i].MemberId).Send()
+		u.writeToCli(msg)
+	}
+
+	return nil
+}
+
+func (ws *Service) peerImmediateMsg(msg *pbs.WsMsg) error {
+
+	switch msg.Payload.(type) {
+	case *pbs.WsMsg_Message:
+		return ws._peerImmediateMsg(msg)
+	case *pbs.WsMsg_GroupMessage:
+		return ws._procMulticastIM(msg)
+	default:
+		return errors.New("not a correct message type from peer")
+	}
+
 }
