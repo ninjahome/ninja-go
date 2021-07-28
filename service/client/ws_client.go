@@ -162,6 +162,7 @@ func (cc *WSClient) recoverGroupKey(from string, gekey []*pbs.GroupEncryptKey) (
 	for i := 0; i < len(gekey); i++ {
 		if strings.ToLower(gekey[i].MemberId) == lfrom {
 			gkey = gekey[i].EncryptKey
+			break
 		}
 	}
 
