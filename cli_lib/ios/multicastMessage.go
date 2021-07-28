@@ -9,6 +9,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/ninjahome/ninja-go/cli_lib/clientMsg/multicast"
 	"github.com/ninjahome/ninja-go/cli_lib/clientMsg/unicast"
+	"github.com/ninjahome/ninja-go/cli_lib/utils"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 )
 
@@ -21,15 +22,14 @@ type GroupInfo struct {
 }
 
 type MulticastCallBack interface {
-	CreateGroup(groupId, groupName, owner string, memberId, memberNickName []string) error
-	JoinGroup(from, groupId, groupName, owner string, memberId, memberNickName []string, newId []string) error
+	CreateGroup(groupId, groupName, owner, memberIdList, memberNickNameList string) error
+	JoinGroup(from, groupId, groupName, owner string, memberIdList, memberNickNameList, newIdList string) error
 	KickOutUser(from, groupId, kickId string) error
 	QuitGroup(from, groupId, quitId string) error
 	DismisGroup(groupId string) error
-	//return value is from GroupInfo2Str func
 	SyncGroup(groupId string) string
 	//same as CreateGroup
-	SyncGroupAck(groupId, groupName, owner string, memberId, memberNickName []string) error
+	SyncGroupAck(groupId, groupName, owner string, memberIdList, memberNickNameList string) error
 	VoiceMessage(from, groupId string, payload []byte, length int, time int64) error
 	ImageMessage(from, groupId string, payload []byte, time int64) error
 	LocationMessage(from, groupId string, l, a float32, name string, time int64) error
@@ -50,8 +50,8 @@ func (i IosAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 		return i.multicast.CreateGroup(groupDesc.GroupId,
 			groupDesc.GroupName,
 			groupDesc.GroupOwner,
-			to,
-			groupDesc.NickName)
+			utils.StrSlice2String(to),
+			utils.StrSlice2String(groupDesc.NickName))
 
 	case multicast.GroupMessageType_JoinGroupT:
 		jInfo := groupMessage.Payload.(*multicast.GroupMessage_JoinGroupInfo)
@@ -61,9 +61,9 @@ func (i IosAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 			joinGroup.GroupInfo.GroupId,
 			joinGroup.GroupInfo.GroupName,
 			joinGroup.GroupInfo.GroupOwner,
-			to,
-			joinGroup.GroupInfo.NickName,
-			joinGroup.NewID,
+			utils.StrSlice2String(to),
+			utils.StrSlice2String(joinGroup.GroupInfo.NickName),
+			utils.StrSlice2String(joinGroup.NewID),
 		)
 
 	case multicast.GroupMessageType_QuitGroupT:
@@ -85,8 +85,8 @@ func (i IosAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 		return i.multicast.SyncGroupAck(syncGroup.GroupInfo.GroupId,
 			syncGroup.GroupInfo.GroupName,
 			syncGroup.GroupInfo.GroupOwner,
-			syncGroup.MemberId,
-			syncGroup.GroupInfo.NickName)
+			utils.StrSlice2String(syncGroup.MemberId),
+			utils.StrSlice2String(syncGroup.GroupInfo.NickName))
 
 	case multicast.GroupMessageType_ChatMessageT:
 		chatMessage := groupMessage.Payload.(*multicast.GroupMessage_ChatMsg)
@@ -151,7 +151,45 @@ func (i IosAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc, ts 
 
 }
 
-func CreateGroup(to, nickname []string, groupId, groupName string) error {
+type MemberDesc struct {
+	MemberId string
+	NickName string
+}
+
+type MemberList struct {
+	Members []*MemberDesc
+}
+
+func NewMberList() *MemberList  {
+	return &MemberList{}
+}
+
+func (ml *MemberList)Add(id, nickname string)  {
+	ml.Members = append(ml.Members,&MemberDesc{
+		MemberId: id,
+		NickName: nickname,
+	})
+}
+
+func (ml *MemberList)IdList() []string  {
+	var ids []string
+	for i:=0;i<len(ml.Members);i++{
+		ids = append(ids,ml.Members[i].MemberId)
+	}
+
+	return ids
+}
+
+func (ml *MemberList)NickNameList() []string  {
+	var nks []string
+
+	for i:=0;i<len(ml.Members);i++{
+		nks = append(nks,ml.Members[i].NickName)
+	}
+	return nks
+}
+
+func CreateGroup(ml *MemberList, groupId, groupName string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -164,12 +202,12 @@ func CreateGroup(to, nickname []string, groupId, groupName string) error {
 
 	owner := _inst.websocket.Address()
 
-	rawData, err := multicast.WrapCreateGroup(nickname, owner, groupId, groupName)
+	rawData, err := multicast.WrapCreateGroup(ml.NickNameList(), owner, groupId, groupName)
 	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to, rawData)
+	err = _inst.websocket.GWrite(ml.IdList(), rawData)
 	if err != nil {
 		return err
 	}
@@ -177,7 +215,7 @@ func CreateGroup(to, nickname []string, groupId, groupName string) error {
 	return nil
 }
 
-func JoinGroup(to, nickName []string, groupId, groupName, groupOwner string, newId []string) error {
+func JoinGroup(ml *MemberList, groupId, groupName, groupOwner string, ids *Slice2Str) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -189,12 +227,12 @@ func JoinGroup(to, nickName []string, groupId, groupName, groupOwner string, new
 		}
 	}
 
-	rawData, err := multicast.WrapJoinGroup(nickName, groupOwner, groupId, groupName, newId)
+	rawData, err := multicast.WrapJoinGroup(ml.NickNameList(), groupOwner, groupId, groupName, ids.Items)
 	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to, rawData)
+	err = _inst.websocket.GWrite(ml.IdList(), rawData)
 	if err != nil {
 		return err
 	}
@@ -202,7 +240,7 @@ func JoinGroup(to, nickName []string, groupId, groupName, groupOwner string, new
 	return nil
 }
 
-func QuitGroup(to []string, groupId string) error {
+func QuitGroup(ids *Slice2Str, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -221,7 +259,7 @@ func QuitGroup(to []string, groupId string) error {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to, rawData)
+	err = _inst.websocket.GWrite(ids.Items, rawData)
 	if err != nil {
 		return err
 	}
@@ -229,7 +267,7 @@ func QuitGroup(to []string, groupId string) error {
 	return nil
 }
 
-func KickOutUser(to []string, groupId, owner, kickUserId string) error {
+func KickOutUser(ids *Slice2Str, groupId, owner, kickUserId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -250,7 +288,7 @@ func KickOutUser(to []string, groupId, owner, kickUserId string) error {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to, rawData)
+	err = _inst.websocket.GWrite(ids.Items, rawData)
 	if err != nil {
 		return err
 	}
@@ -258,7 +296,7 @@ func KickOutUser(to []string, groupId, owner, kickUserId string) error {
 	return nil
 }
 
-func DismisGroup(to []string, owner, groupId string) error {
+func DismisGroup(ids *Slice2Str, owner, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -279,7 +317,7 @@ func DismisGroup(to []string, owner, groupId string) error {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to, rawData)
+	err = _inst.websocket.GWrite(ids.Items, rawData)
 	if err != nil {
 		return err
 	}
@@ -287,7 +325,7 @@ func DismisGroup(to []string, owner, groupId string) error {
 	return nil
 }
 
-func WriteGroupMessage(to []string, groupId, plainTxt string) error {
+func WriteGroupMessage(ids *Slice2Str, groupId, plainTxt string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -303,7 +341,7 @@ func WriteGroupMessage(to []string, groupId, plainTxt string) error {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to, rawData)
+	err = _inst.websocket.GWrite(ids.Items, rawData)
 	if err != nil {
 		return err
 	}
@@ -311,7 +349,7 @@ func WriteGroupMessage(to []string, groupId, plainTxt string) error {
 	return nil
 }
 
-func WriteLocationGroupMessage(to []string, longitude, latitude float32, name, groupId string) error {
+func WriteLocationGroupMessage(ids *Slice2Str, longitude, latitude float32, name, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -327,7 +365,7 @@ func WriteLocationGroupMessage(to []string, longitude, latitude float32, name, g
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to, rawData)
+	err = _inst.websocket.GWrite(ids.Items, rawData)
 	if err != nil {
 		return err
 	}
@@ -335,7 +373,7 @@ func WriteLocationGroupMessage(to []string, longitude, latitude float32, name, g
 	return nil
 }
 
-func WriteImageGroupMessage(to []string, payload []byte, groupId string) error {
+func WriteImageGroupMessage(ids *Slice2Str, payload []byte, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -351,7 +389,7 @@ func WriteImageGroupMessage(to []string, payload []byte, groupId string) error {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to, rawData)
+	err = _inst.websocket.GWrite(ids.Items, rawData)
 	if err != nil {
 		return err
 	}
@@ -359,7 +397,7 @@ func WriteImageGroupMessage(to []string, payload []byte, groupId string) error {
 	return nil
 }
 
-func WriteVoiceGroupMessage(to []string, payload []byte, length int, groupId string) error {
+func WriteVoiceGroupMessage(ids *Slice2Str, payload []byte, length int, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -375,7 +413,7 @@ func WriteVoiceGroupMessage(to []string, payload []byte, length int, groupId str
 		return err
 	}
 
-	err = _inst.websocket.GWrite(to, rawData)
+	err = _inst.websocket.GWrite(ids.Items, rawData)
 	if err != nil {
 		return err
 	}

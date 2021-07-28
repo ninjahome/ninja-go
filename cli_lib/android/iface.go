@@ -178,6 +178,7 @@ type UnicastCallBack interface {
 	WebSocketClosed()
 }
 
+
 func ConfigApp(addr string, unicast UnicastCallBack, multicast MulticastCallBack) {
 
 	if addr == "" {
