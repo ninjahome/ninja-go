@@ -147,3 +147,8 @@ func (x *WSCryptoMsg) MustData() []byte {
 	data, _ := proto.Marshal(x)
 	return data
 }
+
+func (x *WSCryptoGroupMsg)MustData() []byte  {
+	data, _:=proto.Marshal(x)
+	return data
+}

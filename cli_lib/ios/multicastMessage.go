@@ -192,7 +192,6 @@ func (ml *MemberList)NickNameList() []string  {
 func CreateGroup(ml *MemberList, groupId, groupName string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
-
 	}
 	if !_inst.websocket.IsOnline {
 		if err := _inst.websocket.Online(); err != nil {

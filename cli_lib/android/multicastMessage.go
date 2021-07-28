@@ -158,7 +158,8 @@ type MemberDesc struct {
 }
 
 type MemberList struct {
-	Members []*MemberDesc
+	Members [20]*MemberDesc
+	cnt int
 }
 
 func NewMberList() *MemberList  {
@@ -166,15 +167,22 @@ func NewMberList() *MemberList  {
 }
 
 func (ml *MemberList)Add(id, nickname string)  {
-	ml.Members = append(ml.Members,&MemberDesc{
+	ml.Members[ml.cnt] = &MemberDesc{
 		MemberId: id,
 		NickName: nickname,
-	})
+	}
+
+	ml.cnt ++
+
+	//ml.Members = append(ml.Members,&MemberDesc{
+	//	MemberId: id,
+	//	NickName: nickname,
+	//})
 }
 
 func (ml *MemberList)IdList() []string  {
 	var ids []string
-	for i:=0;i<len(ml.Members);i++{
+	for i:=0;i<ml.cnt;i++{
 		ids = append(ids,ml.Members[i].MemberId)
 	}
 
@@ -184,7 +192,7 @@ func (ml *MemberList)IdList() []string  {
 func (ml *MemberList)NickNameList() []string  {
 	var nks []string
 
-	for i:=0;i<len(ml.Members);i++{
+	for i:=0;i<ml.cnt;i++{
 		nks = append(nks,ml.Members[i].NickName)
 	}
 	return nks
