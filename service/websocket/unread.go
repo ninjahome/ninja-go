@@ -46,9 +46,7 @@ func (ws *Service)_loadDbunreadIm(unread *pbs.WSPullUnread)  ([]*pbs.WsUnreadAck
 }
 
 func (ws *Service)_loadDbunreadGIm(unread *pbs.WSPullUnread, leftCnt int)  ([]*pbs.WsUnreadAckMsg, bool)  {
-	if leftCnt == 0{
-		leftCnt = _wsConfig.MaxUnreadMsgNoPerQuery
-	}
+
 	buf := make([]*pbs.WsUnreadAckMsg, 0)
 	counter := 0
 	startKey:=StartKey(unread.Receiver)
@@ -92,6 +90,9 @@ func (ws *Service) loadDbUnread(unread *pbs.WSPullUnread) ([]*pbs.WsUnreadAckMsg
 	}
 
 	left:= _wsConfig.MaxUnreadMsgNoPerQuery - len(acks)
+	if left < 0{
+		left = 0
+	}
 
 	acks2,hashMoreG := ws._loadDbunreadGIm(unread,left)
 
