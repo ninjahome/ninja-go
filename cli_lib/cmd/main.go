@@ -125,7 +125,7 @@ func test1() {
 		panic(err)
 	}
 
-	err = c.WriteMessage(websocket.TextMessage, data)
+	err = c.WriteMessage(websocket.BinaryMessage, data)
 	if err != nil {
 		panic(err)
 	}

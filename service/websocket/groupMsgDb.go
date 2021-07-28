@@ -68,6 +68,14 @@ func receiverGroupMsgDBKey(receiver string, msgTime int64) string {
 	return fmt.Sprintf(groupMsgReceiverDBKeyHead,receiver,int64Decimal2comparableString(msgTime))
 }
 
+func StartKey(receiver string) string {
+	return receiverGroupMsgDBKey(receiver,0)
+}
+
+func EndKey(receiver string) string  {
+	return fmt.Sprintf(groupMsgReceiverDBKeyEnd,receiver)
+}
+
 func SaveReceiverGroupMsg(db *leveldb.DB, receiver string, groupMsgKey []byte, msgTime int64)  error{
 	key:=receiverGroupMsgDBKey(receiver,msgTime)
 

@@ -93,7 +93,7 @@ func (ws *Service)_procMulticastIM(msg *pbs.WsMsg) error {
 		if !ws.onlineSet.contains(gim.To[i].MemberId){
 			if allonline{
 				allonline = false
-				groupKey,err =SaveGroupMsg(ws.dataBase,gim)
+				groupKey,err = SaveGroupMsg(ws.dataBase,gim)
 				if err!=nil{
 					return err
 				}
@@ -200,7 +200,7 @@ func (ws *Service) peerImmediateMsg(msg *pbs.WsMsg) error {
 	case *pbs.WsMsg_Message:
 		return ws._peerImmediateMsg(msg)
 	case *pbs.WsMsg_GroupMessage:
-		return ws._procMulticastIM(msg)
+		return ws._peerImmediateGroupMsg(msg)
 	default:
 		return errors.New("not a correct message type from peer")
 	}

@@ -67,7 +67,7 @@ func (x *WsMsg) ReadOnlineFromCli(conn *websocket.Conn) (olMsg *WSOnline, messag
 	if err != nil {
 		return
 	}
-	return olMsg, message, conn.WriteMessage(websocket.TextMessage, ackData)
+	return olMsg, message, conn.WriteMessage(websocket.BinaryMessage, ackData)
 }
 
 func (x *WsMsg) AesCryptData(from, to string, body, key []byte) []byte {
