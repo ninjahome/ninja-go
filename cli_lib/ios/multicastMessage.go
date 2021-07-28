@@ -151,47 +151,10 @@ func (i IosAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc, ts 
 
 }
 
-type MemberDesc struct {
-	MemberId string
-	NickName string
-}
-
-type MemberList struct {
-	Members []*MemberDesc
-}
-
-func NewMberList() *MemberList  {
-	return &MemberList{}
-}
-
-func (ml *MemberList)Add(id, nickname string)  {
-	ml.Members = append(ml.Members,&MemberDesc{
-		MemberId: id,
-		NickName: nickname,
-	})
-}
-
-func (ml *MemberList)IdList() []string  {
-	var ids []string
-	for i:=0;i<len(ml.Members);i++{
-		ids = append(ids,ml.Members[i].MemberId)
-	}
-
-	return ids
-}
-
-func (ml *MemberList)NickNameList() []string  {
-	var nks []string
-
-	for i:=0;i<len(ml.Members);i++{
-		nks = append(nks,ml.Members[i].NickName)
-	}
-	return nks
-}
-
-func CreateGroup(ml *MemberList, groupId, groupName string) error {
+func CreateGroup(to, nickNames string, groupId, groupName string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
+
 	}
 	if !_inst.websocket.IsOnline {
 		if err := _inst.websocket.Online(); err != nil {
@@ -201,12 +164,20 @@ func CreateGroup(ml *MemberList, groupId, groupName string) error {
 
 	owner := _inst.websocket.Address()
 
-	rawData, err := multicast.WrapCreateGroup(ml.NickNameList(), owner, groupId, groupName)
+	var (
+		ids []string
+		nks []string
+	)
+
+	json.Unmarshal([]byte(to),&ids)
+	json.Unmarshal([]byte(nickNames),&nks)
+
+	rawData, err := multicast.WrapCreateGroup(nks, owner, groupId, groupName)
 	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(ml.IdList(), rawData)
+	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
 		return err
 	}
@@ -214,7 +185,7 @@ func CreateGroup(ml *MemberList, groupId, groupName string) error {
 	return nil
 }
 
-func JoinGroup(ml *MemberList, groupId, groupName, groupOwner string, ids *Slice2Str) error {
+func JoinGroup(to, nickNames string, groupId, groupName, groupOwner string, newIds string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -226,12 +197,22 @@ func JoinGroup(ml *MemberList, groupId, groupName, groupOwner string, ids *Slice
 		}
 	}
 
-	rawData, err := multicast.WrapJoinGroup(ml.NickNameList(), groupOwner, groupId, groupName, ids.Items)
+	var (
+		ids []string
+		nks []string
+		nids []string
+	)
+
+	json.Unmarshal([]byte(to),&ids)
+	json.Unmarshal([]byte(nickNames),&nks)
+	json.Unmarshal([]byte(newIds),&nks)
+
+	rawData, err := multicast.WrapJoinGroup(nks, groupOwner, groupId, groupName, nids)
 	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(ml.IdList(), rawData)
+	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
 		return err
 	}
@@ -239,7 +220,7 @@ func JoinGroup(ml *MemberList, groupId, groupName, groupOwner string, ids *Slice
 	return nil
 }
 
-func QuitGroup(ids *Slice2Str, groupId string) error {
+func QuitGroup(to string, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -250,6 +231,12 @@ func QuitGroup(ids *Slice2Str, groupId string) error {
 			return err
 		}
 	}
+
+	var (
+		ids []string
+	)
+
+	json.Unmarshal([]byte(to),&ids)
 
 	quitId := _inst.websocket.Address()
 
@@ -258,7 +245,7 @@ func QuitGroup(ids *Slice2Str, groupId string) error {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(ids.Items, rawData)
+	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
 		return err
 	}
@@ -266,7 +253,7 @@ func QuitGroup(ids *Slice2Str, groupId string) error {
 	return nil
 }
 
-func KickOutUser(ids *Slice2Str, groupId, owner, kickUserId string) error {
+func KickOutUser(to string, groupId, owner, kickUserId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -287,7 +274,13 @@ func KickOutUser(ids *Slice2Str, groupId, owner, kickUserId string) error {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(ids.Items, rawData)
+	var (
+		ids []string
+	)
+
+	json.Unmarshal([]byte(to),&ids)
+
+	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
 		return err
 	}
@@ -295,7 +288,7 @@ func KickOutUser(ids *Slice2Str, groupId, owner, kickUserId string) error {
 	return nil
 }
 
-func DismisGroup(ids *Slice2Str, owner, groupId string) error {
+func DismisGroup(to string, owner, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -315,8 +308,13 @@ func DismisGroup(ids *Slice2Str, owner, groupId string) error {
 	if err != nil {
 		return err
 	}
+	var (
+		ids []string
+	)
 
-	err = _inst.websocket.GWrite(ids.Items, rawData)
+	json.Unmarshal([]byte(to),&ids)
+
+	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
 		return err
 	}
@@ -324,7 +322,7 @@ func DismisGroup(ids *Slice2Str, owner, groupId string) error {
 	return nil
 }
 
-func WriteGroupMessage(ids *Slice2Str, groupId, plainTxt string) error {
+func WriteGroupMessage(to string, groupId, plainTxt string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -339,8 +337,12 @@ func WriteGroupMessage(ids *Slice2Str, groupId, plainTxt string) error {
 	if err != nil {
 		return err
 	}
+	var (
+		ids []string
+	)
 
-	err = _inst.websocket.GWrite(ids.Items, rawData)
+	json.Unmarshal([]byte(to),&ids)
+	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
 		return err
 	}
@@ -348,7 +350,7 @@ func WriteGroupMessage(ids *Slice2Str, groupId, plainTxt string) error {
 	return nil
 }
 
-func WriteLocationGroupMessage(ids *Slice2Str, longitude, latitude float32, name, groupId string) error {
+func WriteLocationGroupMessage(to string, longitude, latitude float32, name, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -364,7 +366,13 @@ func WriteLocationGroupMessage(ids *Slice2Str, longitude, latitude float32, name
 		return err
 	}
 
-	err = _inst.websocket.GWrite(ids.Items, rawData)
+	var (
+		ids []string
+	)
+
+	json.Unmarshal([]byte(to),&ids)
+
+	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
 		return err
 	}
@@ -372,7 +380,7 @@ func WriteLocationGroupMessage(ids *Slice2Str, longitude, latitude float32, name
 	return nil
 }
 
-func WriteImageGroupMessage(ids *Slice2Str, payload []byte, groupId string) error {
+func WriteImageGroupMessage(to string, payload []byte, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -388,7 +396,13 @@ func WriteImageGroupMessage(ids *Slice2Str, payload []byte, groupId string) erro
 		return err
 	}
 
-	err = _inst.websocket.GWrite(ids.Items, rawData)
+	var (
+		ids []string
+	)
+
+	json.Unmarshal([]byte(to),&ids)
+
+	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
 		return err
 	}
@@ -396,7 +410,7 @@ func WriteImageGroupMessage(ids *Slice2Str, payload []byte, groupId string) erro
 	return nil
 }
 
-func WriteVoiceGroupMessage(ids *Slice2Str, payload []byte, length int, groupId string) error {
+func WriteVoiceGroupMessage(to string, payload []byte, length int, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 	}
@@ -411,8 +425,13 @@ func WriteVoiceGroupMessage(ids *Slice2Str, payload []byte, length int, groupId 
 	if err != nil {
 		return err
 	}
+	var (
+		ids []string
+	)
 
-	err = _inst.websocket.GWrite(ids.Items, rawData)
+	json.Unmarshal([]byte(to),&ids)
+
+	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
 		return err
 	}
@@ -432,17 +451,17 @@ func NewGroupId() string {
 	return base64.StdEncoding.EncodeToString(buf)
 }
 
-
-func GroupInfo2Str(groupId, groupName, owner string, memberIds, nickNames []string) string {
-	gi:=&GroupInfo{
-		GroupId: groupId,
-		GroupName: groupName,
-		OwnerId: owner,
-		MemberId: memberIds,
-		NickName: nickNames,
-	}
-
-	j,_:=json.Marshal(*gi)
-
-	return string(j)
-}
+//
+//func GroupInfo2Str(groupId, groupName, owner string, memberIds, nickNames []string) string {
+//	gi:=&GroupInfo{
+//		GroupId: groupId,
+//		GroupName: groupName,
+//		OwnerId: owner,
+//		MemberId: memberIds,
+//		NickName: nickNames,
+//	}
+//
+//	j,_:=json.Marshal(*gi)
+//
+//	return string(j)
+//}
