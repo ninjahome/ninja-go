@@ -160,7 +160,7 @@ func (cc *WSClient) recoverGroupKey(from string, gekey []*pbs.GroupEncryptKey) (
 
 	var gkey []byte
 	for i := 0; i < len(gekey); i++ {
-		if strings.ToLower(gekey[i].MemberId) == lfrom {
+		if strings.ToLower(gekey[i].MemberId) == cc.key.Address.String() {
 			gkey = gekey[i].EncryptKey
 			break
 		}
@@ -308,7 +308,7 @@ func (cc *WSClient) procMsgFromServer() error {
 			}
 			msg := msgWrap.GroupMessage
 
-			key, err := cc.recoverGroupKey(cc.key.Address.String(), msg.To)
+			key, err := cc.recoverGroupKey(msg.From, msg.To)
 			if err != nil {
 				return err
 			}
@@ -347,7 +347,7 @@ func (cc *WSClient) procMsgFromServer() error {
 				gmsg:=unreadmsg.CryptoMsg.(*pbs.WsUnreadAckMsg_GPayload)
 				gpayload:=gmsg.GPayload
 
-				key, err := cc.recoverGroupKey(cc.key.Address.String(), gpayload.To)
+				key, err := cc.recoverGroupKey(gpayload.From, gpayload.To)
 				if err != nil {
 					continue
 				}
