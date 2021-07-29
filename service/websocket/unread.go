@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func (ws *Service)_loadDbunreadIm(unread *pbs.WSPullUnread)  ([]*pbs.WsUnreadAckMsg, bool){
+func (ws *Service) _loadDbunreadIm(unread *pbs.WSPullUnread) ([]*pbs.WsUnreadAckMsg, bool) {
 	buf := make([]*pbs.WsUnreadAckMsg, 0)
 	var counter = 0
 	sKey := IMDBKey(unread.Receiver, unread.FromUnixTime)
@@ -26,7 +26,7 @@ func (ws *Service)_loadDbunreadIm(unread *pbs.WSPullUnread)  ([]*pbs.WsUnreadAck
 		}
 		counter++
 
-		m:=&pbs.WsUnreadAckMsg{
+		m := &pbs.WsUnreadAckMsg{
 			CryptoMsg: &pbs.WsUnreadAckMsg_Payload{Payload: msgV},
 		}
 
@@ -41,28 +41,27 @@ func (ws *Service)_loadDbunreadIm(unread *pbs.WSPullUnread)  ([]*pbs.WsUnreadAck
 
 	iter.Release()
 
-
-	return buf,hasMore
+	return buf, hasMore
 }
 
-func (ws *Service)_loadDbunreadGIm(unread *pbs.WSPullUnread, leftCnt int)  ([]*pbs.WsUnreadAckMsg, bool)  {
+func (ws *Service) _loadDbunreadGIm(unread *pbs.WSPullUnread, leftCnt int) ([]*pbs.WsUnreadAckMsg, bool) {
 
 	buf := make([]*pbs.WsUnreadAckMsg, 0)
 	counter := 0
-	startKey:=StartKey(unread.Receiver)
-	endKey:=EndKey(unread.Receiver)
+	startKey := StartKey(unread.Receiver)
+	endKey := EndKey(unread.Receiver)
 	iter := ws.dataBase.NewIterator(&util.Range{Start: []byte(startKey), Limit: []byte(endKey)}, nil)
 	hasMore := false
 	for iter.Next() {
 		groupkey := iter.Value()
 
-		gmsg,err:=GetGroupMsg(ws.dataBase, groupkey)
-		if err!=nil{
+		gmsg, err := GetGroupMsg(ws.dataBase, groupkey)
+		if err != nil {
 			continue
 		}
 		counter++
 
-		m:=&pbs.WsUnreadAckMsg{
+		m := &pbs.WsUnreadAckMsg{
 			CryptoMsg: &pbs.WsUnreadAckMsg_GPayload{GPayload: gmsg},
 		}
 
@@ -78,27 +77,26 @@ func (ws *Service)_loadDbunreadGIm(unread *pbs.WSPullUnread, leftCnt int)  ([]*p
 
 	iter.Release()
 
-	return buf,hasMore
+	return buf, hasMore
 
 }
 
-
 func (ws *Service) loadDbUnread(unread *pbs.WSPullUnread) ([]*pbs.WsUnreadAckMsg, bool) {
-	acks, hasMore:=ws._loadDbunreadIm(unread)
-	if hasMore{
-		return acks,hasMore
+	acks, hasMore := ws._loadDbunreadIm(unread)
+	if hasMore {
+		return acks, hasMore
 	}
 
-	left:= _wsConfig.MaxUnreadMsgNoPerQuery - len(acks)
-	if left < 0{
+	left := _wsConfig.MaxUnreadMsgNoPerQuery - len(acks)
+	if left < 0 {
 		left = 0
 	}
 
-	acks2,hashMoreG := ws._loadDbunreadGIm(unread,left)
+	acks2, hashMoreG := ws._loadDbunreadGIm(unread, left)
 
-	acks = append(acks,acks2...)
+	acks = append(acks, acks2...)
 
-	return acks,hashMoreG
+	return acks, hashMoreG
 
 }
 

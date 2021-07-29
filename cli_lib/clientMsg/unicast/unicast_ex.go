@@ -75,7 +75,7 @@ func WrapSyncGroup(groupId string) ([]byte, error) {
 
 }
 
-func WrapFile(p []byte, size int, name string) ([]byte,error){
+func WrapFile(p []byte, size int, name string) ([]byte, error) {
 	chatMessage := &ChatMessage{
 		Payload: &ChatMessage_File{
 			File: &File{
@@ -86,9 +86,9 @@ func WrapFile(p []byte, size int, name string) ([]byte,error){
 		},
 	}
 
-	rawData, err:= proto.Marshal(chatMessage)
-	if err!=nil{
+	rawData, err := proto.Marshal(chatMessage)
+	if err != nil {
 		return nil, err
 	}
-	return rawData,nil
+	return rawData, nil
 }

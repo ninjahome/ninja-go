@@ -128,7 +128,7 @@ func (i IosAPP) unicastMsg(msg *pbs.WSCryptoMsg) error {
 			locationMessage.Name,
 			msg.UnixTime)
 	case *unicast.ChatMessage_File:
-		fileMessage:=chatMessage.Payload.(*unicast.ChatMessage_File).File
+		fileMessage := chatMessage.Payload.(*unicast.ChatMessage_File).File
 
 		return i.unicast.FileMessage(msg.From,
 			msg.To,
@@ -311,7 +311,6 @@ func WriteVoiceMessage(to string, payload []byte, len int) error {
 
 	return _inst.websocket.Write(to, rawData)
 }
-
 
 func WriteFileMessage(to string, payload []byte, size int, name string) error {
 	if _inst.websocket == nil {

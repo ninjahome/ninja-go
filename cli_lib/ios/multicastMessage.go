@@ -71,13 +71,13 @@ func (i IosAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 		quitInfo := groupMessage.Payload.(*multicast.GroupMessage_QuitGroupInfo)
 		quitGroup := quitInfo.QuitGroupInfo
 
-		return i.multicast.QuitGroup(msg.From,quitGroup.GroupId, quitGroup.QuitId)
+		return i.multicast.QuitGroup(msg.From, quitGroup.GroupId, quitGroup.QuitId)
 
 	case multicast.GroupMessageType_KickOutUserT:
 		kickInfo := groupMessage.Payload.(*multicast.GroupMessage_QuitGroupInfo)
 		kickGroup := kickInfo.QuitGroupInfo
 
-		return i.multicast.KickOutUser(msg.From,kickGroup.GroupId, kickGroup.QuitId)
+		return i.multicast.KickOutUser(msg.From, kickGroup.GroupId, kickGroup.QuitId)
 
 	case multicast.GroupMessageType_SyncGroupAckT:
 		syncGroupAck := groupMessage.Payload.(*multicast.GroupMessage_SyncGroupAck)
@@ -147,7 +147,7 @@ func (i IosAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc, ts 
 			locationMessage.Name,
 			ts)
 	case *unicast.ChatMessage_File:
-		fileMessage:=msg.ChatMsg.Payload.(*unicast.ChatMessage_File).File
+		fileMessage := msg.ChatMsg.Payload.(*unicast.ChatMessage_File).File
 
 		return i.multicast.FileMessage(from,
 			msg.GroupId,
@@ -179,8 +179,8 @@ func CreateGroup(to, nickNames string, groupId, groupName string) error {
 		nks []string
 	)
 
-	json.Unmarshal([]byte(to),&ids)
-	json.Unmarshal([]byte(nickNames),&nks)
+	json.Unmarshal([]byte(to), &ids)
+	json.Unmarshal([]byte(nickNames), &nks)
 
 	rawData, err := multicast.WrapCreateGroup(nks, owner, groupId, groupName)
 	if err != nil {
@@ -208,14 +208,14 @@ func JoinGroup(to, nickNames string, groupId, groupName, groupOwner string, newI
 	}
 
 	var (
-		ids []string
-		nks []string
+		ids  []string
+		nks  []string
 		nids []string
 	)
 
-	json.Unmarshal([]byte(to),&ids)
-	json.Unmarshal([]byte(nickNames),&nks)
-	json.Unmarshal([]byte(newIds),&nks)
+	json.Unmarshal([]byte(to), &ids)
+	json.Unmarshal([]byte(nickNames), &nks)
+	json.Unmarshal([]byte(newIds), &nks)
 
 	rawData, err := multicast.WrapJoinGroup(nks, groupOwner, groupId, groupName, nids)
 	if err != nil {
@@ -246,7 +246,7 @@ func QuitGroup(to string, groupId string) error {
 		ids []string
 	)
 
-	json.Unmarshal([]byte(to),&ids)
+	json.Unmarshal([]byte(to), &ids)
 
 	quitId := _inst.websocket.Address()
 
@@ -288,7 +288,7 @@ func KickOutUser(to string, groupId, owner, kickUserId string) error {
 		ids []string
 	)
 
-	json.Unmarshal([]byte(to),&ids)
+	json.Unmarshal([]byte(to), &ids)
 
 	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
@@ -322,7 +322,7 @@ func DismisGroup(to string, owner, groupId string) error {
 		ids []string
 	)
 
-	json.Unmarshal([]byte(to),&ids)
+	json.Unmarshal([]byte(to), &ids)
 
 	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
@@ -351,7 +351,7 @@ func WriteGroupMessage(to string, groupId, plainTxt string) error {
 		ids []string
 	)
 
-	json.Unmarshal([]byte(to),&ids)
+	json.Unmarshal([]byte(to), &ids)
 	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
 		return err
@@ -380,7 +380,7 @@ func WriteLocationGroupMessage(to string, longitude, latitude float32, name, gro
 		ids []string
 	)
 
-	json.Unmarshal([]byte(to),&ids)
+	json.Unmarshal([]byte(to), &ids)
 
 	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
@@ -410,7 +410,7 @@ func WriteImageGroupMessage(to string, payload []byte, groupId string) error {
 		ids []string
 	)
 
-	json.Unmarshal([]byte(to),&ids)
+	json.Unmarshal([]byte(to), &ids)
 
 	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
@@ -439,7 +439,7 @@ func WriteVoiceGroupMessage(to string, payload []byte, length int, groupId strin
 		ids []string
 	)
 
-	json.Unmarshal([]byte(to),&ids)
+	json.Unmarshal([]byte(to), &ids)
 
 	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
@@ -448,9 +448,6 @@ func WriteVoiceGroupMessage(to string, payload []byte, length int, groupId strin
 
 	return nil
 }
-
-
-
 
 func WriteFileGroupMessage(to string, payload []byte, size int, name, groupId string) error {
 	if _inst.websocket == nil {
@@ -471,7 +468,7 @@ func WriteFileGroupMessage(to string, payload []byte, size int, name, groupId st
 		ids []string
 	)
 
-	json.Unmarshal([]byte(to),&ids)
+	json.Unmarshal([]byte(to), &ids)
 
 	err = _inst.websocket.GWrite(ids, rawData)
 	if err != nil {
@@ -480,7 +477,6 @@ func WriteFileGroupMessage(to string, payload []byte, size int, name, groupId st
 
 	return nil
 }
-
 
 func NewGroupId() string {
 	buf := make([]byte, 32)

@@ -128,7 +128,7 @@ func (i AndroidAPP) unicastMsg(msg *pbs.WSCryptoMsg) error {
 			locationMessage.Name,
 			msg.UnixTime)
 	case *unicast.ChatMessage_File:
-		fileMessage:=chatMessage.Payload.(*unicast.ChatMessage_File).File
+		fileMessage := chatMessage.Payload.(*unicast.ChatMessage_File).File
 
 		return i.unicast.FileMessage(msg.From,
 			msg.To,
@@ -187,7 +187,6 @@ type UnicastCallBack interface {
 	FileMessage(from, to string, payload []byte, size int, name string) error
 	WebSocketClosed()
 }
-
 
 func ConfigApp(addr string, unicast UnicastCallBack, multicast MulticastCallBack) {
 
@@ -314,7 +313,6 @@ func WriteVoiceMessage(to string, payload []byte, len int) error {
 	return _inst.websocket.Write(to, rawData)
 }
 
-
 func WriteFileMessage(to string, payload []byte, size int, name string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
@@ -332,7 +330,6 @@ func WriteFileMessage(to string, payload []byte, size int, name string) error {
 
 	return _inst.websocket.Write(to, rawData)
 }
-
 
 func SyncGroup(to string, groupId string) error {
 	if _inst.websocket == nil {

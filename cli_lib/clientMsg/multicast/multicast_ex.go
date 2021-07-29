@@ -259,7 +259,7 @@ func WrapVoice(p []byte, l int, groupId string) ([]byte, error) {
 	return rawData, nil
 }
 
-func WrapFile(p []byte, size int, name, groupId string) ([]byte, error)  {
+func WrapFile(p []byte, size int, name, groupId string) ([]byte, error) {
 	chatMessage := &unicast.ChatMessage{
 		Payload: &unicast.ChatMessage_File{
 			File: &unicast.File{
@@ -270,21 +270,21 @@ func WrapFile(p []byte, size int, name, groupId string) ([]byte, error)  {
 		},
 	}
 
-	chatInfo:=&ChatMesageDesc{
+	chatInfo := &ChatMesageDesc{
 		GroupId: groupId,
 		ChatMsg: chatMessage,
 	}
 
-	gMsg:=&GroupMessage{
+	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_ChatMessageT,
 		Payload: &GroupMessage_ChatMsg{
 			ChatMsg: chatInfo,
 		},
 	}
 
-	rawData, err:= proto.Marshal(gMsg)
-	if err!=nil{
+	rawData, err := proto.Marshal(gMsg)
+	if err != nil {
 		return nil, err
 	}
-	return rawData,nil
+	return rawData, nil
 }

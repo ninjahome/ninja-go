@@ -25,10 +25,8 @@ func ID2IconIdx(id string, mod int) uint32 {
 	return sum % uint32(mod)
 }
 
-
-
 func StrSlice2String(ss []string) string {
-	j,_:=json.Marshal(ss)
+	j, _ := json.Marshal(ss)
 
 	return string(j)
 }

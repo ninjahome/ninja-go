@@ -25,7 +25,7 @@ func IMDBEnd(receiver string) []byte {
 	return []byte(key)
 }
 
-func (ws *Service)_procUnicastIM(msg *pbs.WsMsg) error  {
+func (ws *Service) _procUnicastIM(msg *pbs.WsMsg) error {
 	body := msg.Payload.(*pbs.WsMsg_Message)
 
 	im := body.Message
@@ -75,42 +75,42 @@ func (ws *Service)_procUnicastIM(msg *pbs.WsMsg) error  {
 	return ws.IMP2pWorker.BroadCast(msg.Data())
 }
 
-func (ws *Service)_procMulticastIM(msg *pbs.WsMsg) error {
+func (ws *Service) _procMulticastIM(msg *pbs.WsMsg) error {
 	body := msg.Payload.(*pbs.WsMsg_GroupMessage)
 
-	gim:=body.GroupMessage
+	gim := body.GroupMessage
 
-	utils.LogInst().Debug().Str("From:",gim.From).Str("To","Group").Int64("time",gim.UnixTime)
+	utils.LogInst().Debug().Str("From:", gim.From).Str("To", "Group").Int64("time", gim.UnixTime)
 
 	allonline := true
 	otherNode := false
 	var (
 		groupKey string
-		err error
+		err      error
 	)
 
-	for i:=0;i<len(gim.To);i++{
-		if !ws.onlineSet.contains(gim.To[i].MemberId){
-			if allonline{
+	for i := 0; i < len(gim.To); i++ {
+		if !ws.onlineSet.contains(gim.To[i].MemberId) {
+			if allonline {
 				allonline = false
-				groupKey,err = SaveGroupMsg(ws.dataBase,gim)
-				if err!=nil{
+				groupKey, err = SaveGroupMsg(ws.dataBase, gim)
+				if err != nil {
 					return err
 				}
 			}
 
-			err = SaveReceiverGroupMsg(ws.dataBase,gim.To[i].MemberId,[]byte(groupKey),gim.UnixTime)
-			if err!=nil{
+			err = SaveReceiverGroupMsg(ws.dataBase, gim.To[i].MemberId, []byte(groupKey), gim.UnixTime)
+			if err != nil {
 				return err
 			}
-		}else if user,ok:=ws.userTable.get(gim.To[i].MemberId);ok{
+		} else if user, ok := ws.userTable.get(gim.To[i].MemberId); ok {
 			return user.writeToCli(msg)
-		}else{
+		} else {
 			otherNode = true
 		}
 	}
 
-	if otherNode{
+	if otherNode {
 		return ws.IMP2pWorker.BroadCast(msg.Data())
 	}
 
@@ -158,7 +158,6 @@ func (ws *Service) ImmediateMsgForP2pNetwork(w *worker.TopicWorker) {
 	}
 }
 
-
 func (ws *Service) _peerImmediateMsg(msg *pbs.WsMsg) error {
 	body, ok := msg.Payload.(*pbs.WsMsg_Message)
 	if !ok {
@@ -173,16 +172,15 @@ func (ws *Service) _peerImmediateMsg(msg *pbs.WsMsg) error {
 	return u.writeToCli(msg)
 }
 
-
 func (ws *Service) _peerImmediateGroupMsg(msg *pbs.WsMsg) error {
 	body, ok := msg.Payload.(*pbs.WsMsg_GroupMessage)
 	if !ok {
 		return fmt.Errorf("this is not a valid p2p crypto message")
 	}
 
-	gim:=body.GroupMessage
+	gim := body.GroupMessage
 
-	for i:=0;i<len(gim.To);i++{
+	for i := 0; i < len(gim.To); i++ {
 		u, ok := ws.userTable.get(gim.To[i].MemberId)
 		if !ok {
 			continue

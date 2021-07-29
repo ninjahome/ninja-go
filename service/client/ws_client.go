@@ -329,23 +329,23 @@ func (cc *WSClient) procMsgFromServer() error {
 			return ErrUnknownMsg
 		}
 
-		for i:=0;i<len(ack.UnreadAck.Payload);i++{
-			unreadmsg:= ack.UnreadAck.Payload[i]
+		for i := 0; i < len(ack.UnreadAck.Payload); i++ {
+			unreadmsg := ack.UnreadAck.Payload[i]
 			switch unreadmsg.CryptoMsg.(type) {
 			case *pbs.WsUnreadAckMsg_Payload:
-				msg:=unreadmsg.CryptoMsg.(*pbs.WsUnreadAckMsg_Payload)
-				key,err:=cc.getAesKey(msg.Payload.From)
-				if err!=nil{
+				msg := unreadmsg.CryptoMsg.(*pbs.WsUnreadAckMsg_Payload)
+				key, err := cc.getAesKey(msg.Payload.From)
+				if err != nil {
 					continue
 				}
 				dst, _ := openssl.AesECBDecrypt(msg.Payload.PayLoad, key, openssl.PKCS7_PADDING)
 				msg.Payload.PayLoad = dst
-				if err:=cc.callback.ImmediateMessage(msg.Payload);err!=nil{
+				if err := cc.callback.ImmediateMessage(msg.Payload); err != nil {
 					continue
 				}
 			case *pbs.WsUnreadAckMsg_GPayload:
-				gmsg:=unreadmsg.CryptoMsg.(*pbs.WsUnreadAckMsg_GPayload)
-				gpayload:=gmsg.GPayload
+				gmsg := unreadmsg.CryptoMsg.(*pbs.WsUnreadAckMsg_GPayload)
+				gpayload := gmsg.GPayload
 
 				key, err := cc.recoverGroupKey(gpayload.From, gpayload.To)
 				if err != nil {
