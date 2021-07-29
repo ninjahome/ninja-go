@@ -35,6 +35,7 @@ type MulticastCallBack interface {
 	ImageMessage(from, groupId string, payload []byte, time int64) error
 	LocationMessage(from, groupId string, l, a float32, name string, time int64) error
 	TextMessage(from, groupId string, payload string, time int64) error
+	FileMessage(from, groupId string, payload []byte, size int, name string) error
 }
 
 func (i AndroidAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
@@ -146,6 +147,14 @@ func (i AndroidAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc,
 			locationMessage.Latitude,
 			locationMessage.Name,
 			ts)
+	case *unicast.ChatMessage_File:
+		fileMessage:=msg.ChatMsg.Payload.(*unicast.ChatMessage_File).File
+
+		return i.multicast.FileMessage(from,
+			msg.GroupId,
+			fileMessage.Data,
+			int(fileMessage.Size),
+			fileMessage.Name)
 	default:
 		return errors.New("msg not recognize")
 	}
@@ -423,6 +432,36 @@ func WriteVoiceGroupMessage(to string, payload []byte, length int, groupId strin
 	}
 
 	rawData, err := multicast.WrapVoice(payload, length, groupId)
+
+	if err != nil {
+		return err
+	}
+	var (
+		ids []string
+	)
+
+	json.Unmarshal([]byte(to),&ids)
+
+	err = _inst.websocket.GWrite(ids, rawData)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+
+func WriteFileGroupMessage(to string, payload []byte, size int, name, groupId string) error {
+	if _inst.websocket == nil {
+		return fmt.Errorf("init application first please")
+	}
+	if !_inst.websocket.IsOnline {
+		if err := _inst.websocket.Online(); err != nil {
+			return err
+		}
+	}
+
+	rawData, err := multicast.WrapFile(payload, size, name, groupId)
 
 	if err != nil {
 		return err

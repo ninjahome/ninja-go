@@ -127,6 +127,14 @@ func (i IosAPP) unicastMsg(msg *pbs.WSCryptoMsg) error {
 			locationMessage.Latitude,
 			locationMessage.Name,
 			msg.UnixTime)
+	case *unicast.ChatMessage_File:
+		fileMessage:=chatMessage.Payload.(*unicast.ChatMessage_File).File
+
+		return i.unicast.FileMessage(msg.From,
+			msg.To,
+			fileMessage.Data,
+			int(fileMessage.Size),
+			fileMessage.Name)
 	case *unicast.ChatMessage_SyncGroupId:
 		grouId := chatMessage.Payload.(*unicast.ChatMessage_SyncGroupId).SyncGroupId
 
@@ -175,6 +183,7 @@ type UnicastCallBack interface {
 	ImageMessage(from, to string, payload []byte, time int64) error
 	LocationMessage(from, to string, l, a float32, name string, time int64) error
 	TextMessage(from, to string, payload string, time int64) error
+	FileMessage(from, to string, payload []byte, size int, name string) error
 	WebSocketClosed()
 }
 
@@ -296,6 +305,25 @@ func WriteVoiceMessage(to string, payload []byte, len int) error {
 	}
 
 	rawData, err := unicast.WrapVoice(payload, len)
+	if err != nil {
+		return err
+	}
+
+	return _inst.websocket.Write(to, rawData)
+}
+
+
+func WriteFileMessage(to string, payload []byte, size int, name string) error {
+	if _inst.websocket == nil {
+		return fmt.Errorf("init application first please")
+	}
+	if !_inst.websocket.IsOnline {
+		if err := _inst.websocket.Online(); err != nil {
+			return err
+		}
+	}
+
+	rawData, err := unicast.WrapFile(payload, size, name)
 	if err != nil {
 		return err
 	}
