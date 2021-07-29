@@ -38,7 +38,7 @@ func (c *cmdService) ShowAllThreads(ctx context.Context, req *pbs.ThreadGroup) (
 }
 
 const (
-	DefaultCmdPort = 8848
+	DefaultCmdPort = 8849
 	ThreadName     = "Internal Rpc Cmd Thread"
 )
 
