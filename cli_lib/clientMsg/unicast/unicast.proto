@@ -20,6 +20,8 @@ message Location{
   float Latitude = 3;
 }
 
+message File
+
 message ChatMessage{
   oneof payload{
     string PlainTxt = 2;

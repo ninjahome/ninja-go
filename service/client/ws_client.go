@@ -308,7 +308,7 @@ func (cc *WSClient) procMsgFromServer() error {
 			}
 			msg := msgWrap.GroupMessage
 
-			key, err := cc.recoverGroupKey(msg.From, msg.To)
+			key, err := cc.recoverGroupKey(cc.key.Address.String(), msg.To)
 			if err != nil {
 				return err
 			}
@@ -347,7 +347,7 @@ func (cc *WSClient) procMsgFromServer() error {
 				gmsg:=unreadmsg.CryptoMsg.(*pbs.WsUnreadAckMsg_GPayload)
 				gpayload:=gmsg.GPayload
 
-				key, err := cc.recoverGroupKey(gpayload.From, gpayload.To)
+				key, err := cc.recoverGroupKey(cc.key.Address.String(), gpayload.To)
 				if err != nil {
 					continue
 				}
