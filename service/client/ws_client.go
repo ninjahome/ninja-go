@@ -195,6 +195,9 @@ func (cc *WSClient) groupEncryptKey(to []string) (gekey []*pbs.GroupEncryptKey, 
 	for i := 0; i < len(to); i++ {
 		lto := strings.ToLower(to[i])
 		if from == lto {
+			gekey = append(gekey,&pbs.GroupEncryptKey{
+				MemberId: lto,
+			})
 			continue
 		}
 		if tokey, err := cc.getAesKey(lto); err != nil {

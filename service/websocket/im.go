@@ -90,6 +90,9 @@ func (ws *Service) _procMulticastIM(msg *pbs.WsMsg) error {
 	)
 
 	for i := 0; i < len(gim.To); i++ {
+		if gim.To[i].MemberId == gim.From{
+			continue
+		}
 		if !ws.onlineSet.contains(gim.To[i].MemberId) {
 			if allonline {
 				allonline = false
@@ -181,6 +184,10 @@ func (ws *Service) _peerImmediateGroupMsg(msg *pbs.WsMsg) error {
 	gim := body.GroupMessage
 
 	for i := 0; i < len(gim.To); i++ {
+		if gim.From == gim.To[i].MemberId{
+			continue
+		}
+
 		u, ok := ws.userTable.get(gim.To[i].MemberId)
 		if !ok {
 			continue
