@@ -1,4 +1,4 @@
-package androidlib
+package chatLib
 
 import (
 	"encoding/base64"
@@ -30,7 +30,7 @@ func ActiveAddress() string {
 	return _inst.key.Address.String()
 }
 
-type AndroidAPP struct {
+type MobileAPP struct {
 	key       *wallet.Key
 	unicast   UnicastCallBack
 	multicast MulticastCallBack
@@ -39,20 +39,20 @@ type AndroidAPP struct {
 	unreadSeq int64
 }
 
-func (a AndroidAPP) OnlineSuccess() {
+func (a MobileAPP) OnlineSuccess() {
 	if err := _inst.websocket.PullUnreadMsg(a.unreadSeq); err != nil {
 		fmt.Println(err.Error())
 	}
 }
 
-func (a AndroidAPP) ImmediateMessage(msg *pbs.WSCryptoMsg) error {
+func (a MobileAPP) ImmediateMessage(msg *pbs.WSCryptoMsg) error {
 	if msg == nil {
 		return errors.New("msg is nil")
 	}
 	return a.unicastMsg(msg)
 }
 
-func (a AndroidAPP) ImmediateGMessage(msg *pbs.WSCryptoGroupMsg) error {
+func (a MobileAPP) ImmediateGMessage(msg *pbs.WSCryptoGroupMsg) error {
 	if msg == nil {
 		return errors.New("msg is nil")
 	}
@@ -65,7 +65,7 @@ func (a AndroidAPP) ImmediateGMessage(msg *pbs.WSCryptoGroupMsg) error {
 	return a.multicastMsg(to, msg)
 }
 
-func (a AndroidAPP) WebSocketClosed() {
+func (a MobileAPP) WebSocketClosed() {
 	a.unicast.WebSocketClosed()
 }
 
@@ -81,7 +81,7 @@ func (a AndroidAPP) WebSocketClosed() {
 //	return nil
 //}
 
-func (i AndroidAPP) unicastMsg(msg *pbs.WSCryptoMsg) error {
+func (i MobileAPP) unicastMsg(msg *pbs.WSCryptoMsg) error {
 
 	chatMessage := &unicast.ChatMessage{}
 	if err := proto.Unmarshal(msg.PayLoad, chatMessage); err != nil {
@@ -135,7 +135,6 @@ func (i AndroidAPP) unicastMsg(msg *pbs.WSCryptoMsg) error {
 			fileMessage.Data,
 			int(fileMessage.Size),
 			fileMessage.Name)
-
 	case *unicast.ChatMessage_SyncGroupId:
 		grouId := chatMessage.Payload.(*unicast.ChatMessage_SyncGroupId).SyncGroupId
 
@@ -177,7 +176,7 @@ func UnmarshalGoByte(s string) []byte {
 	return b
 }
 
-var _inst = &AndroidAPP{unreadSeq: 0}
+var _inst = &MobileAPP{unreadSeq: 0}
 
 type UnicastCallBack interface {
 	VoiceMessage(from, to string, payload []byte, length int, time int64) error

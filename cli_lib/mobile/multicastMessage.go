@@ -1,4 +1,4 @@
-package androidlib
+package chatLib
 
 import (
 	"crypto/rand"
@@ -37,7 +37,7 @@ type MulticastCallBack interface {
 	FileMessage(from, groupId string, payload []byte, size int, name string) error
 }
 
-func (i AndroidAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
+func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 	groupMessage := &multicast.GroupMessage{}
 	if err := proto.Unmarshal(msg.PayLoad, groupMessage); err != nil {
 		return err
@@ -105,7 +105,7 @@ func (i AndroidAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 	return nil
 }
 
-func (i AndroidAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc, ts int64) error {
+func (i MobileAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc, ts int64) error {
 	switch msg.ChatMsg.Payload.(type) {
 
 	case *unicast.ChatMessage_PlainTxt:
@@ -154,6 +154,7 @@ func (i AndroidAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc,
 			fileMessage.Data,
 			int(fileMessage.Size),
 			fileMessage.Name)
+
 	default:
 		return errors.New("msg not recognize")
 	}
@@ -489,14 +490,6 @@ func NewGroupId() string {
 	return base64.StdEncoding.EncodeToString(buf)
 }
 
-//type GroupInfo struct {
-//	GroupId   string   `json:"group_id"`
-//	GroupName string   `json:"group_name"`
-//	OwnerId   string   `json:"owner_id"`
-//	MemberId  []string `json:"member_id"`
-//	NickName  []string `json:"nick_name"`
-//}
-
 //
 //func GroupInfo2Str(groupId, groupName, owner string, memberIds, nickNames []string) string {
 //	gi:=&GroupInfo{
@@ -511,4 +504,3 @@ func NewGroupId() string {
 //
 //	return string(j)
 //}
-//

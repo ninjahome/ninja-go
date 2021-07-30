@@ -24,3 +24,4 @@ cli_lib/bin/ninja.aar
 /go.sum
 /.idea/inspectionProfiles/Project_Default.xml
 cli_lib/bin/iosLib.framework/
+cli_lib/bin/chatLib.framework/
