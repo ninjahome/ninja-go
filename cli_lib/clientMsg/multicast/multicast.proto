@@ -11,7 +11,8 @@ enum GroupMessageType{
     JoinGroupT = 3;
     DismisGroupT = 4;
     SyncGroupAckT = 5;
-    ChatMessageT = 6;
+    BanTalkingT   = 6;
+    ChatMessageT = 7;
 }
 
 message GroupDesc{

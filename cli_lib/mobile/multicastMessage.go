@@ -27,6 +27,7 @@ type MulticastCallBack interface {
 	QuitGroup(from, groupId, quitId string) error
 	DismisGroup(groupId string) error
 	SyncGroup(groupId string) string
+	BanTalking(groupId string) error
 	//same as CreateGroup
 	SyncGroupAck(groupId, groupName, owner string, memberIdList, memberNickNameList string) error
 	VoiceMessage(from, groupId string, payload []byte, length int, time int64) error
@@ -46,7 +47,6 @@ func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 	case multicast.GroupMessageType_CreateGroupT:
 		groupInfo := groupMessage.Payload.(*multicast.GroupMessage_GroupInfo)
 		groupDesc := groupInfo.GroupInfo
-
 		return i.multicast.CreateGroup(groupDesc.GroupId,
 			groupDesc.GroupName,
 			groupDesc.GroupOwner,
@@ -56,7 +56,6 @@ func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 	case multicast.GroupMessageType_JoinGroupT:
 		jInfo := groupMessage.Payload.(*multicast.GroupMessage_JoinGroupInfo)
 		joinGroup := jInfo.JoinGroupInfo
-
 		return i.multicast.JoinGroup(msg.From,
 			joinGroup.GroupInfo.GroupId,
 			joinGroup.GroupInfo.GroupName,
@@ -69,19 +68,16 @@ func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 	case multicast.GroupMessageType_QuitGroupT:
 		quitInfo := groupMessage.Payload.(*multicast.GroupMessage_QuitGroupInfo)
 		quitGroup := quitInfo.QuitGroupInfo
-
 		return i.multicast.QuitGroup(msg.From, quitGroup.GroupId, quitGroup.QuitId)
 
 	case multicast.GroupMessageType_KickOutUserT:
 		kickInfo := groupMessage.Payload.(*multicast.GroupMessage_QuitGroupInfo)
 		kickGroup := kickInfo.QuitGroupInfo
-
 		return i.multicast.KickOutUser(msg.From, kickGroup.GroupId, kickGroup.QuitId)
 
 	case multicast.GroupMessageType_SyncGroupAckT:
 		syncGroupAck := groupMessage.Payload.(*multicast.GroupMessage_SyncGroupAck)
 		syncGroup := syncGroupAck.SyncGroupAck
-
 		return i.multicast.SyncGroupAck(syncGroup.GroupInfo.GroupId,
 			syncGroup.GroupInfo.GroupName,
 			syncGroup.GroupInfo.GroupOwner,
@@ -91,14 +87,16 @@ func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 	case multicast.GroupMessageType_ChatMessageT:
 		chatMessage := groupMessage.Payload.(*multicast.GroupMessage_ChatMsg)
 		chatMsg := chatMessage.ChatMsg
-
 		return i.multicastChatMsg(msg.From, chatMsg, msg.UnixTime)
 
 	case multicast.GroupMessageType_DismisGroupT:
 		dismisGroup := groupMessage.Payload.(*multicast.GroupMessage_GroupId)
-
 		return i.multicast.DismisGroup(dismisGroup.GroupId)
 
+	case multicast.GroupMessageType_BanTalkingT:
+		banG:=groupMessage.Payload.(*multicast.GroupMessage_GroupId)
+
+		return i.multicast.BanTalking(banG.GroupId)
 	}
 
 	return nil
@@ -108,27 +106,21 @@ func (i MobileAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc, 
 	switch msg.ChatMsg.Payload.(type) {
 
 	case *unicast.ChatMessage_PlainTxt:
-
 		rawData := msg.ChatMsg.Payload.(*unicast.ChatMessage_PlainTxt)
-
 		return i.multicast.TextMessage(from,
 			msg.GroupId,
 			rawData.PlainTxt,
 			ts)
 
 	case *unicast.ChatMessage_Image:
-
 		rawData := msg.ChatMsg.Payload.(*unicast.ChatMessage_Image)
-
 		return i.multicast.ImageMessage(from,
 			msg.GroupId,
 			rawData.Image,
 			ts)
 
 	case *unicast.ChatMessage_Voice:
-
 		voiceMessage := msg.ChatMsg.Payload.(*unicast.ChatMessage_Voice).Voice
-
 		return i.multicast.VoiceMessage(from,
 			msg.GroupId,
 			voiceMessage.Data,
@@ -136,9 +128,7 @@ func (i MobileAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc, 
 			ts)
 
 	case *unicast.ChatMessage_Location:
-
 		locationMessage := msg.ChatMsg.Payload.(*unicast.ChatMessage_Location).Location
-
 		return i.multicast.LocationMessage(from,
 			msg.GroupId,
 			locationMessage.Longitude,
@@ -147,7 +137,6 @@ func (i MobileAPP) multicastChatMsg(from string, msg *multicast.ChatMesageDesc, 
 			ts)
 	case *unicast.ChatMessage_File:
 		fileMessage := msg.ChatMsg.Payload.(*unicast.ChatMessage_File).File
-
 		return i.multicast.FileMessage(from,
 			msg.GroupId,
 			fileMessage.Data,
@@ -296,6 +285,35 @@ func DismisGroup(to string, owner, groupId string) error {
 	return nil
 }
 
+func BanTalking(to string, owner, groupId string) error  {
+	if _inst.websocket == nil {
+		return fmt.Errorf("init application first please")
+
+	}
+	if !_inst.websocket.IsOnline {
+		if err := _inst.websocket.Online(); err != nil {
+			return err
+		}
+	}
+
+	localUser := _inst.websocket.Address()
+	if localUser != owner {
+		return fmt.Errorf("only owner can dismis group")
+	}
+
+	rawData, err := multicast.WrapBanTalking(groupId)
+	if err != nil{
+		return err
+	}
+
+	err = _inst.websocket.GWrite(utils.JStr2Slice(to),rawData)
+	if err != nil{
+		return err
+	}
+
+	return nil
+}
+
 func WriteGroupMessage(to string, groupId, plainTxt string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
@@ -331,7 +349,6 @@ func WriteLocationGroupMessage(to string, longitude, latitude float32, name, gro
 	}
 
 	rawData, err := multicast.WrapLocation(longitude, latitude, name, groupId)
-
 	if err != nil {
 		return err
 	}
@@ -355,7 +372,6 @@ func WriteImageGroupMessage(to string, payload []byte, groupId string) error {
 	}
 
 	rawData, err := multicast.WrapImage(payload, groupId)
-
 	if err != nil {
 		return err
 	}
@@ -379,7 +395,6 @@ func WriteVoiceGroupMessage(to string, payload []byte, length int, groupId strin
 	}
 
 	rawData, err := multicast.WrapVoice(payload, length, groupId)
-
 	if err != nil {
 		return err
 	}
@@ -403,7 +418,6 @@ func WriteFileGroupMessage(to string, payload []byte, size int, name, groupId st
 	}
 
 	rawData, err := multicast.WrapFile(payload, size, name, groupId)
-
 	if err != nil {
 		return err
 	}

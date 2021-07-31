@@ -117,6 +117,24 @@ func WrapDismisGroup(groupId string) ([]byte, error) {
 
 }
 
+func WrapBanTalking(groupId string)([]byte, error)  {
+	gMsg:=&GroupMessage{
+		GroupMsgTyp: GroupMessageType_BanTalkingT,
+		Payload: &GroupMessage_GroupId{
+			GroupId: groupId,
+		},
+	}
+
+	rawData, err := proto.Marshal(gMsg)
+	if err != nil{
+		return nil, err
+	}
+
+	return rawData, nil
+
+}
+
+
 func WrapSyncGroupAck(nickName, memberId []string, owner, groupId, groupName string) ([]byte, error) {
 
 	groupDesc := &GroupDesc{
