@@ -135,7 +135,7 @@ func WrapBanTalking(groupId string)([]byte, error)  {
 }
 
 
-func WrapSyncGroupAck(nickName, memberId []string, owner, groupId, groupName string) ([]byte, error) {
+func WrapSyncGroupAck(nickName, memberId []string, owner, groupId, groupName string, banTalking bool) ([]byte, error) {
 
 	groupDesc := &GroupDesc{
 		GroupName:  groupName,
@@ -146,6 +146,7 @@ func WrapSyncGroupAck(nickName, memberId []string, owner, groupId, groupName str
 
 	syncGroup := &SyncGroupAck{
 		GroupInfo: groupDesc,
+		BanTalking: banTalking,
 		MemberId:  memberId,
 	}
 

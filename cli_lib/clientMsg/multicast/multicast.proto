@@ -35,7 +35,8 @@ message QuitGroupDesc{
 
 message SyncGroupAck{
     GroupDesc groupInfo = 1;
-    repeated string MemberId = 2;
+    bool BanTalking  = 2;
+    repeated string MemberId = 3;
 }
 
 message ChatMesageDesc{

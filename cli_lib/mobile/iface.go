@@ -151,7 +151,7 @@ func (i MobileAPP) unicastMsg(msg *pbs.WSCryptoMsg) error {
 			return nil
 		}
 
-		rawData, err := multicast.WrapSyncGroupAck(gi.NickName, gi.MemberId, gi.OwnerId, gi.GroupId, gi.GroupName)
+		rawData, err := multicast.WrapSyncGroupAck(gi.NickName, gi.MemberId, gi.OwnerId, gi.GroupId, gi.GroupName,gi.BanTalking)
 		if err != nil {
 			fmt.Println(err)
 			return nil

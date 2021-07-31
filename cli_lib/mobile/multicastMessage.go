@@ -16,6 +16,7 @@ type GroupInfo struct {
 	GroupId   string   `json:"group_id"`
 	GroupName string   `json:"group_name"`
 	OwnerId   string   `json:"owner_id"`
+	BanTalking bool    `json:"ban_talking"`
 	MemberId  []string `json:"member_id"`
 	NickName  []string `json:"nick_name"`
 }
@@ -29,7 +30,7 @@ type MulticastCallBack interface {
 	SyncGroup(groupId string) string
 	BanTalking(groupId string) error
 	//same as CreateGroup
-	SyncGroupAck(groupId, groupName, owner string, memberIdList, memberNickNameList string) error
+	SyncGroupAck(groupId, groupName, owner string, banTalking bool, memberIdList, memberNickNameList string) error
 	VoiceMessage(from, groupId string, payload []byte, length int, time int64) error
 	ImageMessage(from, groupId string, payload []byte, time int64) error
 	LocationMessage(from, groupId string, l, a float32, name string, time int64) error
