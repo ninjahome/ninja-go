@@ -30,3 +30,11 @@ func StrSlice2String(ss []string) string {
 
 	return string(j)
 }
+
+func JStr2Slice(s string) []string  {
+	var j []string
+
+	json.Unmarshal([]byte(s), &j)
+
+	return j
+}

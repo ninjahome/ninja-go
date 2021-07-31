@@ -3,7 +3,6 @@ package chatLib
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/golang/protobuf/proto"
@@ -174,20 +173,12 @@ func CreateGroup(to, nickNames string, groupId, groupName string) error {
 
 	owner := _inst.websocket.Address()
 
-	var (
-		ids []string
-		nks []string
-	)
-
-	json.Unmarshal([]byte(to), &ids)
-	json.Unmarshal([]byte(nickNames), &nks)
-
-	rawData, err := multicast.WrapCreateGroup(nks, owner, groupId, groupName)
+	rawData, err := multicast.WrapCreateGroup(utils.JStr2Slice(nickNames), owner, groupId, groupName)
 	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(ids, rawData)
+	err = _inst.websocket.GWrite(utils.JStr2Slice(to), rawData)
 	if err != nil {
 		return err
 	}
@@ -207,22 +198,12 @@ func JoinGroup(to, nickNames string, groupId, groupName, groupOwner string, newI
 		}
 	}
 
-	var (
-		ids  []string
-		nks  []string
-		nids []string
-	)
-
-	json.Unmarshal([]byte(to), &ids)
-	json.Unmarshal([]byte(nickNames), &nks)
-	json.Unmarshal([]byte(newIds), &nks)
-
-	rawData, err := multicast.WrapJoinGroup(nks, groupOwner, groupId, groupName, nids)
+	rawData, err := multicast.WrapJoinGroup(utils.JStr2Slice(nickNames), groupOwner, groupId, groupName, utils.JStr2Slice(newIds))
 	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(ids, rawData)
+	err = _inst.websocket.GWrite(utils.JStr2Slice(to), rawData)
 	if err != nil {
 		return err
 	}
@@ -242,12 +223,6 @@ func QuitGroup(to string, groupId string) error {
 		}
 	}
 
-	var (
-		ids []string
-	)
-
-	json.Unmarshal([]byte(to), &ids)
-
 	quitId := _inst.websocket.Address()
 
 	rawData, err := multicast.WrapQuitGroup(quitId, groupId)
@@ -255,7 +230,7 @@ func QuitGroup(to string, groupId string) error {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(ids, rawData)
+	err = _inst.websocket.GWrite(utils.JStr2Slice(to), rawData)
 	if err != nil {
 		return err
 	}
@@ -284,13 +259,7 @@ func KickOutUser(to string, groupId, owner, kickUserId string) error {
 		return err
 	}
 
-	var (
-		ids []string
-	)
-
-	json.Unmarshal([]byte(to), &ids)
-
-	err = _inst.websocket.GWrite(ids, rawData)
+	err = _inst.websocket.GWrite(utils.JStr2Slice(to), rawData)
 	if err != nil {
 		return err
 	}
@@ -318,13 +287,8 @@ func DismisGroup(to string, owner, groupId string) error {
 	if err != nil {
 		return err
 	}
-	var (
-		ids []string
-	)
 
-	json.Unmarshal([]byte(to), &ids)
-
-	err = _inst.websocket.GWrite(ids, rawData)
+	err = _inst.websocket.GWrite(utils.JStr2Slice(to), rawData)
 	if err != nil {
 		return err
 	}
@@ -347,12 +311,8 @@ func WriteGroupMessage(to string, groupId, plainTxt string) error {
 	if err != nil {
 		return err
 	}
-	var (
-		ids []string
-	)
 
-	json.Unmarshal([]byte(to), &ids)
-	err = _inst.websocket.GWrite(ids, rawData)
+	err = _inst.websocket.GWrite(utils.JStr2Slice(to), rawData)
 	if err != nil {
 		return err
 	}
@@ -376,13 +336,7 @@ func WriteLocationGroupMessage(to string, longitude, latitude float32, name, gro
 		return err
 	}
 
-	var (
-		ids []string
-	)
-
-	json.Unmarshal([]byte(to), &ids)
-
-	err = _inst.websocket.GWrite(ids, rawData)
+	err = _inst.websocket.GWrite(utils.JStr2Slice(to), rawData)
 	if err != nil {
 		return err
 	}
@@ -406,13 +360,7 @@ func WriteImageGroupMessage(to string, payload []byte, groupId string) error {
 		return err
 	}
 
-	var (
-		ids []string
-	)
-
-	json.Unmarshal([]byte(to), &ids)
-
-	err = _inst.websocket.GWrite(ids, rawData)
+	err = _inst.websocket.GWrite(utils.JStr2Slice(to), rawData)
 	if err != nil {
 		return err
 	}
@@ -435,13 +383,8 @@ func WriteVoiceGroupMessage(to string, payload []byte, length int, groupId strin
 	if err != nil {
 		return err
 	}
-	var (
-		ids []string
-	)
 
-	json.Unmarshal([]byte(to), &ids)
-
-	err = _inst.websocket.GWrite(ids, rawData)
+	err = _inst.websocket.GWrite(utils.JStr2Slice(to), rawData)
 	if err != nil {
 		return err
 	}
@@ -464,13 +407,8 @@ func WriteFileGroupMessage(to string, payload []byte, size int, name, groupId st
 	if err != nil {
 		return err
 	}
-	var (
-		ids []string
-	)
 
-	json.Unmarshal([]byte(to), &ids)
-
-	err = _inst.websocket.GWrite(ids, rawData)
+	err = _inst.websocket.GWrite(utils.JStr2Slice(to), rawData)
 	if err != nil {
 		return err
 	}
