@@ -24,7 +24,8 @@ message GroupDesc{
 
 message JoinGroupDesc{
     GroupDesc groupInfo = 1;
-    repeated string NewID = 2;
+    bool banTalking = 2;
+    repeated string NewID = 3;
 }
 
 message QuitGroupDesc{
