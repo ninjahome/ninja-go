@@ -79,16 +79,16 @@ func WrapQuitGroup(quitId, groupId string) ([]byte, error) {
 
 }
 
-func WrapKickUser(kickId, groupId string) ([]byte, error) {
-	quitGroup := &QuitGroupDesc{
+func WrapKickUser(kickId []string, groupId string) ([]byte, error) {
+	kickUsers := &KickUserDesc{
 		GroupId: groupId,
-		QuitId:  kickId,
+		KickUserId:  kickId,
 	}
 
 	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_KickOutUserT,
-		Payload: &GroupMessage_QuitGroupInfo{
-			QuitGroupInfo: quitGroup,
+		Payload: &GroupMessage_KickId{
+			KickId: kickUsers,
 		},
 	}
 

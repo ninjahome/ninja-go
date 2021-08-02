@@ -73,9 +73,9 @@ func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 		return i.multicast.QuitGroup(msg.From, quitGroup.GroupId, quitGroup.QuitId)
 
 	case multicast.GroupMessageType_KickOutUserT:
-		kickInfo := groupMessage.Payload.(*multicast.GroupMessage_QuitGroupInfo)
-		kickGroup := kickInfo.QuitGroupInfo
-		return i.multicast.KickOutUser(msg.From, kickGroup.GroupId, kickGroup.QuitId)
+		kickInfo := groupMessage.Payload.(*multicast.GroupMessage_KickId)
+		kickGroup := kickInfo.KickId
+		return i.multicast.KickOutUser(msg.From, kickGroup.GroupId, utils.StrSlice2String(kickGroup.KickUserId))
 
 	case multicast.GroupMessageType_SyncGroupAckT:
 		syncGroupAck := groupMessage.Payload.(*multicast.GroupMessage_SyncGroupAck)
@@ -234,7 +234,7 @@ func QuitGroup(to string, groupId string) error {
 	return nil
 }
 
-func KickOutUser(to string, groupId, owner, kickUserId string) error {
+func KickOutUser(to string, groupId, owner string, kickUserId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -250,7 +250,7 @@ func KickOutUser(to string, groupId, owner, kickUserId string) error {
 		return fmt.Errorf("only owner can kick out group member")
 	}
 
-	rawData, err := multicast.WrapKickUser(kickUserId, groupId)
+	rawData, err := multicast.WrapKickUser(utils.JStr2Slice(kickUserId), groupId)
 	if err != nil {
 		return err
 	}
