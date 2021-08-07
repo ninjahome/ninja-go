@@ -120,6 +120,12 @@ func (cc *WSClient) Online() error {
 		fmt.Println("ping pong time......")
 		return swc.WriteMessage(websocket.PongMessage, []byte{})
 	})
+
+	cc.wsConn.SetCloseHandler(func(code int, text string) error {
+		fmt.Println("------>websocket is close")
+		cc.callback.WebSocketClosed()
+		return nil
+	})
 	cc.reader.Run()
 	return nil
 }

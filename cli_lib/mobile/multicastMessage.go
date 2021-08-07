@@ -82,8 +82,8 @@ func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 		return i.multicast.SyncGroupAck(syncGroup.GroupInfo.GroupId,
 			syncGroup.GroupInfo.GroupName,
 			syncGroup.GroupInfo.GroupOwner,
-			utils.StrSlice2String(syncGroup.MemberId),
-			utils.StrSlice2String(syncGroup.GroupInfo.NickName))
+			false,
+			utils.StrSlice2String(syncGroup.GroupInfo.NickName), "")
 
 	case multicast.GroupMessageType_ChatMessageT:
 		chatMessage := groupMessage.Payload.(*multicast.GroupMessage_ChatMsg)
