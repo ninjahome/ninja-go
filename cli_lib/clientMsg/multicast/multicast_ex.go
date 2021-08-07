@@ -28,7 +28,7 @@ func WrapCreateGroup(nickName []string, owner, groupId, groupName string) ([]byt
 	return rawData, nil
 }
 
-func WrapJoinGroup(nickName []string, owner, groupId, groupName string, newId []string) ([]byte, error) {
+func WrapJoinGroup(nickName []string, owner, groupId, groupName string, banTalking bool, newId []string) ([]byte, error) {
 	groupDesc := &GroupDesc{
 		GroupName:  groupName,
 		GroupOwner: owner,
@@ -37,8 +37,9 @@ func WrapJoinGroup(nickName []string, owner, groupId, groupName string, newId []
 	}
 
 	joinGroup := &JoinGroupDesc{
-		GroupInfo: groupDesc,
-		NewID:     newId,
+		GroupInfo:  groupDesc,
+		NewID:      newId,
+		BanTalking: banTalking,
 	}
 
 	gMsg := &GroupMessage{
@@ -78,16 +79,16 @@ func WrapQuitGroup(quitId, groupId string) ([]byte, error) {
 
 }
 
-func WrapKickUser(kickId, groupId string) ([]byte, error) {
-	quitGroup := &QuitGroupDesc{
+func WrapKickUser(kickId []string, groupId string) ([]byte, error) {
+	kickUsers := &KickUserDesc{
 		GroupId: groupId,
-		QuitId:  kickId,
+		KickUserId:  kickId,
 	}
 
 	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_KickOutUserT,
-		Payload: &GroupMessage_QuitGroupInfo{
-			QuitGroupInfo: quitGroup,
+		Payload: &GroupMessage_KickId{
+			KickId: kickUsers,
 		},
 	}
 
@@ -117,8 +118,8 @@ func WrapDismisGroup(groupId string) ([]byte, error) {
 
 }
 
-func WrapBanTalking(groupId string)([]byte, error)  {
-	gMsg:=&GroupMessage{
+func WrapBanTalking(groupId string) ([]byte, error) {
+	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_BanTalkingT,
 		Payload: &GroupMessage_GroupId{
 			GroupId: groupId,
@@ -126,14 +127,13 @@ func WrapBanTalking(groupId string)([]byte, error)  {
 	}
 
 	rawData, err := proto.Marshal(gMsg)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
 	return rawData, nil
 
 }
-
 
 func WrapSyncGroupAck(nickName, memberId []string, owner, groupId, groupName string, banTalking bool) ([]byte, error) {
 
@@ -145,9 +145,9 @@ func WrapSyncGroupAck(nickName, memberId []string, owner, groupId, groupName str
 	}
 
 	syncGroup := &SyncGroupAck{
-		GroupInfo: groupDesc,
+		GroupInfo:  groupDesc,
 		BanTalking: banTalking,
-		MemberId:  memberId,
+		MemberId:   memberId,
 	}
 
 	gMsg := &GroupMessage{

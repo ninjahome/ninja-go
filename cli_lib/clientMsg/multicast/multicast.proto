@@ -24,12 +24,18 @@ message GroupDesc{
 
 message JoinGroupDesc{
     GroupDesc groupInfo = 1;
-    repeated string NewID = 2;
+    bool banTalking = 2;
+    repeated string NewID = 3;
 }
 
 message QuitGroupDesc{
     string QuitId = 1;
     string GroupId = 2;
+}
+
+message KickUserDesc{
+    string GroupId = 1;
+    repeated string KickUserId = 2;
 }
 
 
@@ -44,6 +50,7 @@ message ChatMesageDesc{
     ChatMessage chatMsg = 2;
 }
 
+
 message GroupMessage{
     GroupMessageType GroupMsgTyp = 1;
     oneof payload{
@@ -53,6 +60,7 @@ message GroupMessage{
         QuitGroupDesc quitGroupInfo = 5;
         SyncGroupAck syncGroupAck = 6;
         ChatMesageDesc chatMsg = 7;
+        KickUserDesc kickId = 8;
     }
 }
 

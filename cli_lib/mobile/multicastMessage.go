@@ -13,17 +13,17 @@ import (
 )
 
 type GroupInfo struct {
-	GroupId   string   `json:"group_id"`
-	GroupName string   `json:"group_name"`
-	OwnerId   string   `json:"owner_id"`
-	BanTalking bool    `json:"ban_talking"`
-	MemberId  []string `json:"member_id"`
-	NickName  []string `json:"nick_name"`
+	GroupId    string   `json:"group_id"`
+	GroupName  string   `json:"group_name"`
+	OwnerId    string   `json:"owner_id"`
+	BanTalking bool     `json:"ban_talking"`
+	MemberId   []string `json:"member_id"`
+	NickName   []string `json:"nick_name"`
 }
 
 type MulticastCallBack interface {
 	CreateGroup(groupId, groupName, owner, memberIdList, memberNickNameList string) error
-	JoinGroup(from, groupId, groupName, owner string, memberIdList, memberNickNameList, newIdList string) error
+	JoinGroup(from, groupId, groupName, owner string, memberIdList, memberNickNameList, newIdList string, banTalkding bool) error
 	KickOutUser(from, groupId, kickId string) error
 	QuitGroup(from, groupId, quitId string) error
 	DismisGroup(groupId string) error
@@ -64,6 +64,7 @@ func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 			utils.StrSlice2String(to),
 			utils.StrSlice2String(joinGroup.GroupInfo.NickName),
 			utils.StrSlice2String(joinGroup.NewID),
+			joinGroup.BanTalking,
 		)
 
 	case multicast.GroupMessageType_QuitGroupT:
@@ -72,9 +73,9 @@ func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 		return i.multicast.QuitGroup(msg.From, quitGroup.GroupId, quitGroup.QuitId)
 
 	case multicast.GroupMessageType_KickOutUserT:
-		kickInfo := groupMessage.Payload.(*multicast.GroupMessage_QuitGroupInfo)
-		kickGroup := kickInfo.QuitGroupInfo
-		return i.multicast.KickOutUser(msg.From, kickGroup.GroupId, kickGroup.QuitId)
+		kickInfo := groupMessage.Payload.(*multicast.GroupMessage_KickId)
+		kickGroup := kickInfo.KickId
+		return i.multicast.KickOutUser(msg.From, kickGroup.GroupId, utils.StrSlice2String(kickGroup.KickUserId))
 
 	case multicast.GroupMessageType_SyncGroupAckT:
 		syncGroupAck := groupMessage.Payload.(*multicast.GroupMessage_SyncGroupAck)
@@ -82,8 +83,9 @@ func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 		return i.multicast.SyncGroupAck(syncGroup.GroupInfo.GroupId,
 			syncGroup.GroupInfo.GroupName,
 			syncGroup.GroupInfo.GroupOwner,
-			false,
-			utils.StrSlice2String(syncGroup.GroupInfo.NickName), "")
+			syncGroup.BanTalking,
+			utils.StrSlice2String(syncGroup.MemberId),
+			utils.StrSlice2String(syncGroup.GroupInfo.NickName))
 
 	case multicast.GroupMessageType_ChatMessageT:
 		chatMessage := groupMessage.Payload.(*multicast.GroupMessage_ChatMsg)
@@ -95,7 +97,7 @@ func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 		return i.multicast.DismisGroup(dismisGroup.GroupId)
 
 	case multicast.GroupMessageType_BanTalkingT:
-		banG:=groupMessage.Payload.(*multicast.GroupMessage_GroupId)
+		banG := groupMessage.Payload.(*multicast.GroupMessage_GroupId)
 
 		return i.multicast.BanTalking(banG.GroupId)
 	}
@@ -176,7 +178,7 @@ func CreateGroup(to, nickNames string, groupId, groupName string) error {
 	return nil
 }
 
-func JoinGroup(to, nickNames string, groupId, groupName, groupOwner string, newIds string) error {
+func JoinGroup(to, nickNames string, groupId, groupName, groupOwner string, banTalking bool, newIds string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -188,7 +190,11 @@ func JoinGroup(to, nickNames string, groupId, groupName, groupOwner string, newI
 		}
 	}
 
-	rawData, err := multicast.WrapJoinGroup(utils.JStr2Slice(nickNames), groupOwner, groupId, groupName, utils.JStr2Slice(newIds))
+	rawData, err := multicast.WrapJoinGroup(utils.JStr2Slice(nickNames),
+		groupOwner,
+		groupId,
+		groupName,
+		banTalking, utils.JStr2Slice(newIds))
 	if err != nil {
 		return err
 	}
@@ -228,7 +234,7 @@ func QuitGroup(to string, groupId string) error {
 	return nil
 }
 
-func KickOutUser(to string, groupId, owner, kickUserId string) error {
+func KickOutUser(to string, groupId, owner string, kickUserId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -244,7 +250,7 @@ func KickOutUser(to string, groupId, owner, kickUserId string) error {
 		return fmt.Errorf("only owner can kick out group member")
 	}
 
-	rawData, err := multicast.WrapKickUser(kickUserId, groupId)
+	rawData, err := multicast.WrapKickUser(utils.JStr2Slice(kickUserId), groupId)
 	if err != nil {
 		return err
 	}
@@ -286,7 +292,7 @@ func DismisGroup(to string, owner, groupId string) error {
 	return nil
 }
 
-func BanTalking(to string, owner, groupId string) error  {
+func BanTalking(to string, owner, groupId string) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -303,12 +309,12 @@ func BanTalking(to string, owner, groupId string) error  {
 	}
 
 	rawData, err := multicast.WrapBanTalking(groupId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
-	err = _inst.websocket.GWrite(utils.JStr2Slice(to),rawData)
-	if err != nil{
+	err = _inst.websocket.GWrite(utils.JStr2Slice(to), rawData)
+	if err != nil {
 		return err
 	}
 
