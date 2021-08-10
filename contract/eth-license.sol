@@ -34,6 +34,28 @@ contract NinjaChatLicense is owned{
 
     event ChargeUserEvent(address indexed payerAddr, bytes32 userAddr, uint32 nDays);
 
+    constructor(address tAddr, address nAddr) public{
+        token = IERC20(tAddr);
+        ninjaAddr = nAddr;
+    }
+
+    function SetTokenAddr(address tAddr) external onlyOwner{
+        token = IERC20(tAddr);
+    }
+
+    function SetNinjaAddr(address nAddr) external onlyOwner{
+        ninjaAddr = nAddr;
+    }
+
+    function Setting(address tAddr, address nAddr) external onlyOwner{
+        token = IERC20(tAddr);
+        ninjaAddr = nAddr;
+    }
+
+    function GetSettings() external view returns(address, address){
+        return (address(token),ninjaAddr);
+    }
+
     function GenerateLicense(bytes32 id, uint32 nDays) external {
 
         require(nDays > 0,"time must large than 0");

@@ -3,8 +3,7 @@ pragma solidity >=0.4.24;
 import "./IERC20.sol";
 import "./safemath.sol";
 
-
- ERC20 is IERC20 {
+contract ERC20 is IERC20 {
   using SafeMath for uint256;
 
   mapping (address => uint256) private _balances;
