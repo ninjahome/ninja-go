@@ -34,7 +34,7 @@ contract NinjaChatLicense is owned{
 
     event ChargeUserEvent(address indexed payerAddr, bytes32 userAddr, uint32 nDays);
 
-    constructor(address tAddr, address nAddr) public{
+    constructor(address tAddr, address nAddr) {
         token = IERC20(tAddr);
         ninjaAddr = nAddr;
     }
@@ -83,7 +83,7 @@ contract NinjaChatLicense is owned{
 
          UserData memory ud = UserLicenses[userAddr];
 
-         uint curTime = now;
+         uint curTime = block.timestamp;
 
          if (curTime  > ud.EndDays){
              UserLicenses[userAddr] = UserData(uint64(curTime+(36000*24*nDays)),ud.TotalCoins+nDays);
@@ -107,7 +107,7 @@ contract NinjaChatLicense is owned{
 
         UserData memory ud = UserLicenses[recvAddr];
 
-        uint curTime = now;
+        uint curTime = block.timestamp;
 
         if (curTime  > ud.EndDays){
             UserLicenses[recvAddr] = UserData(uint64(curTime+(36000*24*nDays)),ud.TotalCoins+nDays);

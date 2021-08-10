@@ -15,7 +15,7 @@ contract ERC20 is IERC20 {
   /**
   * @dev Total number of tokens in existence
   */
-  function totalSupply() public view returns (uint256) {
+  function totalSupply() override public view returns (uint256) {
     return _totalSupply;
   }
 
@@ -24,7 +24,7 @@ contract ERC20 is IERC20 {
   * @param owner The address to query the balance of.
   * @return An uint256 representing the amount owned by the passed address.
   */
-  function balanceOf(address owner) public view returns (uint256) {
+  function balanceOf(address owner) override public view returns (uint256) {
     return _balances[owner];
   }
 
@@ -37,10 +37,11 @@ contract ERC20 is IERC20 {
   function allowance(
     address owner,
     address spender
-   )
-    public
-    view
-    returns (uint256)
+  )
+  override
+  public
+  view
+  returns (uint256)
   {
     return _allowed[owner][spender];
   }
@@ -50,7 +51,7 @@ contract ERC20 is IERC20 {
   * @param to The address to transfer to.
   * @param value The amount to be transferred.
   */
-  function transfer(address to, uint256 value) public returns (bool) {
+  function transfer(address to, uint256 value) override public returns (bool) {
     require(value <= _balances[msg.sender]);
     require(to != address(0));
 
@@ -69,7 +70,7 @@ contract ERC20 is IERC20 {
    * @param spender The address which will spend the funds.
    * @param value The amount of tokens to be spent.
    */
-  function approve(address spender, uint256 value) public returns (bool) {
+  function approve(address spender, uint256 value)  override public returns (bool) {
     require(spender != address(0));
 
     _allowed[msg.sender][spender] = value;
@@ -88,8 +89,9 @@ contract ERC20 is IERC20 {
     address to,
     uint256 value
   )
-    public
-    returns (bool)
+  override
+  public
+  returns (bool)
   {
     require(value <= _balances[from]);
     require(value <= _allowed[from][msg.sender]);
@@ -115,13 +117,13 @@ contract ERC20 is IERC20 {
     address spender,
     uint256 addedValue
   )
-    public
-    returns (bool)
+  public
+  returns (bool)
   {
     require(spender != address(0));
 
     _allowed[msg.sender][spender] = (
-      _allowed[msg.sender][spender].add(addedValue));
+    _allowed[msg.sender][spender].add(addedValue));
     emit Approval(msg.sender, spender, _allowed[msg.sender][spender]);
     return true;
   }
@@ -139,13 +141,13 @@ contract ERC20 is IERC20 {
     address spender,
     uint256 subtractedValue
   )
-    public
-    returns (bool)
+  public
+  returns (bool)
   {
     require(spender != address(0));
 
     _allowed[msg.sender][spender] = (
-      _allowed[msg.sender][spender].sub(subtractedValue));
+    _allowed[msg.sender][spender].sub(subtractedValue));
     emit Approval(msg.sender, spender, _allowed[msg.sender][spender]);
     return true;
   }
