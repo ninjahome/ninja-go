@@ -27,7 +27,7 @@ var (
 )
 
 // NinjaChatLicenseABI is the input ABI used to generate the binding from.
-const NinjaChatLicenseABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"issueAddr\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"recvAddr\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"ndays\",\"type\":\"uint32\"}],\"name\":\"BindLicenseEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"issueAddr\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"GenerateLicenseEvent\",\"type\":\"event\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"issueAddr\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recvAddr\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"BindLicense\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"GenerateLicense\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"userAddr\",\"type\":\"address\"}],\"name\":\"GetUserLicense\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"Licenses\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"used\",\"type\":\"bool\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"UserLicenses\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"EndDays\",\"type\":\"uint64\"},{\"internalType\":\"uint32\",\"name\":\"TotalCoins\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"ninjaAddr\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"token\",\"outputs\":[{\"internalType\":\"contractIERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+const NinjaChatLicenseABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"issueAddr\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"recvAddr\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"BindLicenseEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"payerAddr\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"userAddr\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"ChargeUserEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"issueAddr\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"GenerateLicenseEvent\",\"type\":\"event\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"issueAddr\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"recvAddr\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"BindLicense\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"userAddr\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"ChargeUser\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"GenerateLicense\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"userAddr\",\"type\":\"bytes32\"}],\"name\":\"GetUserLicense\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"Licenses\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"used\",\"type\":\"bool\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"UserLicenses\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"EndDays\",\"type\":\"uint64\"},{\"internalType\":\"uint32\",\"name\":\"TotalCoins\",\"type\":\"uint32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"ninjaAddr\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"token\",\"outputs\":[{\"internalType\":\"contractIERC20\",\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
 
 // NinjaChatLicense is an auto generated Go binding around an Ethereum contract.
 type NinjaChatLicense struct {
@@ -171,10 +171,10 @@ func (_NinjaChatLicense *NinjaChatLicenseTransactorRaw) Transact(opts *bind.Tran
 	return _NinjaChatLicense.Contract.contract.Transact(opts, method, params...)
 }
 
-// GetUserLicense is a free data retrieval call binding the contract method 0x36828204.
+// GetUserLicense is a free data retrieval call binding the contract method 0xa6405426.
 //
-// Solidity: function GetUserLicense(address userAddr) view returns(uint64, uint32)
-func (_NinjaChatLicense *NinjaChatLicenseCaller) GetUserLicense(opts *bind.CallOpts, userAddr common.Address) (uint64, uint32, error) {
+// Solidity: function GetUserLicense(bytes32 userAddr) view returns(uint64, uint32)
+func (_NinjaChatLicense *NinjaChatLicenseCaller) GetUserLicense(opts *bind.CallOpts, userAddr [32]byte) (uint64, uint32, error) {
 	var out []interface{}
 	err := _NinjaChatLicense.contract.Call(opts, &out, "GetUserLicense", userAddr)
 
@@ -189,17 +189,17 @@ func (_NinjaChatLicense *NinjaChatLicenseCaller) GetUserLicense(opts *bind.CallO
 
 }
 
-// GetUserLicense is a free data retrieval call binding the contract method 0x36828204.
+// GetUserLicense is a free data retrieval call binding the contract method 0xa6405426.
 //
-// Solidity: function GetUserLicense(address userAddr) view returns(uint64, uint32)
-func (_NinjaChatLicense *NinjaChatLicenseSession) GetUserLicense(userAddr common.Address) (uint64, uint32, error) {
+// Solidity: function GetUserLicense(bytes32 userAddr) view returns(uint64, uint32)
+func (_NinjaChatLicense *NinjaChatLicenseSession) GetUserLicense(userAddr [32]byte) (uint64, uint32, error) {
 	return _NinjaChatLicense.Contract.GetUserLicense(&_NinjaChatLicense.CallOpts, userAddr)
 }
 
-// GetUserLicense is a free data retrieval call binding the contract method 0x36828204.
+// GetUserLicense is a free data retrieval call binding the contract method 0xa6405426.
 //
-// Solidity: function GetUserLicense(address userAddr) view returns(uint64, uint32)
-func (_NinjaChatLicense *NinjaChatLicenseCallerSession) GetUserLicense(userAddr common.Address) (uint64, uint32, error) {
+// Solidity: function GetUserLicense(bytes32 userAddr) view returns(uint64, uint32)
+func (_NinjaChatLicense *NinjaChatLicenseCallerSession) GetUserLicense(userAddr [32]byte) (uint64, uint32, error) {
 	return _NinjaChatLicense.Contract.GetUserLicense(&_NinjaChatLicense.CallOpts, userAddr)
 }
 
@@ -248,10 +248,10 @@ func (_NinjaChatLicense *NinjaChatLicenseCallerSession) Licenses(arg0 common.Add
 	return _NinjaChatLicense.Contract.Licenses(&_NinjaChatLicense.CallOpts, arg0, arg1)
 }
 
-// UserLicenses is a free data retrieval call binding the contract method 0x8aa7710c.
+// UserLicenses is a free data retrieval call binding the contract method 0x2abefe3a.
 //
-// Solidity: function UserLicenses(address ) view returns(uint64 EndDays, uint32 TotalCoins)
-func (_NinjaChatLicense *NinjaChatLicenseCaller) UserLicenses(opts *bind.CallOpts, arg0 common.Address) (struct {
+// Solidity: function UserLicenses(bytes32 ) view returns(uint64 EndDays, uint32 TotalCoins)
+func (_NinjaChatLicense *NinjaChatLicenseCaller) UserLicenses(opts *bind.CallOpts, arg0 [32]byte) (struct {
 	EndDays    uint64
 	TotalCoins uint32
 }, error) {
@@ -273,20 +273,20 @@ func (_NinjaChatLicense *NinjaChatLicenseCaller) UserLicenses(opts *bind.CallOpt
 
 }
 
-// UserLicenses is a free data retrieval call binding the contract method 0x8aa7710c.
+// UserLicenses is a free data retrieval call binding the contract method 0x2abefe3a.
 //
-// Solidity: function UserLicenses(address ) view returns(uint64 EndDays, uint32 TotalCoins)
-func (_NinjaChatLicense *NinjaChatLicenseSession) UserLicenses(arg0 common.Address) (struct {
+// Solidity: function UserLicenses(bytes32 ) view returns(uint64 EndDays, uint32 TotalCoins)
+func (_NinjaChatLicense *NinjaChatLicenseSession) UserLicenses(arg0 [32]byte) (struct {
 	EndDays    uint64
 	TotalCoins uint32
 }, error) {
 	return _NinjaChatLicense.Contract.UserLicenses(&_NinjaChatLicense.CallOpts, arg0)
 }
 
-// UserLicenses is a free data retrieval call binding the contract method 0x8aa7710c.
+// UserLicenses is a free data retrieval call binding the contract method 0x2abefe3a.
 //
-// Solidity: function UserLicenses(address ) view returns(uint64 EndDays, uint32 TotalCoins)
-func (_NinjaChatLicense *NinjaChatLicenseCallerSession) UserLicenses(arg0 common.Address) (struct {
+// Solidity: function UserLicenses(bytes32 ) view returns(uint64 EndDays, uint32 TotalCoins)
+func (_NinjaChatLicense *NinjaChatLicenseCallerSession) UserLicenses(arg0 [32]byte) (struct {
 	EndDays    uint64
 	TotalCoins uint32
 }, error) {
@@ -386,25 +386,46 @@ func (_NinjaChatLicense *NinjaChatLicenseCallerSession) Token() (common.Address,
 	return _NinjaChatLicense.Contract.Token(&_NinjaChatLicense.CallOpts)
 }
 
-// BindLicense is a paid mutator transaction binding the contract method 0xb0485247.
+// BindLicense is a paid mutator transaction binding the contract method 0xf5cb29ac.
 //
-// Solidity: function BindLicense(address issueAddr, address recvAddr, bytes32 id, uint32 nDays, bytes signature) returns()
-func (_NinjaChatLicense *NinjaChatLicenseTransactor) BindLicense(opts *bind.TransactOpts, issueAddr common.Address, recvAddr common.Address, id [32]byte, nDays uint32, signature []byte) (*types.Transaction, error) {
+// Solidity: function BindLicense(address issueAddr, bytes32 recvAddr, bytes32 id, uint32 nDays, bytes signature) returns()
+func (_NinjaChatLicense *NinjaChatLicenseTransactor) BindLicense(opts *bind.TransactOpts, issueAddr common.Address, recvAddr [32]byte, id [32]byte, nDays uint32, signature []byte) (*types.Transaction, error) {
 	return _NinjaChatLicense.contract.Transact(opts, "BindLicense", issueAddr, recvAddr, id, nDays, signature)
 }
 
-// BindLicense is a paid mutator transaction binding the contract method 0xb0485247.
+// BindLicense is a paid mutator transaction binding the contract method 0xf5cb29ac.
 //
-// Solidity: function BindLicense(address issueAddr, address recvAddr, bytes32 id, uint32 nDays, bytes signature) returns()
-func (_NinjaChatLicense *NinjaChatLicenseSession) BindLicense(issueAddr common.Address, recvAddr common.Address, id [32]byte, nDays uint32, signature []byte) (*types.Transaction, error) {
+// Solidity: function BindLicense(address issueAddr, bytes32 recvAddr, bytes32 id, uint32 nDays, bytes signature) returns()
+func (_NinjaChatLicense *NinjaChatLicenseSession) BindLicense(issueAddr common.Address, recvAddr [32]byte, id [32]byte, nDays uint32, signature []byte) (*types.Transaction, error) {
 	return _NinjaChatLicense.Contract.BindLicense(&_NinjaChatLicense.TransactOpts, issueAddr, recvAddr, id, nDays, signature)
 }
 
-// BindLicense is a paid mutator transaction binding the contract method 0xb0485247.
+// BindLicense is a paid mutator transaction binding the contract method 0xf5cb29ac.
 //
-// Solidity: function BindLicense(address issueAddr, address recvAddr, bytes32 id, uint32 nDays, bytes signature) returns()
-func (_NinjaChatLicense *NinjaChatLicenseTransactorSession) BindLicense(issueAddr common.Address, recvAddr common.Address, id [32]byte, nDays uint32, signature []byte) (*types.Transaction, error) {
+// Solidity: function BindLicense(address issueAddr, bytes32 recvAddr, bytes32 id, uint32 nDays, bytes signature) returns()
+func (_NinjaChatLicense *NinjaChatLicenseTransactorSession) BindLicense(issueAddr common.Address, recvAddr [32]byte, id [32]byte, nDays uint32, signature []byte) (*types.Transaction, error) {
 	return _NinjaChatLicense.Contract.BindLicense(&_NinjaChatLicense.TransactOpts, issueAddr, recvAddr, id, nDays, signature)
+}
+
+// ChargeUser is a paid mutator transaction binding the contract method 0xa7656e03.
+//
+// Solidity: function ChargeUser(bytes32 userAddr, uint32 nDays) returns()
+func (_NinjaChatLicense *NinjaChatLicenseTransactor) ChargeUser(opts *bind.TransactOpts, userAddr [32]byte, nDays uint32) (*types.Transaction, error) {
+	return _NinjaChatLicense.contract.Transact(opts, "ChargeUser", userAddr, nDays)
+}
+
+// ChargeUser is a paid mutator transaction binding the contract method 0xa7656e03.
+//
+// Solidity: function ChargeUser(bytes32 userAddr, uint32 nDays) returns()
+func (_NinjaChatLicense *NinjaChatLicenseSession) ChargeUser(userAddr [32]byte, nDays uint32) (*types.Transaction, error) {
+	return _NinjaChatLicense.Contract.ChargeUser(&_NinjaChatLicense.TransactOpts, userAddr, nDays)
+}
+
+// ChargeUser is a paid mutator transaction binding the contract method 0xa7656e03.
+//
+// Solidity: function ChargeUser(bytes32 userAddr, uint32 nDays) returns()
+func (_NinjaChatLicense *NinjaChatLicenseTransactorSession) ChargeUser(userAddr [32]byte, nDays uint32) (*types.Transaction, error) {
+	return _NinjaChatLicense.Contract.ChargeUser(&_NinjaChatLicense.TransactOpts, userAddr, nDays)
 }
 
 // GenerateLicense is a paid mutator transaction binding the contract method 0x47795697.
@@ -519,15 +540,15 @@ func (it *NinjaChatLicenseBindLicenseEventIterator) Close() error {
 // NinjaChatLicenseBindLicenseEvent represents a BindLicenseEvent event raised by the NinjaChatLicense contract.
 type NinjaChatLicenseBindLicenseEvent struct {
 	IssueAddr common.Address
-	RecvAddr  common.Address
+	RecvAddr  [32]byte
 	Id        [32]byte
-	Ndays     uint32
+	NDays     uint32
 	Raw       types.Log // Blockchain specific contextual infos
 }
 
-// FilterBindLicenseEvent is a free log retrieval operation binding the contract event 0x9a4ef83ac4314ab0602c51546d4433f35d8609f3aeb7baa4eb1f82d9ac991b44.
+// FilterBindLicenseEvent is a free log retrieval operation binding the contract event 0x58e02a7e54f3f27722bcde4ed8ccc229b7700fa54d77f2412cd993ab808d5c6e.
 //
-// Solidity: event BindLicenseEvent(address indexed issueAddr, address recvAddr, bytes32 id, uint32 ndays)
+// Solidity: event BindLicenseEvent(address indexed issueAddr, bytes32 recvAddr, bytes32 id, uint32 nDays)
 func (_NinjaChatLicense *NinjaChatLicenseFilterer) FilterBindLicenseEvent(opts *bind.FilterOpts, issueAddr []common.Address) (*NinjaChatLicenseBindLicenseEventIterator, error) {
 
 	var issueAddrRule []interface{}
@@ -542,9 +563,9 @@ func (_NinjaChatLicense *NinjaChatLicenseFilterer) FilterBindLicenseEvent(opts *
 	return &NinjaChatLicenseBindLicenseEventIterator{contract: _NinjaChatLicense.contract, event: "BindLicenseEvent", logs: logs, sub: sub}, nil
 }
 
-// WatchBindLicenseEvent is a free log subscription operation binding the contract event 0x9a4ef83ac4314ab0602c51546d4433f35d8609f3aeb7baa4eb1f82d9ac991b44.
+// WatchBindLicenseEvent is a free log subscription operation binding the contract event 0x58e02a7e54f3f27722bcde4ed8ccc229b7700fa54d77f2412cd993ab808d5c6e.
 //
-// Solidity: event BindLicenseEvent(address indexed issueAddr, address recvAddr, bytes32 id, uint32 ndays)
+// Solidity: event BindLicenseEvent(address indexed issueAddr, bytes32 recvAddr, bytes32 id, uint32 nDays)
 func (_NinjaChatLicense *NinjaChatLicenseFilterer) WatchBindLicenseEvent(opts *bind.WatchOpts, sink chan<- *NinjaChatLicenseBindLicenseEvent, issueAddr []common.Address) (event.Subscription, error) {
 
 	var issueAddrRule []interface{}
@@ -584,12 +605,158 @@ func (_NinjaChatLicense *NinjaChatLicenseFilterer) WatchBindLicenseEvent(opts *b
 	}), nil
 }
 
-// ParseBindLicenseEvent is a log parse operation binding the contract event 0x9a4ef83ac4314ab0602c51546d4433f35d8609f3aeb7baa4eb1f82d9ac991b44.
+// ParseBindLicenseEvent is a log parse operation binding the contract event 0x58e02a7e54f3f27722bcde4ed8ccc229b7700fa54d77f2412cd993ab808d5c6e.
 //
-// Solidity: event BindLicenseEvent(address indexed issueAddr, address recvAddr, bytes32 id, uint32 ndays)
+// Solidity: event BindLicenseEvent(address indexed issueAddr, bytes32 recvAddr, bytes32 id, uint32 nDays)
 func (_NinjaChatLicense *NinjaChatLicenseFilterer) ParseBindLicenseEvent(log types.Log) (*NinjaChatLicenseBindLicenseEvent, error) {
 	event := new(NinjaChatLicenseBindLicenseEvent)
 	if err := _NinjaChatLicense.contract.UnpackLog(event, "BindLicenseEvent", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// NinjaChatLicenseChargeUserEventIterator is returned from FilterChargeUserEvent and is used to iterate over the raw logs and unpacked data for ChargeUserEvent events raised by the NinjaChatLicense contract.
+type NinjaChatLicenseChargeUserEventIterator struct {
+	Event *NinjaChatLicenseChargeUserEvent // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *NinjaChatLicenseChargeUserEventIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(NinjaChatLicenseChargeUserEvent)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(NinjaChatLicenseChargeUserEvent)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *NinjaChatLicenseChargeUserEventIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *NinjaChatLicenseChargeUserEventIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// NinjaChatLicenseChargeUserEvent represents a ChargeUserEvent event raised by the NinjaChatLicense contract.
+type NinjaChatLicenseChargeUserEvent struct {
+	PayerAddr common.Address
+	UserAddr  [32]byte
+	NDays     uint32
+	Raw       types.Log // Blockchain specific contextual infos
+}
+
+// FilterChargeUserEvent is a free log retrieval operation binding the contract event 0x7fa14ba5c04db63b34b318d9a4e3f8b8563edf544bd0d1734b9c74af7d3d4562.
+//
+// Solidity: event ChargeUserEvent(address indexed payerAddr, bytes32 userAddr, uint32 nDays)
+func (_NinjaChatLicense *NinjaChatLicenseFilterer) FilterChargeUserEvent(opts *bind.FilterOpts, payerAddr []common.Address) (*NinjaChatLicenseChargeUserEventIterator, error) {
+
+	var payerAddrRule []interface{}
+	for _, payerAddrItem := range payerAddr {
+		payerAddrRule = append(payerAddrRule, payerAddrItem)
+	}
+
+	logs, sub, err := _NinjaChatLicense.contract.FilterLogs(opts, "ChargeUserEvent", payerAddrRule)
+	if err != nil {
+		return nil, err
+	}
+	return &NinjaChatLicenseChargeUserEventIterator{contract: _NinjaChatLicense.contract, event: "ChargeUserEvent", logs: logs, sub: sub}, nil
+}
+
+// WatchChargeUserEvent is a free log subscription operation binding the contract event 0x7fa14ba5c04db63b34b318d9a4e3f8b8563edf544bd0d1734b9c74af7d3d4562.
+//
+// Solidity: event ChargeUserEvent(address indexed payerAddr, bytes32 userAddr, uint32 nDays)
+func (_NinjaChatLicense *NinjaChatLicenseFilterer) WatchChargeUserEvent(opts *bind.WatchOpts, sink chan<- *NinjaChatLicenseChargeUserEvent, payerAddr []common.Address) (event.Subscription, error) {
+
+	var payerAddrRule []interface{}
+	for _, payerAddrItem := range payerAddr {
+		payerAddrRule = append(payerAddrRule, payerAddrItem)
+	}
+
+	logs, sub, err := _NinjaChatLicense.contract.WatchLogs(opts, "ChargeUserEvent", payerAddrRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(NinjaChatLicenseChargeUserEvent)
+				if err := _NinjaChatLicense.contract.UnpackLog(event, "ChargeUserEvent", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseChargeUserEvent is a log parse operation binding the contract event 0x7fa14ba5c04db63b34b318d9a4e3f8b8563edf544bd0d1734b9c74af7d3d4562.
+//
+// Solidity: event ChargeUserEvent(address indexed payerAddr, bytes32 userAddr, uint32 nDays)
+func (_NinjaChatLicense *NinjaChatLicenseFilterer) ParseChargeUserEvent(log types.Log) (*NinjaChatLicenseChargeUserEvent, error) {
+	event := new(NinjaChatLicenseChargeUserEvent)
+	if err := _NinjaChatLicense.contract.UnpackLog(event, "ChargeUserEvent", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

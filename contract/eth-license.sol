@@ -14,15 +14,15 @@ contract NinjaChatLicense is owned{
          bool used;
          uint32 nDays;
     }
-
+    //issue addr, random id,
     mapping(address=>mapping(bytes32=>LicenseData)) public Licenses;
 
     struct UserData {
         uint64 EndDays;
         uint32 TotalCoins;
     }
-
-    mapping(address=>UserData) public UserLicenses;
+    //user id,
+    mapping(bytes32=>UserData) public UserLicenses;
 
     event GenerateLicenseEvent(
         address indexed issueAddr,
@@ -30,7 +30,9 @@ contract NinjaChatLicense is owned{
         uint32  nDays
     );
 
-    event BindLicenseEvent(address indexed issueAddr, address recvAddr, bytes32 id, uint32 ndays);
+    event BindLicenseEvent(address indexed issueAddr, bytes32 recvAddr, bytes32 id, uint32 nDays);
+
+    event ChargeUserEvent(address indexed payerAddr, bytes32 userAddr, uint32 nDays);
 
     function GenerateLicense(bytes32 id, uint32 nDays) external {
 
@@ -46,13 +48,31 @@ contract NinjaChatLicense is owned{
         emit GenerateLicenseEvent(msg.sender, id, nDays);
     }
 
-    function GetUserLicense(address userAddr) external view returns (uint64, uint32){
+    function GetUserLicense(bytes32 userAddr) external view returns (uint64, uint32){
         UserData memory ud = UserLicenses[userAddr];
 
         return (ud.EndDays,ud.TotalCoins);
     }
 
-    function BindLicense(address issueAddr, address recvAddr, bytes32 id, uint32 nDays, bytes calldata signature) external{
+    function ChargeUser(bytes32 userAddr, uint32 nDays) external{
+         require(nDays > 0,"time must large than 0");
+
+         token.transferFrom(msg.sender,ninjaAddr, nDays);
+
+         UserData memory ud = UserLicenses[userAddr];
+
+         uint curTime = now;
+
+         if (curTime  > ud.EndDays){
+             UserLicenses[userAddr] = UserData(uint64(curTime+(36000*24*nDays)),ud.TotalCoins+nDays);
+         }else{
+             UserLicenses[userAddr] = UserData(uint64(ud.EndDays+(36000*24*nDays)),ud.TotalCoins+nDays);
+         }
+
+         emit ChargeUserEvent(msg.sender, userAddr, nDays);
+    }
+
+    function BindLicense(address issueAddr, bytes32 recvAddr, bytes32 id, uint32 nDays, bytes calldata signature) external{
         LicenseData memory ld = Licenses[issueAddr][id];
         require(ld.used == false, "id is used");
         require(ld.nDays == nDays);
