@@ -22,7 +22,7 @@ android:
 	gomobile bind -v -o $(BINDIR)/ninja.aar -target=android/arm64 -ldflags=-s github.com/ninjahome/ninja-go/cli_lib/mobile
 
 ios:
-	GO111MODULE=off gomobile bind -v -o $(BINDIR)/chatLib.framework -target=ios -ldflags=-s github.com/ninjahome/ninja-go/cli_lib/mobile
+	gomobile bind -v -o $(BINDIR)/chatLib.framework -target=ios -ldflags=-s github.com/ninjahome/ninja-go/cli_lib/mobile
 
 clean:
 	gomobile clean
