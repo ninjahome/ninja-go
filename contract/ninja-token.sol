@@ -1,3 +1,4 @@
+//SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.4.24;
 
 import "./ERC20.sol";
@@ -14,3 +15,6 @@ contract NinjaToken is ERC20, owned{
         _mint(msg.sender, INITIAL_SUPPLY);
     }
 }
+
+
+
