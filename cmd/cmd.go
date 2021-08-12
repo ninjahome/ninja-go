@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ninjahome/ninja-go/node"
 	"github.com/ninjahome/ninja-go/service/contact"
+	"github.com/ninjahome/ninja-go/service/proxy"
 	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/wallet"
@@ -25,12 +26,13 @@ const (
 type StoreCfg map[string]*CfgPerNetwork
 
 type CfgPerNetwork struct {
-	Name string            `json:"name"`
-	PCfg *node.Config      `json:"node"`
-	UCfg *utils.Config     `json:"utils"`
-	WCfg *wallet.Config    `json:"wallet"`
-	RCfg *websocket.Config `json:"websocket"`
-	CCfg *contact.Config   `json:"contact"`
+	Name     string            `json:"name"`
+	PCfg     *node.Config      `json:"node"`
+	UCfg     *utils.Config     `json:"utils"`
+	WCfg     *wallet.Config    `json:"wallet"`
+	RCfg     *websocket.Config `json:"websocket"`
+	CCfg     *contact.Config   `json:"contact"`
+	ProxyCfg *proxy.Config     `json:"proxy"`
 }
 
 func (sc StoreCfg) DebugPrint() {
@@ -46,6 +48,7 @@ func (c CfgPerNetwork) String() string {
 	s += c.WCfg.String()
 	s += c.RCfg.String()
 	s += c.CCfg.String()
+	s += c.ProxyCfg.String()
 	s += fmt.Sprintf("\n======================================================================>>>")
 	return s
 }
@@ -103,9 +106,10 @@ func initDefault(baseDir string) error {
 		UCfg: &utils.Config{
 			LogLevel: zerolog.ErrorLevel,
 		},
-		WCfg: wallet.DefaultConfig(true, baseDir),
-		RCfg: websocket.DefaultConfig(true, baseDir),
-		CCfg: contact.DefaultConfig(true, baseDir),
+		WCfg:     wallet.DefaultConfig(true, baseDir),
+		RCfg:     websocket.DefaultConfig(true, baseDir),
+		CCfg:     contact.DefaultConfig(true, baseDir),
+		ProxyCfg: proxy.DefaultConfig(),
 	}
 	conf[MainNet] = mainConf
 
@@ -115,9 +119,10 @@ func initDefault(baseDir string) error {
 		UCfg: &utils.Config{
 			LogLevel: zerolog.DebugLevel,
 		},
-		WCfg: wallet.DefaultConfig(false, baseDir),
-		RCfg: websocket.DefaultConfig(false, baseDir),
-		CCfg: contact.DefaultConfig(false, baseDir),
+		WCfg:     wallet.DefaultConfig(false, baseDir),
+		RCfg:     websocket.DefaultConfig(false, baseDir),
+		CCfg:     contact.DefaultConfig(false, baseDir),
+		ProxyCfg: proxy.DefaultConfig(),
 	}
 
 	conf[TestNet] = testConf

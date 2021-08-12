@@ -7,6 +7,7 @@ import (
 	"github.com/ninjahome/ninja-go/cmd"
 	"github.com/ninjahome/ninja-go/node"
 	"github.com/ninjahome/ninja-go/service/contact"
+	"github.com/ninjahome/ninja-go/service/proxy"
 	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/utils/fdlimit"
@@ -131,6 +132,8 @@ func initNinjaConfig() (err error) {
 	websocket.InitConfig(result.RCfg)
 	//TODO:: configure contact service dynamically
 	contact.InitConfig(result.CCfg)
+
+	proxy.InitConfig(result.ProxyCfg)
 
 	return
 }

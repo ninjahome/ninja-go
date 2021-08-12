@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/astaxie/beego v1.12.3-0.20201126121835-fad897346f28
+	github.com/btcsuite/btcutil v1.0.2 // indirect
 	github.com/btcsuite/goleveldb v0.0.0-20160330041536-7834afc9e8cd
 	github.com/ethereum/go-ethereum v1.10.6 // indirect
 	github.com/forgoer/openssl v0.0.0-20201023062029-c3112b0c8700

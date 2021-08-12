@@ -15,7 +15,6 @@ import (
 	"github.com/libp2p/go-libp2p-pubsub"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/ninjahome/ninja-go/node/worker"
-	"github.com/ninjahome/ninja-go/service/contact"
 	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"github.com/ninjahome/ninja-go/wallet"
@@ -206,7 +205,7 @@ func InitConfig(c *Config) {
 func (c *Config) initStreamWorker(h host.Host) {
 	h.SetStreamHandler(StreamSyncOnline, websocket.Inst().OnlineMapQuery)
 	h.SetStreamHandler(StreamSyncDevTokens, websocket.Inst().DevtokensQuery)
-	h.SetStreamHandler(StreamContactQuery, contact.Inst().ContactQueryFromP2pNetwork)
+	//h.SetStreamHandler(StreamContactQuery, contact.Inst().ContactQueryFromP2pNetwork)
 }
 
 func GetSrvPost() bool {
@@ -220,10 +219,10 @@ func (c *Config) getSrvPost() bool {
 func (c *Config) initOptions() []libp2p.Option {
 
 	systemTopics = map[string]worker.TopicReader{
-		P2pChanUserOnOffLine:  websocket.Inst().OnOffLineForP2pNetwork,
-		P2pChanImmediateMsg:   websocket.Inst().ImmediateMsgForP2pNetwork,
-		P2pChanUnreadMsg:      websocket.Inst().UnreadMsgFromP2pNetwork,
-		P2pChanContactOperate: contact.Inst().ContactOperationFromP2pNetwork,
+		P2pChanUserOnOffLine: websocket.Inst().OnOffLineForP2pNetwork,
+		P2pChanImmediateMsg:  websocket.Inst().ImmediateMsgForP2pNetwork,
+		P2pChanUnreadMsg:     websocket.Inst().UnreadMsgFromP2pNetwork,
+		//P2pChanContactOperate: contact.Inst().ContactOperationFromP2pNetwork,
 	}
 
 	if c.P2oLogOpen {

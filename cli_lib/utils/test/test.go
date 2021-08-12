@@ -3,14 +3,13 @@ package main
 import (
 	"crypto/ecdsa"
 	"crypto/rand"
-	"encoding/hex"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	chatLib "github.com/ninjahome/ninja-go/cli_lib/mobile"
-
 )
 
 type EthAccount struct {
@@ -51,40 +50,37 @@ func main() {
 	//
 	//fmt.Println(hex.EncodeToString(buf))
 
-
-	key,_:=NewEthAccount()
+	key, _ := NewEthAccount()
 
 	var rid [32]byte
 
 	rand.Read(rid[:])
 
-	l:=&chatLib.ChatLicense{}
+	l := &chatLib.ChatLicense{}
 
-	c:=&chatLib.ChatLicenseContent{}
+	c := &chatLib.ChatLicenseContent{}
 
-
-
-	c.IssueAddr = hex.EncodeToString(key.EAddr[:])
-	c.RandomId = hex.EncodeToString(rid[:])
+	c.IssueAddr = base64.StdEncoding.EncodeToString(key.EAddr[:])
+	c.RandomId = base64.StdEncoding.EncodeToString(rid[:])
 	c.NDays = 120
 
 	l.Content = c
 
-	j,_:=json.Marshal(*c)
+	j, _ := json.Marshal(*c)
 
 	fmt.Println("for signature data, not include []:")
-	s:=fmt.Sprintf("[%s]",string(j))
+	s := fmt.Sprintf("[%s]", string(j))
 	fmt.Println(s)
 
-	hash:=crypto.Keccak256Hash(j)
+	hash := crypto.Keccak256Hash(j)
 
-	sig,_:=crypto.Sign(hash[:],key.PrivKey)
+	sig, _ := crypto.Sign(hash[:], key.PrivKey)
 
-	l.Signature = hex.EncodeToString(sig)
+	l.Signature = base64.StdEncoding.EncodeToString(sig)
 
 	fmt.Println("signature:")
 
-	j,_ = json.Marshal(*l)
+	j, _ = json.Marshal(*l)
 
 	fmt.Println(string(j))
 

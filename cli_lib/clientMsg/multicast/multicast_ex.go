@@ -81,8 +81,8 @@ func WrapQuitGroup(quitId, groupId string) ([]byte, error) {
 
 func WrapKickUser(kickId []string, groupId string) ([]byte, error) {
 	kickUsers := &KickUserDesc{
-		GroupId: groupId,
-		KickUserId:  kickId,
+		GroupId:    groupId,
+		KickUserId: kickId,
 	}
 
 	gMsg := &GroupMessage{

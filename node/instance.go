@@ -11,6 +11,7 @@ import (
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/ninjahome/ninja-go/node/worker"
 	"github.com/ninjahome/ninja-go/service/contact"
+	"github.com/ninjahome/ninja-go/service/proxy"
 	"github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils"
 	"sync"
@@ -111,11 +112,13 @@ func (nt *NinjaNode) Start() error {
 
 	websocket.Inst().StartService(nt.nodeID)
 
-	contactSyncWorker := &worker.StreamWorker{
-		ProtoID: StreamContactQuery,
-		SGetter: nt.RandomPeer,
-	}
-	contact.Inst().StartService(nt.nodeID, contactSyncWorker)
+	//contactSyncWorker := &worker.StreamWorker{
+	//	ProtoID: StreamContactQuery,
+	//	SGetter: nt.RandomPeer,
+	//}
+	//contact.Inst().StartService(nt.nodeID, contactSyncWorker)
+
+	go proxy.StartProxyDaemon()
 
 	utils.LogInst().Info().Msg(">>>>>>>>>>>>>>>>>>>>>>>>>>Node start success......")
 
@@ -124,7 +127,8 @@ func (nt *NinjaNode) Start() error {
 
 func (nt *NinjaNode) ShutDown() {
 	websocket.Inst().ShutDown()
-	contact.Inst().ShutDown()
+	//contact.Inst().ShutDown()
+	proxy.StopProxyDaemon()
 
 	if nt.tWorkers == nil {
 		return
