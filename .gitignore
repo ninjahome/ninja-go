@@ -10,9 +10,8 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-
-cli_lib/bin/ninja-sources.jar
-cli_lib/bin/ninja.aar
+cli_lib/bin/chatLib-sources.jar
+cli_lib/bin/chatLib.aar
 cli_lib/utils/test/test
 
 # Dependency directories (remove the comment below to include it)
