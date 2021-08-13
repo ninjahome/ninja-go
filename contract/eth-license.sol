@@ -3,12 +3,12 @@ pragma solidity >=0.5.11;
 
 import "./owned.sol";
 import "./safemath.sol";
-import "./IERC20.sol";
+import "./ninja-token.sol";
 
 
 contract NinjaChatLicense is owned{
     using SafeMath for uint256;
-    IERC20 public token;
+    NinjaToken public token;
     address public ninjaAddr;
 
     struct LicenseData {
@@ -36,12 +36,12 @@ contract NinjaChatLicense is owned{
     event ChargeUserEvent(address indexed payerAddr, bytes32 userAddr, uint32 nDays);
 
     constructor(address tAddr, address nAddr) {
-        token = IERC20(tAddr);
+        token = NinjaToken(tAddr);
         ninjaAddr = nAddr;
     }
 
     function SetTokenAddr(address tAddr) external onlyOwner{
-        token = IERC20(tAddr);
+        token = NinjaToken(tAddr);
     }
 
     function SetNinjaAddr(address nAddr) external onlyOwner{
@@ -49,7 +49,7 @@ contract NinjaChatLicense is owned{
     }
 
     function Setting(address tAddr, address nAddr) external onlyOwner{
-        token = IERC20(tAddr);
+        token = NinjaToken(tAddr);
         ninjaAddr = nAddr;
     }
 
@@ -64,7 +64,7 @@ contract NinjaChatLicense is owned{
         LicenseData memory ld = Licenses[msg.sender][id];
         require(ld.nDays == 0, "id is used");
 
-        token.transferFrom(msg.sender,ninjaAddr, nDays);
+        token.transferFrom(msg.sender,ninjaAddr, nDays*10**(token.decimals()));
 
         Licenses[msg.sender][id] = LicenseData(false, nDays);
 
@@ -80,7 +80,7 @@ contract NinjaChatLicense is owned{
     function ChargeUser(bytes32 userAddr, uint32 nDays) external{
          require(nDays > 0,"time must large than 0");
 
-         token.transferFrom(msg.sender,ninjaAddr, nDays);
+         token.transferFrom(msg.sender,ninjaAddr, nDays*10**(token.decimals()));
 
          UserData memory ud = UserLicenses[userAddr];
 

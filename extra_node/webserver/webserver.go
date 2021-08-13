@@ -1,20 +1,18 @@
-package proxy
+package webserver
 
 import (
 	"context"
 	"fmt"
-	"github.com/ninjahome/ninja-go/service/proxy/httputil"
+	"github.com/ninjahome/ninja-go/extra_node/config"
 	"io/ioutil"
 	"net"
 	"net/http"
-	"path"
 	"regexp"
 	"time"
 )
 
 type WebProxyServer struct {
 	listenAddr string
-	proxyAddr  []string
 	quit       chan struct{}
 	server     *http.Server
 }
@@ -47,10 +45,9 @@ func (rh *RegexpHander) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
-func NewWebServer(networkAddr string, proxyAddr []string) *WebProxyServer {
+func NewWebServer(networkAddr string) *WebProxyServer {
 	ws := WebProxyServer{
 		listenAddr: networkAddr,
-		proxyAddr:  proxyAddr,
 		quit:       make(chan struct{}, 8),
 	}
 
@@ -63,7 +60,7 @@ func (ws *WebProxyServer) init() *WebProxyServer {
 		routes: make([]*route, 0),
 	}
 
-	rh.HandleFunc("license", ws.proxyFunc)
+	rh.HandleFunc("license/add", ws.addLicense)
 	//rh.HandleFunc("pushmessage", ws.proxyFunc)
 
 	server := &http.Server{
@@ -75,7 +72,7 @@ func (ws *WebProxyServer) init() *WebProxyServer {
 	return ws
 }
 
-func (ws *WebProxyServer) proxyFunc(writer http.ResponseWriter, request *http.Request) {
+func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.Request) {
 	if request.Method != "POST" {
 		writer.WriteHeader(500)
 		fmt.Fprintf(writer, "not a post request")
@@ -87,27 +84,11 @@ func (ws *WebProxyServer) proxyFunc(writer http.ResponseWriter, request *http.Re
 		fmt.Fprintf(writer, "read http body error")
 		return
 	} else {
-		for i := 0; i < len(ws.proxyAddr); i++ {
-			proxyUrl := path.Join(ws.proxyAddr[i], request.URL.Path)
 
-			fmt.Println("proxy url:", proxyUrl)
+		fmt.Println(string(contents))
 
-			var result string
-			var code int
-			result, code, err = httputil.NewHttpPost(nil, false, 2, 2).
-				ProtectPost(proxyUrl, string(contents))
-			if err != nil {
-				continue
-			}
-			if code != 200 {
-				continue
-			}
-			writer.WriteHeader(200)
-			writer.Write([]byte(result))
-			return
-		}
 		writer.WriteHeader(500)
-		fmt.Fprintf(writer, "proxy error")
+		fmt.Fprintf(writer, "server")
 
 	}
 }
@@ -127,16 +108,18 @@ func (ws *WebProxyServer) Shutdown() error {
 
 var webServer *WebProxyServer
 
-func StartProxyDaemon() {
+func StartWebDaemon() {
 
-	webServer = _proxyConfig.NewProxyWebServer()
+	c := config.GetExtraConfig()
+
+	webServer = NewWebServer(c.ListenAddr)
 
 	fmt.Println("start proxy at ", webServer.listenAddr, "  ...")
 
 	webServer.Start()
 }
 
-func StopProxyDaemon() {
+func StopWebDaemon() {
 	webServer.Shutdown()
 
 	fmt.Println("stop proxy ...")

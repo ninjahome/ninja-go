@@ -14,7 +14,7 @@ import (
 
 const (
 	infuraUrl   = "https://ropsten.infura.io/v3/d64d364124684359ace20feae1f9ac20"
-	contactAddr = "0xf08192dcfc78f5e5ea74c83147378e1f4b8fe560"
+	contactAddr = "0x52996249f64d760ac02c6b82866d92b9e7d02f06"
 	tokenAddr   = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
 )
 

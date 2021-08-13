@@ -38,12 +38,16 @@ func InitConfig(c *Config) {
 }
 
 func DefaultConfig() *Config {
-
 	l := ":" + strconv.Itoa(proxyListenPort)
+
+	var pa []string
+	for i := 0; i < len(proxyAddr); i++ {
+		pa = append(pa, "http://"+proxyAddr[i])
+	}
 
 	return &Config{
 		ListenAddr: l,
-		ProxyAddr:  proxyAddr,
+		ProxyAddr:  pa,
 	}
 }
 
