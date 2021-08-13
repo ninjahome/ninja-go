@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ninjahome/ninja-go/extra_node/cmd"
 	"github.com/ninjahome/ninja-go/extra_node/config"
+	"github.com/ninjahome/ninja-go/extra_node/ethwallet"
 	"github.com/ninjahome/ninja-go/extra_node/webserver"
 	"github.com/spf13/cobra"
 	"io/ioutil"
@@ -21,6 +22,7 @@ const (
 
 var param = struct {
 	version bool
+	passwd  string
 }{}
 
 var rootCmd = &cobra.Command{
@@ -39,8 +41,10 @@ func init() {
 
 	flags.BoolVarP(&param.version, "version",
 		"v", false, "exnode -v")
+	flags.StringVarP(&param.passwd, "password", "p", "", "password for open wallet")
 
 	rootCmd.AddCommand(cmd.WalletCmd)
+	rootCmd.AddCommand(cmd.InitCmd)
 
 }
 
@@ -56,12 +60,23 @@ func mainRun(_ *cobra.Command, _ []string) {
 		fmt.Println(Version)
 		return
 	}
+	if param.passwd == "" {
+		fmt.Println("please input password")
+		return
+	}
 
-	if err := config.InitSystem(); err != nil {
+	c := config.GetExtraConfig()
+	if c == nil {
+		fmt.Println("please initial exnode")
+		return
+	}
+
+	w, err := ethwallet.LoadWallet(c.GetWalletFile())
+	if err != nil {
 		panic(err)
 	}
 
-	go webserver.StartWebDaemon()
+	go webserver.StartWebDaemon(w)
 
 	waitShutdownSignal()
 }

@@ -2,8 +2,14 @@ package webserver
 
 import (
 	"context"
+	"github.com/ethereum/go-ethereum/common"
+
 	"fmt"
 	"github.com/ninjahome/ninja-go/extra_node/config"
+	"github.com/ninjahome/ninja-go/extra_node/ethwallet"
+	"github.com/ninjahome/ninja-go/extra_node/webmsg"
+
+	"github.com/polydawn/refmt/json"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -15,6 +21,7 @@ type WebProxyServer struct {
 	listenAddr string
 	quit       chan struct{}
 	server     *http.Server
+	wallet     ethwallet.Wallet
 }
 
 type route struct {
@@ -45,9 +52,10 @@ func (rh *RegexpHander) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
-func NewWebServer(networkAddr string) *WebProxyServer {
+func NewWebServer(networkAddr string, w ethwallet.Wallet) *WebProxyServer {
 	ws := WebProxyServer{
 		listenAddr: networkAddr,
+		wallet:     w,
 		quit:       make(chan struct{}, 8),
 	}
 
@@ -87,10 +95,40 @@ func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.R
 
 		fmt.Println(string(contents))
 
-		writer.WriteHeader(500)
-		fmt.Fprintf(writer, "server")
+		lb := &webmsg.LicenseBind{}
+
+		err := json.Unmarshal(contents, lb)
+		if err != nil {
+			writer.WriteHeader(200)
+			writer.Write(webmsg.LicenseResultPack(webmsg.ParseJsonErr, "parse json error", nil))
+			return
+		}
+
+		var tx []byte
+		tx, err = ws.bind(lb)
+		if err != nil {
+			writer.WriteHeader(200)
+			writer.Write(webmsg.LicenseResultPack(webmsg.CallContractErr, "call contract error", nil))
+			return
+		}
+
+		writer.WriteHeader(200)
+		writer.Write(webmsg.LicenseResultPack(webmsg.Success, "success", tx))
 
 	}
+}
+
+func (ws *WebProxyServer) bind(lb *webmsg.LicenseBind) (tx []byte, err error) {
+	var (
+		issueAddr common.Address
+		userAddr  [32]byte
+		randomId  [32]byte
+	)
+	copy(issueAddr[:], lb.IssueAddr)
+	copy(userAddr[:], lb.UserAddr)
+	copy(randomId[:], lb.RandomId)
+
+	return Bind(issueAddr, userAddr, randomId, lb.NDays, lb.Signature, ws.wallet.SignKey())
 }
 
 func (ws *WebProxyServer) Start() error {
@@ -108,11 +146,11 @@ func (ws *WebProxyServer) Shutdown() error {
 
 var webServer *WebProxyServer
 
-func StartWebDaemon() {
+func StartWebDaemon(w ethwallet.Wallet) {
 
 	c := config.GetExtraConfig()
 
-	webServer = NewWebServer(c.ListenAddr)
+	webServer = NewWebServer(c.ListenAddr, w)
 
 	fmt.Println("start proxy at ", webServer.listenAddr, "  ...")
 

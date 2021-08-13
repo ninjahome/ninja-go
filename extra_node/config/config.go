@@ -2,8 +2,8 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/ninjahome/ninja-go/tools"
-	"os"
 	"path"
 	"strconv"
 )
@@ -12,18 +12,29 @@ const (
 	homeDir        = ".extra_node"
 	configFileName = "config.json"
 	ListenPort     = 9099
+
+	infuraUrl   = "https://ropsten.infura.io/v3/d64d364124684359ace20feae1f9ac20"
+	contactAddr = "0x52996249f64d760ac02c6b82866d92b9e7d02f06"
+	tokenAddr   = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
 )
 
 type Config struct {
-	ListenAddr string `json:"listen_addr"`
-	WalletFile string `json:"wallet_file"`
+	ListenAddr      string `json:"listen_addr"`
+	WalletFile      string `json:"wallet_file"`
+	EthUrl          string `json:"eth_url"`
+	TokenAddr       string `json:"token_addr"`
+	LicenseContract string `json:"license_contract"`
 }
 
 var extra_config *Config
 
 func DefaultConfig() *Config {
 	return &Config{
-		ListenAddr: ":" + strconv.Itoa(ListenPort),
+		ListenAddr:      ":" + strconv.Itoa(ListenPort),
+		WalletFile:      ".wallet",
+		EthUrl:          infuraUrl,
+		TokenAddr:       tokenAddr,
+		LicenseContract: contactAddr,
 	}
 }
 
@@ -38,7 +49,7 @@ func GetExtraHome() (string, error) {
 	return dir, nil
 }
 
-func getConfigFileName() (string, error) {
+func GetConfigFileName() (string, error) {
 	h, err := tools.Home()
 	if err != nil {
 		return "", err
@@ -50,14 +61,20 @@ func getConfigFileName() (string, error) {
 }
 
 func (c *Config) Save() error {
-	filename, _ := getConfigFileName()
-
-	j, _ := json.MarshalIndent(*c, "\t", " ")
-	return tools.Save2File(j, filename)
+	if filename, err := GetConfigFileName(); err != nil {
+		return err
+	} else {
+		var j []byte
+		if j, err = json.MarshalIndent(*c, "\t", " "); err != nil {
+			return err
+		} else {
+			return tools.Save2File(j, filename)
+		}
+	}
 }
 
 func InitConfig() (*Config, error) {
-	filename, err := getConfigFileName()
+	filename, err := GetConfigFileName()
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +82,7 @@ func InitConfig() (*Config, error) {
 	var c *Config
 
 	if !tools.FileExists(filename) {
-		c = DefaultConfig()
-		c.Save()
+		return nil, errors.New("please initial exnode")
 	} else {
 		var data []byte
 		data, err = tools.OpenAndReadAll(filename)
@@ -99,13 +115,4 @@ func GetExtraConfig() *Config {
 		}
 	}
 	return extra_config
-}
-
-func InitSystem() error {
-	h, _ := GetExtraHome()
-	if tools.FileExists(h) {
-		return nil
-	}
-
-	return os.Mkdir(h, 0755)
 }
