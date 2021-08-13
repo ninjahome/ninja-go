@@ -1,6 +1,7 @@
 package common
 
 import (
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"github.com/ninjahome/bls-wallet/bls"
@@ -97,4 +98,17 @@ func AddrToPub(a *Address) (*bls.PublicKey, error) {
 		return nil, err
 	}
 	return pub, nil
+}
+func Naddr2ContractAddr(naddr Address) (contractAddr [32]byte, err error) {
+
+	h := sha256.New()
+	_, err = h.Write(naddr[:])
+	if err != nil {
+		return contractAddr, err
+	}
+
+	h32 := h.Sum(nil)
+	copy(contractAddr[:], h32)
+
+	return
 }

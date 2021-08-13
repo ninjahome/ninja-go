@@ -17,6 +17,10 @@ import (
 	"time"
 )
 
+const (
+	LicenseAddPath = "/license/add"
+)
+
 type WebProxyServer struct {
 	listenAddr string
 	quit       chan struct{}
@@ -68,7 +72,7 @@ func (ws *WebProxyServer) init() *WebProxyServer {
 		routes: make([]*route, 0),
 	}
 
-	rh.HandleFunc("license/add", ws.addLicense)
+	rh.HandleFunc(LicenseAddPath, ws.addLicense)
 	//rh.HandleFunc("pushmessage", ws.proxyFunc)
 
 	server := &http.Server{

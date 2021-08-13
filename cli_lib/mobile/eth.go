@@ -1,7 +1,7 @@
 package chatLib
 
 import (
-	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +10,13 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	ncom "github.com/ninjahome/ninja-go/common"
 	"github.com/ninjahome/ninja-go/contract"
+	"github.com/ninjahome/ninja-go/extra_node/webmsg"
+	"github.com/ninjahome/ninja-go/extra_node/webserver"
+	"github.com/ninjahome/ninja-go/service/client"
+	"github.com/ninjahome/ninja-go/service/proxy"
+	"github.com/ninjahome/ninja-go/service/proxy/httputil"
+	"strconv"
+	"strings"
 )
 
 const (
@@ -18,7 +25,7 @@ const (
 	tokenAddr   = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
 )
 
-func GetExpireTime(addr string) int64 {
+func GetExpireTime() int64 {
 
 	var (
 		c              *ethclient.Client
@@ -26,24 +33,17 @@ func GetExpireTime(addr string) int64 {
 		licenseContact *contract.NinjaChatLicense
 		deadline       uint64
 		userAddr       [32]byte
-		naddr          ncom.Address
 	)
 
-	naddr, err = ncom.HexToAddress(addr)
-	if err != nil {
-		fmt.Println(err)
+	if !(_inst.key != nil && _inst.key.IsOpen()) {
+		fmt.Println(errors.New("wallet not opened"))
 		return 0
 	}
 
-	h := sha256.New()
-	_, err = h.Write(naddr[:])
-	if err != nil {
-		fmt.Println(err)
+	if userAddr, err = ncom.Naddr2ContractAddr(_inst.key.Address); err != nil {
+		fmt.Println(0)
 		return 0
 	}
-
-	h32 := h.Sum(nil)
-	copy(userAddr[:], h32)
 
 	if c, err = ethclient.Dial(infuraUrl); err != nil {
 		fmt.Println(err)
@@ -78,19 +78,95 @@ type ChatLicense struct {
 	Signature string              `json:"signature"`
 }
 
-func ImportLicense(licenseB58 string, selfAddr string) error {
+func ImportLicense(licenseB58 string) string {
+
+	if !(_inst.key != nil && _inst.key.IsOpen()) {
+		fmt.Println(errors.New("wallet not opened"))
+		return ""
+	}
+
 	license := base58.Decode(licenseB58)
 
 	cl := &ChatLicense{}
 	if err := json.Unmarshal(license, cl); err != nil {
-		return err
+		fmt.Println(err)
+		return ""
 	}
 
-	if b := IsValidNinjaAddr(selfAddr); !b {
-		return errors.New("address not correct")
+	var (
+		userAddr                  [32]byte
+		issueAddr, randId, sig, j []byte
+		ret                       string
+		code                      int
+		err                       error
+	)
+
+	//issueAddr:=common.HexToAddress(cl.Content.IssueAddr)
+	issueAddr, err = hex.DecodeString(cl.Content.IssueAddr)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	randId, err = hex.DecodeString(cl.Content.RandomId)
+	if err != nil {
+		fmt.Println(err)
+		return ""
 	}
 
-	//todo...
+	sig, err = hex.DecodeString(cl.Signature)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
 
-	return nil
+	userAddr, err = ncom.Naddr2ContractAddr(_inst.key.Address)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	msg := &webmsg.LicenseBind{
+		IssueAddr: issueAddr,
+		UserAddr:  userAddr[:],
+		NDays:     int32(cl.Content.NDays),
+		RandomId:  randId,
+		Signature: sig,
+	}
+
+	j, err = json.Marshal(*msg)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	srvs := client.DefaultBootWsService
+	for i := 0; i < len(srvs); i++ {
+		//post
+
+		url := bootNode2HttpAddr(srvs[i])
+
+		ret, code, err = httputil.NewHttpPost(nil, false, 2, 2).
+			ProtectPost(url, string(j))
+		if err != nil {
+			fmt.Println(url, err)
+			continue
+		}
+
+		if code != 200 {
+			fmt.Println(url, "post failed")
+			continue
+		}
+
+		fmt.Println(url, "post success")
+
+		return ret
+	}
+
+	return ""
+}
+
+func bootNode2HttpAddr(addr string) string {
+	arr := strings.Split(addr, ":")
+
+	return "http://" + arr[0] + ":" + strconv.Itoa(proxy.ProxyListenPort) + webserver.LicenseAddPath
 }

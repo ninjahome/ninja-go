@@ -55,6 +55,8 @@ func (x *WsMsg) ReadOnlineFromCli(conn *websocket.Conn) (olMsg *WSOnline, messag
 		return
 	}
 
+	//check license
+
 	ack := &WSOnlineAck{
 		Success: true,
 		Seq:     online.Online.UnixTime,

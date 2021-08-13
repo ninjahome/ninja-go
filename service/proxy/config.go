@@ -6,7 +6,11 @@ import (
 )
 
 const (
-	proxyListenPort = 8088
+	ProxyListenPort = 8088
+
+	infuraUrl   = "https://ropsten.infura.io/v3/d64d364124684359ace20feae1f9ac20"
+	contactAddr = "0x52996249f64d760ac02c6b82866d92b9e7d02f06"
+	tokenAddr   = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
 )
 
 var proxyAddr = []string{
@@ -15,8 +19,11 @@ var proxyAddr = []string{
 }
 
 type Config struct {
-	ListenAddr string   `json:"listen_addr"`
-	ProxyAddr  []string `json:"proxy_addr"`
+	ListenAddr   string   `json:"listen_addr"`
+	ProxyAddr    []string `json:"proxy_addr"`
+	EthUrl       string   `json:"eth_url"`
+	ContractAddr string   `json:"contract_addr"`
+	TokenAddr    string   `json:"token_addr"`
 }
 
 var _proxyConfig *Config = nil
@@ -29,7 +36,13 @@ func (c *Config) String() string {
 		pa := c.ProxyAddr[i]
 		s += fmt.Sprintf("\r\n        %s ", pa)
 	}
+
+	s += fmt.Sprintf("\r\nEth access node: %s", c.EthUrl)
+	s += fmt.Sprintf("\r\ncontract: %s", c.ContractAddr)
+	s += fmt.Sprintf("\r\ntoken: %s", c.TokenAddr)
+
 	s += fmt.Sprintf("\r\n-------------------------------------------------------\r\n")
+
 	return s
 }
 
@@ -38,7 +51,7 @@ func InitConfig(c *Config) {
 }
 
 func DefaultConfig() *Config {
-	l := ":" + strconv.Itoa(proxyListenPort)
+	l := ":" + strconv.Itoa(ProxyListenPort)
 
 	var pa []string
 	for i := 0; i < len(proxyAddr); i++ {
@@ -46,8 +59,11 @@ func DefaultConfig() *Config {
 	}
 
 	return &Config{
-		ListenAddr: l,
-		ProxyAddr:  pa,
+		ListenAddr:   l,
+		ProxyAddr:    pa,
+		EthUrl:       infuraUrl,
+		ContractAddr: contactAddr,
+		TokenAddr:    tokenAddr,
 	}
 }
 
