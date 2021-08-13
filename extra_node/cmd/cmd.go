@@ -50,14 +50,17 @@ func init() {
 }
 
 func createWallet(cmd *cobra.Command, args []string) {
-	var c *config.Config
+	var (
+		c *config.Config
+		err error
+	)
 
 	if param.passwd == "" {
 		fmt.Println("please input password")
 		return
 	}
 
-	if c = config.GetExtraConfig(); c != nil {
+	if c,err = config.InitConfig(); err!=nil{
 		fmt.Println("please initial exnode first")
 		return
 	}
@@ -107,16 +110,15 @@ func initExNode(cmd *cobra.Command, args []string) {
 }
 
 func showWallet(cmd *cobra.Command, args []string) {
-	var c *config.Config
-	if c = config.GetExtraConfig(); c != nil {
+	var (
+		c *config.Config
+		err error
+		w   ethwallet.Wallet
+	)
+	if c,err = config.InitConfig(); err != nil {
 		fmt.Println("please initial exnode first")
 		return
 	}
-
-	var (
-		w   ethwallet.Wallet
-		err error
-	)
 
 	if w, err = ethwallet.LoadWallet(c.GetWalletFile()); err != nil {
 		fmt.Println("load wallet failed", err.Error())
