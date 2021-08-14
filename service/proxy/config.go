@@ -75,40 +75,40 @@ func (c *Config) NewProxyWebServer() *WebProxyServer {
 	return NewWebServer(c.ListenAddr, c.ProxyAddr)
 }
 
-func GetExpireTimeFromBlockChain(uid string) (int64,error)  {
+func GetExpireTimeFromBlockChain(uid string) (int64, error) {
 	var (
-		c *ethclient.Client
-		err error
+		c               *ethclient.Client
+		err             error
 		licenseContract *contract.NinjaChatLicense
-		deadline uint64
-		uidaddr ncom.Address
-		userAddr [32]byte
+		deadline        uint64
+		uidaddr         ncom.Address
+		userAddr        [32]byte
 	)
 
 	if c, err = ethclient.Dial(infuraUrl); err != nil {
-		return 0,err
+		return 0, err
 	}
 
 	defer c.Close()
 
 	licenseContract, err = contract.NewNinjaChatLicense(common.HexToAddress(contactAddr), c)
 	if err != nil {
-		return 0,err
-	}
-
-	uidaddr,err = ncom.HexToAddress(uid)
-	if err!=nil{
 		return 0, err
 	}
-	userAddr,err = ncom.Naddr2ContractAddr(uidaddr)
-	if err!=nil{
+
+	uidaddr, err = ncom.HexToAddress(uid)
+	if err != nil {
+		return 0, err
+	}
+	userAddr, err = ncom.Naddr2ContractAddr(uidaddr)
+	if err != nil {
 		return 0, err
 	}
 
 	deadline, _, err = licenseContract.GetUserLicense(nil, userAddr)
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 
-	return int64(deadline),nil
+	return int64(deadline), nil
 }

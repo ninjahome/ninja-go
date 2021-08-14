@@ -168,46 +168,45 @@ const (
 	DevTypeMac         = 3
 
 	LicenseDBKeyHead = "LicenseDbKey_0"
-	LicenseDBKeyEnd = "LicenseDbKey_1"
+	LicenseDBKeyEnd  = "LicenseDbKey_1"
 
 	AccessBlockChainTimeInterval = 300 //5 minutes
 )
 
 type LicenseCache struct {
-	EndTime int64  `json:"end_time"`
+	EndTime               int64 `json:"end_time"`
 	LastSuccessAccessTime int64 `json:"last_success_access_time"`
 }
 
-func (ws *Service)SaveLicenseInfo(uid string, endTime, lastAccessTime int64) error  {
-	key:=LicenseDBKeyHead+strings.ToLower(uid)
+func (ws *Service) SaveLicenseInfo(uid string, endTime, lastAccessTime int64) error {
+	key := LicenseDBKeyHead + strings.ToLower(uid)
 
-	lc:=&LicenseCache{
-		EndTime: endTime,
+	lc := &LicenseCache{
+		EndTime:               endTime,
 		LastSuccessAccessTime: lastAccessTime,
 	}
 
-	j,_:=json.Marshal(*lc)
+	j, _ := json.Marshal(*lc)
 
-	return ws.dataBase.Put([]byte(key),j,&opt.WriteOptions{
+	return ws.dataBase.Put([]byte(key), j, &opt.WriteOptions{
 		Sync: true,
 	})
 }
 
-func (ws *Service)GetLicenseInfo(uid string) (endTime,lastAccessTime int64, err error)  {
-	key:=LicenseDBKeyHead+strings.ToLower(uid)
+func (ws *Service) GetLicenseInfo(uid string) (endTime, lastAccessTime int64, err error) {
+	key := LicenseDBKeyHead + strings.ToLower(uid)
 	var v []byte
-	if v,err=ws.dataBase.Get([]byte(key),nil);err!=nil{
+	if v, err = ws.dataBase.Get([]byte(key), nil); err != nil {
 		return 0, 0, err
 	}
 
 	lc := &LicenseCache{}
-	if err = json.Unmarshal(v, lc);err!=nil{
+	if err = json.Unmarshal(v, lc); err != nil {
 		return 0, 0, err
 	}
 
-	return lc.EndTime,lc.LastSuccessAccessTime,nil
+	return lc.EndTime, lc.LastSuccessAccessTime, nil
 }
-
 
 func ninjaKeyGet(devToken string, devTyp int) string {
 	return fmt.Sprintf(NinjaInfoDBKeyHead+"_%s_%d", devToken, devTyp)
@@ -292,43 +291,42 @@ func (ws *Service) GetToken(uid string) (string, int, error) {
 	return di.DevToken, di.DevTyp, nil
 }
 
-func (ws *Service)CheckLicense(uid string) bool   {
-	endTime, accessTime, err:= ws.GetLicenseInfo(uid)
-	if err!=nil{
+func (ws *Service) CheckLicense(uid string) bool {
+	endTime, accessTime, err := ws.GetLicenseInfo(uid)
+	if err != nil {
 		var deadline int64
-		deadline,err = proxy.GetExpireTimeFromBlockChain(uid)
-		if err!=nil{
-			fmt.Println("get",uid,"license failed")
+		deadline, err = proxy.GetExpireTimeFromBlockChain(uid)
+		if err != nil {
+			fmt.Println("get", uid, "license failed")
 			return false
 		}
 
-		ws.SaveLicenseInfo(uid,deadline, time.Now().Unix())
+		ws.SaveLicenseInfo(uid, deadline, time.Now().Unix())
 
-		if time.Now().Unix() < endTime{
+		if time.Now().Unix() < endTime {
 			return true
 		}
-	}else{
-		if time.Now().Unix() < endTime{
+	} else {
+		if time.Now().Unix() < endTime {
 			return true
 		}
 
-		if time.Now().Unix() - accessTime > AccessBlockChainTimeInterval{
+		if time.Now().Unix()-accessTime > AccessBlockChainTimeInterval {
 			var deadline int64
-			deadline,err = proxy.GetExpireTimeFromBlockChain(uid)
-			if err!=nil{
-				fmt.Println("get",uid,"license failed")
+			deadline, err = proxy.GetExpireTimeFromBlockChain(uid)
+			if err != nil {
+				fmt.Println("get", uid, "license failed")
 				return false
 			}
 
-			ws.SaveLicenseInfo(uid,deadline, time.Now().Unix())
+			ws.SaveLicenseInfo(uid, deadline, time.Now().Unix())
 
-			if time.Now().Unix() < endTime{
+			if time.Now().Unix() < endTime {
 				return true
 			}
 		}
 
 	}
-
 
 	return false
 
@@ -343,7 +341,7 @@ func (ws *Service) newOnlineUser(conn *websocket.Conn) error {
 		return err
 	}
 
-	if valid:=ws.CheckLicense(online.UID);!valid{
+	if valid := ws.CheckLicense(online.UID); !valid {
 		conn.Close()
 		return errors.New("license not found")
 	}
