@@ -292,36 +292,41 @@ func (ws *Service) GetToken(uid string) (string, int, error) {
 }
 
 func (ws *Service) CheckLicense(uid string) bool {
+
+	nowTime := time.Now().Unix()
+
 	endTime, accessTime, err := ws.GetLicenseInfo(uid)
 	if err != nil {
 		var deadline int64
 		deadline, err = proxy.GetExpireTimeFromBlockChain(uid)
 		if err != nil {
+			ws.SaveLicenseInfo(uid,0,nowTime)
 			fmt.Println("get", uid, "license failed")
 			return false
 		}
 
-		ws.SaveLicenseInfo(uid, deadline, time.Now().Unix())
+		ws.SaveLicenseInfo(uid, deadline, nowTime)
 
-		if time.Now().Unix() < endTime {
+		if nowTime < deadline {
 			return true
 		}
 	} else {
-		if time.Now().Unix() < endTime {
+		if nowTime < endTime {
 			return true
 		}
 
-		if time.Now().Unix()-accessTime > AccessBlockChainTimeInterval {
+		if nowTime - accessTime > AccessBlockChainTimeInterval {
 			var deadline int64
 			deadline, err = proxy.GetExpireTimeFromBlockChain(uid)
 			if err != nil {
 				fmt.Println("get", uid, "license failed")
+				ws.SaveLicenseInfo(uid,0,nowTime)
 				return false
 			}
 
-			ws.SaveLicenseInfo(uid, deadline, time.Now().Unix())
+			ws.SaveLicenseInfo(uid, deadline, nowTime)
 
-			if time.Now().Unix() < endTime {
+			if nowTime < deadline {
 				return true
 			}
 		}
