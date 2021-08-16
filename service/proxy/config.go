@@ -13,7 +13,7 @@ const (
 	ProxyListenPort = 8088
 
 	infuraUrl   = "https://kovan.infura.io/v3/d64d364124684359ace20feae1f9ac20"
-	contactAddr = "0x52996249f64d760ac02c6b82866d92b9e7d02f06"
+	contactAddr = "0x7B133a9BD10F7AE52fa9528b8Bc0f3c34612674c"
 	tokenAddr   = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
 )
 

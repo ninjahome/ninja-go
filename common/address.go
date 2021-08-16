@@ -1,10 +1,10 @@
 package common
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"github.com/ninjahome/bls-wallet/bls"
+	"github.com/thetatoken/theta-protocol-ledger/crypto/sha3"
 )
 
 const (
@@ -101,7 +101,7 @@ func AddrToPub(a *Address) (*bls.PublicKey, error) {
 }
 func Naddr2ContractAddr(naddr Address) (contractAddr [32]byte, err error) {
 
-	h := sha256.New()
+	h := sha3.New256()
 	_, err = h.Write(naddr[:])
 	if err != nil {
 		return contractAddr, err
