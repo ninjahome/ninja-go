@@ -1,7 +1,7 @@
 package chatLib
 
 import (
-	"encoding/hex"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -102,18 +102,21 @@ func ImportLicense(licenseB58 string) string {
 	)
 
 	//issueAddr:=common.HexToAddress(cl.Content.IssueAddr)
-	issueAddr, err = hex.DecodeString(cl.Content.IssueAddr)
+	//issueAddr, err = hex.DecodeString(cl.Content.IssueAddr)
+	issueAddr,err = base64.StdEncoding.DecodeString(cl.Content.IssueAddr)
 	if err != nil {
 		fmt.Println(err)
 		return ""
 	}
-	randId, err = hex.DecodeString(cl.Content.RandomId)
+	//randId, err = hex.DecodeString(cl.Content.RandomId)
+	randId, err = base64.StdEncoding.DecodeString(cl.Content.RandomId)
 	if err != nil {
 		fmt.Println(err)
 		return ""
 	}
 
-	sig, err = hex.DecodeString(cl.Signature)
+	//sig, err = hex.DecodeString(cl.Signature)
+	sig, err = base64.StdEncoding.DecodeString(cl.Signature)
 	if err != nil {
 		fmt.Println(err)
 		return ""

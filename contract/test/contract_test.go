@@ -4,9 +4,11 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/btcsuite/btcutil/base58"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -173,24 +175,19 @@ func TestGenerateLicense(t *testing.T){
 	rid:=getRandomId()
 	var tx *types.Transaction
 
-
-	fmt.Println("issue:",toPubKeyString(GetPrivKey()))
-	fmt.Println("contract:",contactAddr)
-	fmt.Println("rid:",hex.EncodeToString(rid[:]))
-	fmt.Println("ndays:",5)
-
-	fmt.Println("--------------------------------------")
-
 	tx, err = ncl.GenerateLicense(transactOpts,rid,5)
 	if err != nil{
 		panic(err)
 	}
 
+	addr:=toPubKeyString(GetPrivKey())
+
 	fmt.Println("tx:",tx.Hash().String())
 	fmt.Println("rid:",hex.EncodeToString(rid[:]))
 	fmt.Println("ndays:",5)
-	fmt.Println("issue:",toPubKeyString(GetPrivKey()))
+	fmt.Println("issue:",addr)
 	fmt.Println("contract:",contactAddr)
+
 }
 
 var(
@@ -288,6 +285,36 @@ func TestCreateLicense(t *testing.T)  {
 	fmt.Println("random id:",hex.EncodeToString(rid[:]))
 	fmt.Println("nDays:",*nDays)
 	fmt.Println("sig:",hex.EncodeToString(signature))
+
+	lsig:=len(signature)
+	if signature[lsig-1] <=1{
+		signature[lsig-1] = signature[lsig-1]+27
+	}
+
+	type ChatLicenseContent struct {
+		IssueAddr string `json:"issue_addr"`
+		RandomId  string `json:"random_id"`
+		NDays     int    `json:"n_days"`
+	}
+
+	type ChatLicense struct {
+		Content   *ChatLicenseContent `json:"content"`
+		Signature string              `json:"signature"`
+	}
+
+	clc:=&ChatLicenseContent{
+		IssueAddr: base64.StdEncoding.EncodeToString(issue[:]),
+		RandomId: base64.StdEncoding.EncodeToString(rid[:]),
+		NDays: *nDays,
+	}
+	cl:=&ChatLicense{
+		Content: clc,
+		Signature: base64.StdEncoding.EncodeToString(signature),
+	}
+
+	j,_:=json.Marshal(*cl)
+
+	fmt.Println("License for load:",base58.Encode(j))
 
 }
 
