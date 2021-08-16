@@ -87,9 +87,9 @@ contract NinjaChatLicense is owned{
          uint curTime = block.timestamp;
 
          if (curTime  > ud.EndDays){
-             UserLicenses[userAddr] = UserData(uint64(curTime+(36000*24*nDays)),ud.TotalCoins+nDays);
+             UserLicenses[userAddr] = UserData(uint64(curTime+(3600*24*nDays)),ud.TotalCoins+nDays);
          }else{
-             UserLicenses[userAddr] = UserData(uint64(ud.EndDays+(36000*24*nDays)),ud.TotalCoins+nDays);
+             UserLicenses[userAddr] = UserData(uint64(ud.EndDays+(3600*24*nDays)),ud.TotalCoins+nDays);
          }
 
          emit ChargeUserEvent(msg.sender, userAddr, nDays);
@@ -100,7 +100,7 @@ contract NinjaChatLicense is owned{
         require(ld.used == false, "id is used");
         require(ld.nDays == nDays);
 
-        bytes32 message = keccak256(abi.encode(issueAddr, id, nDays));
+        bytes32 message = keccak256(abi.encode(this,issueAddr, id, nDays));
         bytes32 msgHash = prefixed(message);
         require(recoverSigner(msgHash, signature) == issueAddr);
 
@@ -111,16 +111,16 @@ contract NinjaChatLicense is owned{
         uint curTime = block.timestamp;
 
         if (curTime  > ud.EndDays){
-            UserLicenses[recvAddr] = UserData(uint64(curTime+(36000*24*nDays)),ud.TotalCoins+nDays);
+            UserLicenses[recvAddr] = UserData(uint64(curTime+(3600*24*nDays)),ud.TotalCoins+nDays);
         }else{
-            UserLicenses[recvAddr] = UserData(uint64(ud.EndDays+(36000*24*nDays)),ud.TotalCoins+nDays);
+            UserLicenses[recvAddr] = UserData(uint64(ud.EndDays+(3600*24*nDays)),ud.TotalCoins+nDays);
         }
 
         emit BindLicenseEvent(issueAddr, recvAddr, id, nDays);
     }
 
     function prefixed(bytes32 hash) internal pure returns (bytes32) {
-       return keccak256(abi.encode("\x19Ethereum Signed Message:\n32", hash));
+       return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
     }
     function recoverSigner(bytes32 message, bytes memory sig) internal pure  returns (address) {
        (uint8 v, bytes32 r, bytes32 s) = splitSignature(sig);
