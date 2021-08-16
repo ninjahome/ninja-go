@@ -27,8 +27,8 @@ import (
 )
 
 const(
-	contactAddr = "0x52996249f64d760ac02c6b82866d92b9e7d02f06"
-	//contactAddr = "0x84919508A46CF097AfD6c2cE1CE78ECEd0aC10f6"
+	//contactAddr = "0x52996249f64d760ac02c6b82866d92b9e7d02f06"
+	contactAddr = "0x7B133a9BD10F7AE52fa9528b8Bc0f3c34612674c"
 	tokenAddr   = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
 	dialerAddr string = "https://kovan.infura.io/v3/e01a4005bf8b42cca32875c2dc438dba"
 	MetaMaskHashPrefix = "\x19Ethereum Signed Message:\n32"
@@ -215,7 +215,7 @@ func TestCreateLicense(t *testing.T)  {
 	var (
 		abiUint32Type, _   = abi.NewType("uint32", "", nil)
 		abiAddrType, _   = abi.NewType("address", "", nil)
-		abiStrType, _    = abi.NewType("string", "", nil)
+		//abiStrType, _    = abi.NewType("string", "", nil)
 		abiByte32Type, _ = abi.NewType("bytes32", "", nil)
 
 		abiLicenseDataArgs = abi.Arguments{
@@ -225,13 +225,13 @@ func TestCreateLicense(t *testing.T)  {
 			{Type: abiUint32Type},
 		}
 
-		abiPrefixHashArgs = abi.Arguments{
-			{Type: abiStrType},
-			{Type: abiByte32Type},
-		}
+		//abiPrefixHashArgs = abi.Arguments{
+		//	{Type: abiStrType},
+		//	{Type: abiByte32Type},
+		//}
 	)
 
-	*randId = "5115cd142ea6dab4c9e89e2a092f05eafe3c802657664f1c4a5a343e24c6cb61"
+	*randId = "a4ad84722720ce7cddd0831ce84a36d31c818eec0c1c35cabc904e03d0b30758"
 
 	if randId == nil{
 		fmt.Println("please input random id")
@@ -265,15 +265,24 @@ func TestCreateLicense(t *testing.T)  {
 
 	h:=crypto.Keccak256Hash(licenseBytes)
 
-	var msg []byte
-	msg, err = abiPrefixHashArgs.Pack(
-		MetaMaskHashPrefix,
-		h)
-	if err!=nil{
-		panic(err)
-	}
 
-	hash4sig := crypto.Keccak256(msg)
+	buf:=make([]byte,128)
+
+	n:=copy(buf,MetaMaskHashPrefix)
+
+	n += copy(buf[n:],h[:])
+
+
+	//fmt.Println("msg: ",msg)
+
+	//var msg []byte
+	//msg, err = abiPrefixHashArgs.Pack(
+	//	MetaMaskHashPrefix,
+	//	h)
+	//if err!=nil{
+	//	panic(err)
+	//}
+	hash4sig := crypto.Keccak256(buf[:n])
 	var signature []byte
 	signature,err = crypto.Sign(hash4sig,GetPrivKey() )
 	if err!=nil{
@@ -322,14 +331,14 @@ func TestCreateLicense(t *testing.T)  {
 //go test -v -run TestBindLicense -randomId="xx" -nDays=5 -sig="xxx" -uAddr="xx"
 func TestBindLicense(t *testing.T)  {
 
-	*randId = "5115cd142ea6dab4c9e89e2a092f05eafe3c802657664f1c4a5a343e24c6cb61"
+	*randId = "a4ad84722720ce7cddd0831ce84a36d31c818eec0c1c35cabc904e03d0b30758"
 
 	if *randId == ""{
 		fmt.Println("please input random id")
 		return
 	}
 
-	*sig = "8c63650d77ded7b391f4c322714b0ec39518d32148952ebef52706abc847585a177aeaa457bb3dbf4d294b374c9b86ea7e09d11d8cfae91e021643678fbd11231c"
+	*sig = "b1d3a69dfdc84047f69468bb8f16ef9950666e338007acbf07e8878182a77511412547bb3edddfca1adef96b7c790cfa9cac0615eb695aceaa99d967a44b8a8b1c"
 
 	if *sig == ""{
 		fmt.Println("please input signature...")
@@ -391,14 +400,6 @@ func TestBindLicense(t *testing.T)  {
 	nD = uint32(*nDays)
 
 	s ,_ = hex.DecodeString(*sig)
-
-	fmt.Println("issue:",issue.String())
-	fmt.Println("recv:",hex.EncodeToString(recv[:]))
-	fmt.Println("random id:",hex.EncodeToString(rid[:]))
-	fmt.Println("nDays:",nD)
-	fmt.Println("sig:",*sig)
-
-	fmt.Println("---------------")
 
 	var tx *types.Transaction
 	tx, err = ncl.BindLicense(transactOpts,issue,recv,rid,nD,s)
