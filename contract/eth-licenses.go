@@ -249,12 +249,9 @@ func (_NinjaChatLicense *NinjaChatLicenseCaller) Licenses(opts *bind.CallOpts, a
 		Used  bool
 		NDays uint32
 	})
-	if err != nil {
-		return *outstruct, err
-	}
 
-	outstruct.Used = *abi.ConvertType(out[0], new(bool)).(*bool)
-	outstruct.NDays = *abi.ConvertType(out[1], new(uint32)).(*uint32)
+	outstruct.Used = out[0].(bool)
+	outstruct.NDays = out[1].(uint32)
 
 	return *outstruct, err
 
@@ -294,12 +291,9 @@ func (_NinjaChatLicense *NinjaChatLicenseCaller) UserLicenses(opts *bind.CallOpt
 		EndDays    uint64
 		TotalCoins uint32
 	})
-	if err != nil {
-		return *outstruct, err
-	}
 
-	outstruct.EndDays = *abi.ConvertType(out[0], new(uint64)).(*uint64)
-	outstruct.TotalCoins = *abi.ConvertType(out[1], new(uint32)).(*uint32)
+	outstruct.EndDays = out[0].(uint64)
+	outstruct.TotalCoins = out[1].(uint32)
 
 	return *outstruct, err
 

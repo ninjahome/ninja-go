@@ -95,12 +95,12 @@ contract NinjaChatLicense is owned{
          emit ChargeUserEvent(msg.sender, userAddr, nDays);
     }
 
-    function BindLicense(address issueAddr, bytes32 recvAddr, bytes32 id, uint32 nDays, bytes calldata signature) external{
+    function BindLicense(address issueAddr, bytes32 recvAddr, bytes32 id, uint32 nDays, bytes memory signature) external{
         LicenseData memory ld = Licenses[issueAddr][id];
         require(ld.used == false, "id is used");
         require(ld.nDays == nDays);
 
-        bytes32 message = keccak256(abi.encode(this, issueAddr, id, nDays));
+        bytes32 message = keccak256(abi.encode(issueAddr, id, nDays));
         bytes32 msgHash = prefixed(message);
         require(recoverSigner(msgHash, signature) == issueAddr);
 
