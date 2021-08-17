@@ -2,6 +2,7 @@ package webserver
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/ethereum/go-ethereum/common"
 
 	"fmt"
@@ -9,7 +10,6 @@ import (
 	"github.com/ninjahome/ninja-go/extra_node/ethwallet"
 	"github.com/ninjahome/ninja-go/extra_node/webmsg"
 
-	"github.com/polydawn/refmt/json"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -101,7 +101,7 @@ func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.R
 
 		lb := &webmsg.LicenseBind{}
 
-		err := json.Unmarshal(contents, lb)
+		err = json.Unmarshal(contents, lb)
 		if err != nil {
 			writer.WriteHeader(200)
 			writer.Write(webmsg.LicenseResultPack(webmsg.ParseJsonErr, "parse json error", nil))

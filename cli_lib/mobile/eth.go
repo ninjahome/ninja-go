@@ -126,6 +126,8 @@ func ImportLicense(licenseB58 string) string {
 		return ""
 	}
 
+	fmt.Println(string(j))
+
 	srvs := client.DefaultBootWsService
 	for i := 0; i < len(srvs); i++ {
 		url := bootNode2HttpAddr(srvs[i])

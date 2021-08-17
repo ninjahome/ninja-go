@@ -94,12 +94,14 @@ func (ws *WebProxyServer) proxyFunc(writer http.ResponseWriter, request *http.Re
 
 			var result string
 			var code int
-			result, code, err = httputil.NewHttpPost(nil, false, 2, 2).
+			result, code, err = httputil.NewHttpPost(nil, true, 2, 2).
 				ProtectPost(proxyUrl, string(contents))
 			if err != nil {
+				fmt.Println("---->",err)
 				continue
 			}
 			if code != 200 {
+				fmt.Println("---->",code)
 				continue
 			}
 			writer.WriteHeader(200)
