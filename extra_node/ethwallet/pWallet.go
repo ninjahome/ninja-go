@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/google/uuid"
+	"github.com/pborman/uuid"
 
 	"io/ioutil"
 )
@@ -93,10 +93,8 @@ func (pw *PWallet) ExportEth(auth, eAuth, path string) error {
 	}
 
 	var id uuid.UUID
-	id, err = uuid.NewRandom()
-	if err != nil {
-		return err
-	}
+	id = uuid.NewRandom()
+
 	ethKey.Id = id
 
 	newJson, err := keystore.EncryptKey(ethKey, eAuth, keystore.StandardScryptN, keystore.StandardScryptP)

@@ -1,7 +1,8 @@
 package chatLib
 
 import (
-	"encoding/base64"
+	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -79,48 +80,31 @@ type ChatLicense struct {
 }
 
 func ImportLicense(licenseB58 string) string {
-
 	if !(_inst.key != nil && _inst.key.IsOpen()) {
 		fmt.Println(errors.New("wallet not opened"))
 		return ""
 	}
+	var (
+		userAddr  [32]byte
+		issueAddr common.Address
+		randId    [32]byte
+		nDays     uint32
+		j, sig    []byte
+		ret       string
+		code      int
+		err       error
+	)
 
 	license := base58.Decode(licenseB58)
 
-	cl := &ChatLicense{}
-	if err := json.Unmarshal(license, cl); err != nil {
-		fmt.Println(err)
+	if len(license) < 20+32+4+65 {
 		return ""
 	}
 
-	var (
-		userAddr                  [32]byte
-		issueAddr, randId, sig, j []byte
-		ret                       string
-		code                      int
-		err                       error
-	)
-
-	//issueAddr:=common.HexToAddress(cl.Content.IssueAddr)
-	//issueAddr, err = hex.DecodeString(cl.Content.IssueAddr)
-	issueAddr,err = base64.StdEncoding.DecodeString(cl.Content.IssueAddr)
-	if err != nil {
-		fmt.Println(err)
-		return ""
-	}
-	//randId, err = hex.DecodeString(cl.Content.RandomId)
-	randId, err = base64.StdEncoding.DecodeString(cl.Content.RandomId)
-	if err != nil {
-		fmt.Println(err)
-		return ""
-	}
-
-	//sig, err = hex.DecodeString(cl.Signature)
-	sig, err = base64.StdEncoding.DecodeString(cl.Signature)
-	if err != nil {
-		fmt.Println(err)
-		return ""
-	}
+	n := copy(issueAddr[:], license)
+	n += copy(randId[:], license[n:])
+	nDays = binary.BigEndian.Uint32(license[n:])
+	sig = license[n+4:]
 
 	userAddr, err = ncom.Naddr2ContractAddr(_inst.key.Address)
 	if err != nil {
@@ -129,10 +113,10 @@ func ImportLicense(licenseB58 string) string {
 	}
 
 	msg := &webmsg.LicenseBind{
-		IssueAddr: issueAddr,
+		IssueAddr: issueAddr[:],
 		UserAddr:  userAddr[:],
-		NDays:     int32(cl.Content.NDays),
-		RandomId:  randId,
+		NDays:     int32(nDays),
+		RandomId:  randId[:],
 		Signature: sig,
 	}
 
@@ -163,6 +147,40 @@ func ImportLicense(licenseB58 string) string {
 	}
 
 	return ""
+}
+
+func DecodeLicense(licenseB58 string) string {
+	var (
+		issueAddr common.Address
+		randId    [32]byte
+		nDays     uint32
+		j, sig    []byte
+	)
+	license := base58.Decode(licenseB58)
+	if len(license) < 20+32+4+65 {
+		return ""
+	}
+
+	n := copy(issueAddr[:], license)
+	n += copy(randId[:], license[n:])
+	nDays = binary.BigEndian.Uint32(license[n:])
+	sig = license[n+4:]
+
+	clc := &ChatLicenseContent{
+		IssueAddr: hex.EncodeToString(issueAddr[:]),
+		RandomId:  hex.EncodeToString(randId[:]),
+		NDays:     int(nDays),
+	}
+
+	cl := &ChatLicense{
+		Content:   clc,
+		Signature: hex.EncodeToString(sig),
+	}
+
+	j, _ = json.Marshal(*cl)
+
+	return string(j)
+
 }
 
 func bootNode2HttpAddr(addr string) string {

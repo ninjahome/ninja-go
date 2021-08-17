@@ -300,7 +300,7 @@ func (ws *Service) CheckLicense(uid string) bool {
 		var deadline int64
 		deadline, err = proxy.GetExpireTimeFromBlockChain(uid)
 		if err != nil {
-			ws.SaveLicenseInfo(uid,0,nowTime)
+			ws.SaveLicenseInfo(uid, 0, nowTime)
 			fmt.Println("get", uid, "license failed")
 			return false
 		}
@@ -315,12 +315,12 @@ func (ws *Service) CheckLicense(uid string) bool {
 			return true
 		}
 
-		if nowTime - accessTime > AccessBlockChainTimeInterval {
+		if nowTime-accessTime > AccessBlockChainTimeInterval {
 			var deadline int64
 			deadline, err = proxy.GetExpireTimeFromBlockChain(uid)
 			if err != nil {
 				fmt.Println("get", uid, "license failed")
-				ws.SaveLicenseInfo(uid,0,nowTime)
+				ws.SaveLicenseInfo(uid, 0, nowTime)
 				return false
 			}
 

@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/ninjahome/bls-wallet/bls"
-	"github.com/thetatoken/theta-protocol-ledger/crypto/sha3"
+	"golang.org/x/crypto/sha3"
 )
 
 const (
