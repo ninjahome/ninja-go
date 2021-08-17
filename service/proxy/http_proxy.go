@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"path"
 	"regexp"
 	"time"
 )
@@ -88,7 +87,7 @@ func (ws *WebProxyServer) proxyFunc(writer http.ResponseWriter, request *http.Re
 		return
 	} else {
 		for i := 0; i < len(ws.proxyAddr); i++ {
-			proxyUrl := path.Join(ws.proxyAddr[i], request.URL.Path)
+			proxyUrl := ws.proxyAddr[i]+request.URL.Path
 
 			fmt.Println("proxy url:", proxyUrl)
 
@@ -97,11 +96,11 @@ func (ws *WebProxyServer) proxyFunc(writer http.ResponseWriter, request *http.Re
 			result, code, err = httputil.NewHttpPost(nil, true, 2, 2).
 				ProtectPost(proxyUrl, string(contents))
 			if err != nil {
-				fmt.Println("---->",err)
+				//fmt.Println("---->",err)
 				continue
 			}
 			if code != 200 {
-				fmt.Println("---->",code)
+				//fmt.Println("---->",code)
 				continue
 			}
 			writer.WriteHeader(200)

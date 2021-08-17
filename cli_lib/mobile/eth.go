@@ -139,7 +139,7 @@ func ImportLicense(licenseB58 string) string {
 		}
 
 		if code != 200 {
-			fmt.Println(url, "post failed")
+			fmt.Println(url, "post failed",ret)
 			continue
 		}
 
