@@ -102,11 +102,7 @@ func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.R
 
 		lb := &webmsg.LicenseBind{}
 
-		fmt.Println("issue",hex.EncodeToString(lb.IssueAddr))
-		fmt.Println("user:",hex.EncodeToString(lb.UserAddr))
-		fmt.Println("randid:",hex.EncodeToString(lb.RandomId))
-		fmt.Println("ndays:",lb.NDays)
-		fmt.Println("signature:",hex.EncodeToString(lb.Signature))
+
 
 		err = json.Unmarshal(contents, lb)
 		if err != nil {
@@ -114,6 +110,12 @@ func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.R
 			writer.Write(webmsg.LicenseResultPack(webmsg.ParseJsonErr, "parse json error", nil))
 			return
 		}
+
+		fmt.Println("issue",hex.EncodeToString(lb.IssueAddr))
+		fmt.Println("user:",hex.EncodeToString(lb.UserAddr))
+		fmt.Println("randid:",hex.EncodeToString(lb.RandomId))
+		fmt.Println("ndays:",lb.NDays)
+		fmt.Println("signature:",hex.EncodeToString(lb.Signature))
 
 		var tx []byte
 		tx, err = ws.bind(lb)
