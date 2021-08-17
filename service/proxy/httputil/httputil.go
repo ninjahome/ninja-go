@@ -72,7 +72,7 @@ func NewHttpPost(protect func(fd int32) bool, blog bool, dialTimeout, ConnTimeou
 		Protect:     protect,
 		Blog:        blog,
 		DialTimeout: dialTimeout,
-		ConnTimeout: dialTimeout,
+		ConnTimeout: ConnTimeout,
 	}
 }
 

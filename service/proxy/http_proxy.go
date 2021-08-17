@@ -93,7 +93,7 @@ func (ws *WebProxyServer) proxyFunc(writer http.ResponseWriter, request *http.Re
 
 			var result string
 			var code int
-			result, code, err = httputil.NewHttpPost(nil, true, 2, 20).
+			result, code, err = httputil.NewHttpPost(nil, true, 2, 120).
 				ProtectPost(proxyUrl, string(contents))
 			if err != nil {
 				fmt.Println("---->",err)

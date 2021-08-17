@@ -131,7 +131,7 @@ func ImportLicense(licenseB58 string) string {
 	srvs := client.DefaultBootWsService
 	for i := 0; i < len(srvs); i++ {
 		url := bootNode2HttpAddr(srvs[i])
-		ret, code, err = httputil.NewHttpPost(nil, false, 2, 20).
+		ret, code, err = httputil.NewHttpPost(nil, false, 2, 120).
 			ProtectPost(url, string(j))
 		if err != nil {
 			fmt.Println(url, err)
