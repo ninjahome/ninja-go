@@ -111,6 +111,7 @@ func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.R
 		var tx []byte
 		tx, err = ws.bind(lb)
 		if err != nil {
+			fmt.Println("tx err",err)
 			writer.WriteHeader(200)
 			writer.Write(webmsg.LicenseResultPack(webmsg.CallContractErr, "call contract error", nil))
 			return

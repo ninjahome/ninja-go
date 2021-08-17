@@ -224,7 +224,7 @@ func TestCreateLicense(t *testing.T) {
 		//}
 	)
 
-	*randId = "8f7dfe5109579833826a52a7b5db8ca156b58769c2249c0b75b6e687642a406c"
+	*randId = "daba6d419029963de2c9ab9e09c25bfb104669b085a492dc73d440fc23d5ce89"
 
 	if randId == nil {
 		fmt.Println("please input random id")
