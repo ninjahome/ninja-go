@@ -44,7 +44,7 @@ func TestImportLicense(t *testing.T)  {
 		panic(err)
 	}
 	_inst.key = key
-	s:=ImportLicense("2ngSfpc2FbVmi2PtuRt8ZqnQGYNceZWewQTnv7EapB2XkAxanwpwA1nUadfW7aNdEmGbGYSUNP8gCCFPoSc6rRAksF7bNsFpoVzSY24stvJBzArTGgyhkzBxEwgjyj2b7YxyRZKyrn8RnzmG2Ft5jMzPSPYk17gbwQuaUB")
+	s:=ImportLicense("2ngSfpc2FbVmi2PtuRt8ZqnQGYNcdTaFymncnLSSo95J9zSy5TX1TqTnK91WfkFAGfUSs6PUraxe6mCmNnQypmnb6YMCBnf1ynf9ngfQouAhxrinMoexKAXp2S3QeqyLXKmSmmcVqrSeZYXTAX3GgQek23RbcKZzKagsnz")
 	fmt.Println(s)
 }
 

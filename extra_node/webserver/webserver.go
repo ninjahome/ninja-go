@@ -2,6 +2,7 @@ package webserver
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -100,6 +101,12 @@ func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.R
 		fmt.Println(string(contents))
 
 		lb := &webmsg.LicenseBind{}
+
+		fmt.Println("issue",hex.EncodeToString(lb.IssueAddr))
+		fmt.Println("user:",hex.EncodeToString(lb.UserAddr))
+		fmt.Println("randid:",hex.EncodeToString(lb.RandomId))
+		fmt.Println("ndays:",lb.NDays)
+		fmt.Println("signature:",hex.EncodeToString(lb.Signature))
 
 		err = json.Unmarshal(contents, lb)
 		if err != nil {
