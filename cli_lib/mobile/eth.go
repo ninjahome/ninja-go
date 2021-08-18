@@ -207,13 +207,26 @@ func _decodeLicense(licenseB58 string) *ChatLicense {
 func DecodeLicense(licenseB58 string) string {
 	cl := _decodeLicense(licenseB58)
 
+	if cl == nil{
+		return ""
+	}
+
 	j, _ := json.Marshal(*cl)
 
 	return string(j)
 
 }
 
-func IsValidLicense(licenseB58 string) string {
+const (
+	DecodeLicenseErr = iota
+	ConnectionErr
+	ContractErr
+	CallContractErr
+	ValidTrue
+	ValidFalse
+)
+
+func IsValidLicense(licenseB58 string) int {
 
 	var (
 		c              *ethclient.Client
@@ -222,13 +235,13 @@ func IsValidLicense(licenseB58 string) string {
 	)
 
 	cl := _decodeLicense(licenseB58)
-
-	//j,_:=json.Marshal(*cl)
-	//fmt.Println(string(j))
+	if cl == nil{
+		return DecodeLicenseErr
+	}
 
 	if c, err = ethclient.Dial(infuraUrl); err != nil {
 		fmt.Println(err)
-		return "error"
+		return ConnectionErr
 	}
 
 	defer c.Close()
@@ -236,7 +249,7 @@ func IsValidLicense(licenseB58 string) string {
 	licenseContact, err = contract.NewNinjaChatLicense(common.HexToAddress(contactAddr), c)
 	if err != nil {
 		fmt.Println(err)
-		return "error"
+		return ContractErr
 	}
 
 	var (
@@ -244,22 +257,20 @@ func IsValidLicense(licenseB58 string) string {
 		addr1 []byte
 	)
 
-	addr1, err = hex.DecodeString(cl.Content.RandomId)
-	if err != nil {
-		return "error"
-	}
+	addr1, _ = hex.DecodeString(cl.Content.RandomId)
+
 
 	copy(addr[:], addr1)
 
 	b, err1 := licenseContact.Licenses(nil, common.HexToAddress(cl.Content.IssueAddr), addr)
 	if err1 != nil {
-		return "error"
+		return CallContractErr
 	}
 
 	if b.Used {
-		return "true"
+		return ValidTrue
 	} else {
-		return "false"
+		return ValidFalse
 	}
 }
 
