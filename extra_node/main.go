@@ -75,7 +75,7 @@ func mainRun(_ *cobra.Command, _ []string) {
 	if err != nil {
 		panic(err)
 	}
-	if err = w.Open(param.passwd);err!=nil{
+	if err = w.Open(param.passwd); err != nil {
 		panic(err)
 	}
 

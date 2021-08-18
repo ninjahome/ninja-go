@@ -102,8 +102,6 @@ func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.R
 
 		lb := &webmsg.LicenseBind{}
 
-
-
 		err = json.Unmarshal(contents, lb)
 		if err != nil {
 			writer.WriteHeader(200)
@@ -111,16 +109,16 @@ func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.R
 			return
 		}
 
-		fmt.Println("issue",hex.EncodeToString(lb.IssueAddr))
-		fmt.Println("user:",hex.EncodeToString(lb.UserAddr))
-		fmt.Println("randid:",hex.EncodeToString(lb.RandomId))
-		fmt.Println("ndays:",lb.NDays)
-		fmt.Println("signature:",hex.EncodeToString(lb.Signature))
+		fmt.Println("issue", hex.EncodeToString(lb.IssueAddr))
+		fmt.Println("user:", hex.EncodeToString(lb.UserAddr))
+		fmt.Println("randid:", hex.EncodeToString(lb.RandomId))
+		fmt.Println("ndays:", lb.NDays)
+		fmt.Println("signature:", hex.EncodeToString(lb.Signature))
 
 		var tx []byte
 		tx, err = ws.bind(lb)
 		if err != nil {
-			fmt.Println("tx err",err)
+			fmt.Println("tx err", err)
 			writer.WriteHeader(200)
 			writer.Write(webmsg.LicenseResultPack(webmsg.CallContractErr, "call contract error", nil))
 			return

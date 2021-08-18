@@ -7,10 +7,10 @@ require (
 	github.com/astaxie/beego v1.12.3-0.20201126121835-fad897346f28
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/btcsuite/goleveldb v0.0.0-20160330041536-7834afc9e8cd
-	github.com/ethereum/go-ethereum v1.9.25 // indirect
+	github.com/ethereum/go-ethereum v1.9.25
 	github.com/forgoer/openssl v0.0.0-20201023062029-c3112b0c8700
 	github.com/golang/protobuf v1.5.0
-	github.com/google/uuid v1.1.5
+	github.com/google/uuid v1.1.5 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/ipfs/go-ds-badger v0.2.6
 	github.com/ipfs/go-log/v2 v2.1.3

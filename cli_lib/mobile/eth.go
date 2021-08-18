@@ -16,8 +16,10 @@ import (
 	"github.com/ninjahome/ninja-go/service/client"
 	"github.com/ninjahome/ninja-go/service/proxy"
 	"github.com/ninjahome/ninja-go/service/proxy/httputil"
+	"math/rand"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -128,7 +130,7 @@ func ImportLicense(licenseB58 string) string {
 
 	fmt.Println(string(j))
 
-	srvs := client.DefaultBootWsService
+	srvs := RandomSrvList()
 	for i := 0; i < len(srvs); i++ {
 		url := bootNode2HttpAddr(srvs[i])
 		ret, code, err = httputil.NewHttpPost(nil, false, 2, 120).
@@ -139,7 +141,7 @@ func ImportLicense(licenseB58 string) string {
 		}
 
 		if code != 200 {
-			fmt.Println(url, "post failed",ret)
+			fmt.Println(url, "post failed", ret)
 			continue
 		}
 
@@ -149,6 +151,26 @@ func ImportLicense(licenseB58 string) string {
 	}
 
 	return ""
+}
+
+func RandomSrvList() []string {
+
+	lenboots := len(client.DefaultBootWsService)
+
+	rand.Seed(time.Now().UnixNano())
+
+	n := rand.Intn(lenboots)
+
+	var boots []string
+
+	for i := 0; i < lenboots; i++ {
+		idx := (n + i) % lenboots
+
+		boots = append(boots, client.DefaultBootWsService[idx])
+	}
+
+	return boots
+
 }
 
 func DecodeLicense(licenseB58 string) string {
@@ -189,4 +211,16 @@ func bootNode2HttpAddr(addr string) string {
 	arr := strings.Split(addr, ":")
 
 	return "http://" + arr[0] + ":" + strconv.Itoa(proxy.ProxyListenPort) + webserver.LicenseAddPath
+}
+
+func NinjaAddr2LicenseAddr(addr string) string {
+	if naddr, err := ncom.HexToAddress(addr); err != nil {
+		fmt.Println(err)
+		return ""
+	} else {
+		var caddr [32]byte
+		caddr, err = ncom.Naddr2ContractAddr(naddr)
+
+		return "0x" + hex.EncodeToString(caddr[:])
+	}
 }

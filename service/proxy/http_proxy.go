@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ninjahome/ninja-go/service/proxy/httputil"
 	"io/ioutil"
+	"math/rand"
 	"net"
 	"net/http"
 	"regexp"
@@ -86,8 +87,11 @@ func (ws *WebProxyServer) proxyFunc(writer http.ResponseWriter, request *http.Re
 		fmt.Fprintf(writer, "read http body error")
 		return
 	} else {
-		for i := 0; i < len(ws.proxyAddr); i++ {
-			proxyUrl := ws.proxyAddr[i]+request.URL.Path
+
+		proxys := ws.RandProxySrvs()
+
+		for i := 0; i < len(proxys); i++ {
+			proxyUrl := proxys[i] + request.URL.Path
 
 			fmt.Println("proxy url:", proxyUrl)
 
@@ -96,11 +100,11 @@ func (ws *WebProxyServer) proxyFunc(writer http.ResponseWriter, request *http.Re
 			result, code, err = httputil.NewHttpPost(nil, true, 2, 120).
 				ProtectPost(proxyUrl, string(contents))
 			if err != nil {
-				fmt.Println("---->",err)
+				fmt.Println("---->", err)
 				continue
 			}
 			if code != 200 {
-				fmt.Println("---->",code)
+				fmt.Println("---->", code)
 				continue
 			}
 			writer.WriteHeader(200)
@@ -111,6 +115,24 @@ func (ws *WebProxyServer) proxyFunc(writer http.ResponseWriter, request *http.Re
 		fmt.Fprintf(writer, "proxy error")
 
 	}
+}
+
+func (ws *WebProxyServer) RandProxySrvs() []string {
+	lenproxys := len(ws.proxyAddr)
+
+	rand.Seed(time.Now().UnixNano())
+
+	n := rand.Intn(lenproxys)
+
+	var proxys []string
+
+	for i := 0; i < lenproxys; i++ {
+		idx := (n + i) % lenproxys
+
+		proxys = append(proxys, ws.proxyAddr[idx])
+	}
+
+	return proxys
 }
 
 func (ws *WebProxyServer) Start() error {

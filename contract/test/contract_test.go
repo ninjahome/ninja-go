@@ -172,7 +172,9 @@ func TestGenerateLicense(t *testing.T) {
 	rid := getRandomId()
 	var tx *types.Transaction
 
-	tx, err = ncl.GenerateLicense(transactOpts, rid, 5)
+	nDays := 30
+
+	tx, err = ncl.GenerateLicense(transactOpts, rid, uint32(nDays))
 	if err != nil {
 		panic(err)
 	}
@@ -181,7 +183,7 @@ func TestGenerateLicense(t *testing.T) {
 
 	fmt.Println("tx:", tx.Hash().String())
 	fmt.Println("rid:", hex.EncodeToString(rid[:]))
-	fmt.Println("ndays:", 5)
+	fmt.Println("ndays:", nDays)
 	fmt.Println("issue:", addr)
 	fmt.Println("contract:", contactAddr)
 
@@ -224,14 +226,14 @@ func TestCreateLicense(t *testing.T) {
 		//}
 	)
 
-	*randId = "fc7e2b173326deba6a6fbfea5e4b5f6a1983113123289afbacf8309088d7f733"
+	*randId = "3841d0c9e019948b48cfaad2a28a8c9965ad330f1378a874fb92a8bfc3862f41"
 
 	if randId == nil {
 		fmt.Println("please input random id")
 		return
 	}
 
-	*nDays = 5
+	*nDays = 30
 
 	if nDays == nil {
 		fmt.Println("please input time interval")
@@ -301,21 +303,23 @@ func TestCreateLicense(t *testing.T) {
 //go test -v -run TestBindLicense -randomId="xx" -nDays=5 -sig="xxx" -uAddr="xx"
 func TestBindLicense(t *testing.T) {
 
-	*randId = "a4ad84722720ce7cddd0831ce84a36d31c818eec0c1c35cabc904e03d0b30758"
+	*randId = "3841d0c9e019948b48cfaad2a28a8c9965ad330f1378a874fb92a8bfc3862f41"
 
 	if *randId == "" {
 		fmt.Println("please input random id")
 		return
 	}
 
-	*sig = "b1d3a69dfdc84047f69468bb8f16ef9950666e338007acbf07e8878182a77511412547bb3edddfca1adef96b7c790cfa9cac0615eb695aceaa99d967a44b8a8b1c"
+	*sig = "22ed99e39093cdc0b3ae9c325013fc360d2c64b6f0f04da3c98a673e65df75bc6aae4dfc311e04169514683e3bfba0b371b3db36493f7704c7451b70b876eb0b1c"
 
 	if *sig == "" {
 		fmt.Println("please input signature...")
 		return
 	}
 
-	*nDays = 5
+	*userAddr = "93e82eb21e558bd0192c1866071bf0e2aff57e2bd6b1128ffefa52889a25a338c573e6b3b7fcc52b9b98fbf3eee39a34"
+
+	*nDays = 30
 
 	if *nDays == 0 {
 		fmt.Println("please input time interval")
@@ -361,6 +365,7 @@ func TestBindLicense(t *testing.T) {
 	if *userAddr != "" {
 		na, _ := ncom.HexToAddress(*userAddr)
 		recv, _ = ncom.Naddr2ContractAddr(na)
+		fmt.Println("recv:", hex.EncodeToString(recv[:]))
 	} else {
 		recv = rid
 	}
