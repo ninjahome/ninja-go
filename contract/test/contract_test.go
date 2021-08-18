@@ -226,7 +226,7 @@ func TestCreateLicense(t *testing.T) {
 		//}
 	)
 
-	*randId = "3841d0c9e019948b48cfaad2a28a8c9965ad330f1378a874fb92a8bfc3862f41"
+	*randId = "200b75c80f13ab1b403efa1bcf06a8543f478369e1c540d0ad844eb5d9cff059"
 
 	if randId == nil {
 		fmt.Println("please input random id")
@@ -303,14 +303,14 @@ func TestCreateLicense(t *testing.T) {
 //go test -v -run TestBindLicense -randomId="xx" -nDays=5 -sig="xxx" -uAddr="xx"
 func TestBindLicense(t *testing.T) {
 
-	*randId = "3841d0c9e019948b48cfaad2a28a8c9965ad330f1378a874fb92a8bfc3862f41"
+	*randId = "200b75c80f13ab1b403efa1bcf06a8543f478369e1c540d0ad844eb5d9cff059"
 
 	if *randId == "" {
 		fmt.Println("please input random id")
 		return
 	}
 
-	*sig = "22ed99e39093cdc0b3ae9c325013fc360d2c64b6f0f04da3c98a673e65df75bc6aae4dfc311e04169514683e3bfba0b371b3db36493f7704c7451b70b876eb0b1c"
+	*sig = "2e782782fc49f59d976d70bcb5db962ad81c63fa2554463566c0bcdf1f79259471b39fe1265f55ea07d6321494ac388cd496006ecc7f5e44881cda32f2e3da8001"
 
 	if *sig == "" {
 		fmt.Println("please input signature...")

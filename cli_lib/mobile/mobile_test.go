@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-func TestDecodeBas58(t *testing.T) {
-	s := DecodeLicense("2ngSfpc2FbVmi2PtuRt8ZqnQGYNcReyHaWuwXm7cHgyw9KgQHWhiPHAVeAEXEqLzBVvAqxdx18SEtUbXXkoDnqMGPGzKNwmj42WyS3t7Cb2XwX9uud6CvPxiufd6Hhfazsuzf8yS1aEsMK1oNymzXjkiXskVwTxBUcdSki")
+func TestDecodeBase58(t *testing.T) {
+	s := DecodeLicense("22FVcbpbffH7R7xzJgZBL1imo4WXphCudeCSFM48voSgwCD9pXWu4qQcSkxeoTH5JGegTQUED4bT7nmwGRHuwyckGZKtbVECtp3sCkC3ECCuwGKy1DsLJvHfLdVwsmS7okLmbCE3aoThbGzPE4BW2dkiorb42rbv3Nh8ca")
 
 	fmt.Println(s)
 }
@@ -43,7 +43,7 @@ func TestImportLicense(t *testing.T) {
 		panic(err)
 	}
 	_inst.key = key
-	s := ImportLicense("2ngSfpc2FbVmi2PtuRt8ZqnQGYNcN1e1bYUCLsMTY9o4Do15yHEhZTY3hJqUxfKXepXoVHY4LWFwcL9Fe9JypVbZECycYg44VnozdHZxM8cR55BU5NV9TFHUW1uwrcy4dx88TJ4LtBRfivn3ocvM4XbwM8d9o8pu8T2hpn")
+	s := ImportLicense("22FVcbpbffH7R7xzJgZBL1imo4WXphCudeCSFM48voSgwCD9pXWu4qQcSkxeoTH5JGegTQUED4bT7nmwGRHuwyckGZKtbVECtp3sCkC3ECCuwGKy1DsLJvHfLdVwsmS7okLmbCE3aoThbGzPE4BW2dkiorb42rbv3Nh8ca")
 	fmt.Println(s)
 }
 
@@ -61,7 +61,7 @@ func TestRandomSrvList(t *testing.T) {
 }
 
 func TestNinjaAddr2LicenseAddr(t *testing.T) {
-	ninstraddr := "a656a1a460f39b9c147ac5ac92c4829182c142e5f59b12b9f918feb30e5d07129a908ed2c1f22ab6b06649d49b740560"
+	ninstraddr := "8037beb31d8ecdd260d4b815ee299dda667eb4fb1e2954545efc51f16a14abecea69ec0b7f46e6618440ecc74f2de818"
 	//ninstraddr:="93e82eb21e558bd0192c1866071bf0e2aff57e2bd6b1128ffefa52889a25a338c573e6b3b7fcc52b9b98fbf3eee39a34"
 
 	fmt.Println(NinjaAddr2LicenseAddr(ninstraddr))
@@ -79,4 +79,11 @@ func TestGetExpireTime(t *testing.T) {
 
 	fmt.Println(time.Unix(expireTime, 0).String())
 
+}
+
+func TestIsValidLicense(t *testing.T) {
+	l := "2ngSfpc2FbVmi2PtuRt8ZqnQGYNc6Y9ys6EwA6xYLzWZMPQeyt6dSBJbUdnbFg5ETMUr8gS9Dc3o4noPojSrz3VsJQRTGTzdt9JsNzzEmgJSk4Km93B9paNjzcjpnkB3f9XTAZS4T7aMh8xoCxejzdcxp9C5ybFr6RXwNs"
+	s := IsValidLicense(l)
+
+	fmt.Println(s)
 }

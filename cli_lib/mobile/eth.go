@@ -173,16 +173,16 @@ func RandomSrvList() []string {
 
 }
 
-func DecodeLicense(licenseB58 string) string {
+func _decodeLicense(licenseB58 string) *ChatLicense {
 	var (
 		issueAddr common.Address
 		randId    [32]byte
 		nDays     uint32
-		j, sig    []byte
+		sig       []byte
 	)
 	license := base58.Decode(licenseB58)
 	if len(license) < 20+32+4+65 {
-		return ""
+		return nil
 	}
 
 	n := copy(issueAddr[:], license)
@@ -201,10 +201,66 @@ func DecodeLicense(licenseB58 string) string {
 		Signature: hex.EncodeToString(sig),
 	}
 
-	j, _ = json.Marshal(*cl)
+	return cl
+}
+
+func DecodeLicense(licenseB58 string) string {
+	cl := _decodeLicense(licenseB58)
+
+	j, _ := json.Marshal(*cl)
 
 	return string(j)
 
+}
+
+func IsValidLicense(licenseB58 string) string {
+
+	var (
+		c              *ethclient.Client
+		err            error
+		licenseContact *contract.NinjaChatLicense
+	)
+
+	cl := _decodeLicense(licenseB58)
+
+	//j,_:=json.Marshal(*cl)
+	//fmt.Println(string(j))
+
+	if c, err = ethclient.Dial(infuraUrl); err != nil {
+		fmt.Println(err)
+		return "error"
+	}
+
+	defer c.Close()
+
+	licenseContact, err = contract.NewNinjaChatLicense(common.HexToAddress(contactAddr), c)
+	if err != nil {
+		fmt.Println(err)
+		return "error"
+	}
+
+	var (
+		addr  [32]byte
+		addr1 []byte
+	)
+
+	addr1, err = hex.DecodeString(cl.Content.RandomId)
+	if err != nil {
+		return "error"
+	}
+
+	copy(addr[:], addr1)
+
+	b, err1 := licenseContact.Licenses(nil, common.HexToAddress(cl.Content.IssueAddr), addr)
+	if err1 != nil {
+		return "error"
+	}
+
+	if b.Used {
+		return "true"
+	} else {
+		return "false"
+	}
 }
 
 func bootNode2HttpAddr(addr string) string {
