@@ -28,7 +28,7 @@ type MulticastCallBack interface {
 	QuitGroup(from, groupId, quitId string) error
 	DismisGroup(groupId string) error
 	SyncGroup(groupId string) string
-	BanTalking(groupId string) error
+	BanTalking(groupId string, banned bool) error
 	//same as CreateGroup
 	SyncGroupAck(groupId, groupName, owner string, banTalking bool, memberIdList, memberNickNameList string) error
 	VoiceMessage(from, groupId string, payload []byte, length int, time int64) error
@@ -97,9 +97,9 @@ func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 		return i.multicast.DismisGroup(dismisGroup.GroupId)
 
 	case multicast.GroupMessageType_BanTalkingT:
-		banG := groupMessage.Payload.(*multicast.GroupMessage_GroupId)
+		banG := groupMessage.Payload.(*multicast.GroupMessage_BanTalking)
 
-		return i.multicast.BanTalking(banG.GroupId)
+		return i.multicast.BanTalking(banG.BanTalking.GroupId, banG.BanTalking.Banned)
 	}
 
 	return nil
@@ -292,7 +292,7 @@ func DismisGroup(to string, owner, groupId string) error {
 	return nil
 }
 
-func BanTalking(to string, owner, groupId string) error {
+func BanTalking(to string, owner, groupId string, banned bool) error {
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
 
@@ -308,7 +308,7 @@ func BanTalking(to string, owner, groupId string) error {
 		return fmt.Errorf("only owner can dismis group")
 	}
 
-	rawData, err := multicast.WrapBanTalking(groupId)
+	rawData, err := multicast.WrapBanTalking(groupId, banned)
 	if err != nil {
 		return err
 	}

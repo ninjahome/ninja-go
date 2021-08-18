@@ -207,7 +207,7 @@ func _decodeLicense(licenseB58 string) *ChatLicense {
 func DecodeLicense(licenseB58 string) string {
 	cl := _decodeLicense(licenseB58)
 
-	if cl == nil{
+	if cl == nil {
 		return ""
 	}
 
@@ -235,7 +235,7 @@ func IsValidLicense(licenseB58 string) int {
 	)
 
 	cl := _decodeLicense(licenseB58)
-	if cl == nil{
+	if cl == nil {
 		return DecodeLicenseErr
 	}
 
@@ -258,7 +258,6 @@ func IsValidLicense(licenseB58 string) int {
 	)
 
 	addr1, _ = hex.DecodeString(cl.Content.RandomId)
-
 
 	copy(addr[:], addr1)
 

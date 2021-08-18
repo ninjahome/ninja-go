@@ -118,11 +118,14 @@ func WrapDismisGroup(groupId string) ([]byte, error) {
 
 }
 
-func WrapBanTalking(groupId string) ([]byte, error) {
+func WrapBanTalking(groupId string, banned bool) ([]byte, error) {
 	gMsg := &GroupMessage{
 		GroupMsgTyp: GroupMessageType_BanTalkingT,
-		Payload: &GroupMessage_GroupId{
-			GroupId: groupId,
+		Payload: &GroupMessage_BanTalking{
+			BanTalking: &BanTalkingMsg{
+				GroupId: groupId,
+				Banned:  banned,
+			},
 		},
 	}
 

@@ -50,6 +50,11 @@ message ChatMesageDesc{
     ChatMessage chatMsg = 2;
 }
 
+message BanTalkingMsg{
+    string GroupId = 1;
+    bool   Banned = 2;
+}
+
 
 message GroupMessage{
     GroupMessageType GroupMsgTyp = 1;
@@ -61,6 +66,7 @@ message GroupMessage{
         SyncGroupAck syncGroupAck = 6;
         ChatMesageDesc chatMsg = 7;
         KickUserDesc kickId = 8;
+        BanTalkingMsg banTalking = 9;
     }
 }
 

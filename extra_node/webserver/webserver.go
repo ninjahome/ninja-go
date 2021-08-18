@@ -20,6 +20,7 @@ import (
 
 const (
 	LicenseAddPath = "/license/add"
+	PushMessage    = "/ipush"
 )
 
 type WebProxyServer struct {
@@ -74,7 +75,7 @@ func (ws *WebProxyServer) init() *WebProxyServer {
 	}
 
 	rh.HandleFunc(LicenseAddPath, ws.addLicense)
-	//rh.HandleFunc("pushmessage", ws.proxyFunc)
+	rh.HandleFunc(PushMessage, ws.pushMessage)
 
 	server := &http.Server{
 		Handler: rh,
@@ -83,6 +84,24 @@ func (ws *WebProxyServer) init() *WebProxyServer {
 	ws.server = server
 
 	return ws
+}
+
+func (ws *WebProxyServer) pushMessage(writer http.ResponseWriter, request *http.Request) {
+	if request.Method != "POST" {
+		writer.WriteHeader(500)
+		fmt.Fprintf(writer, "not a post request")
+		return
+	}
+
+	if contents, err := ioutil.ReadAll(request.Body); err != nil {
+		writer.WriteHeader(500)
+		fmt.Fprintf(writer, "read http body error")
+		return
+	} else {
+		fmt.Println(string(contents))
+		//todo...
+	}
+	return
 }
 
 func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.Request) {
