@@ -21,8 +21,14 @@ mac:
 android:
 	gomobile bind -v -o $(BINDIR)/chatLib.aar -target=android/arm64 -ldflags=-s github.com/ninjahome/ninja-go/cli_lib/mobile
 
+android-license:
+	gomobile bind -v -o $(BINDIR)/licenseLib.aar -target=android/arm64 -ldflags=-s github.com/ninjahome/ninja-go/cli_lib/license
+
 ios:
 	gomobile bind -v -o $(BINDIR)/chatLib.framework -target=ios -ldflags=-s github.com/ninjahome/ninja-go/cli_lib/mobile
+
+ios-license:
+	gomobile bind -v -o $(BINDIR)/licenseLib.framework -target=ios -ldflags=-s github.com/ninjahome/ninja-go/cli_lib/licens
 
 clean:
 	gomobile clean

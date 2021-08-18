@@ -2,10 +2,15 @@ package licenseLib
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ninjahome/ninja-go/contract"
 	"github.com/ninjahome/ninja-go/extra_node/ethwallet"
@@ -16,6 +21,7 @@ const (
 	infuraUrl   = "https://kovan.infura.io/v3/d64d364124684359ace20feae1f9ac20"
 	contactAddr = "0x7B133a9BD10F7AE52fa9528b8Bc0f3c34612674c"
 	tokenAddr   = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
+
 )
 
 var _ethWallet ethwallet.Wallet
@@ -108,3 +114,59 @@ func _balance() (approve, eth, ncc *big.Int, err error) {
 
 	return
 }
+
+func getRandomId() (rid [32]byte) {
+	rand.Read(rid[:])
+	return
+}
+
+func toPubKeyString(priv *ecdsa.PrivateKey) string {
+	pubkey := priv.PublicKey
+	return crypto.PubkeyToAddress(pubkey).String()
+}
+
+func generateLicense(nDays int) (rid [32]byte,txh common.Hash, err error) {
+	if _ethWallet == nil{
+		err = errors.New("wallet have not been opened")
+		return
+	}
+	var (
+		cli *ethclient.Client
+		ncl *contract.NinjaChatLicense
+		nid *big.Int
+		transactOpts *bind.TransactOpts
+		tx *types.Transaction
+	)
+	cli,err=ethclient.Dial(infuraUrl)
+	if err!=nil{
+		return
+	}
+	defer cli.Close()
+
+	ncl, err = contract.NewNinjaChatLicense(common.HexToAddress(contactAddr), cli)
+	if err != nil {
+		return
+	}
+
+	nid, err = cli.ChainID(context.TODO())
+	if err != nil {
+		return
+	}
+
+	transactOpts, err = bind.NewKeyedTransactorWithChainID(_ethWallet.SignKey(), nid)
+	if err != nil {
+		return
+	}
+
+	rid = getRandomId()
+
+	tx, err = ncl.GenerateLicense(transactOpts, rid, uint32(nDays))
+	if err != nil {
+		return
+	}
+
+	txh = tx.Hash()
+
+	return
+}
+
