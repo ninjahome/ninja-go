@@ -61,7 +61,7 @@ func TestRandomSrvList(t *testing.T) {
 }
 
 func TestNinjaAddr2LicenseAddr(t *testing.T) {
-	ninstraddr := "8037beb31d8ecdd260d4b815ee299dda667eb4fb1e2954545efc51f16a14abecea69ec0b7f46e6618440ecc74f2de818"
+	ninstraddr := "b1d6e0c4a0c3a0c74d2c9e13cfa8bc5cfb349c8a5f4746a2c143483a3f352544c72bc87871a7696bd135f42fc076e5aa"
 	//ninstraddr:="93e82eb21e558bd0192c1866071bf0e2aff57e2bd6b1128ffefa52889a25a338c573e6b3b7fcc52b9b98fbf3eee39a34"
 
 	fmt.Println(NinjaAddr2LicenseAddr(ninstraddr))
@@ -84,6 +84,12 @@ func TestGetExpireTime(t *testing.T) {
 func TestIsValidLicense(t *testing.T) {
 	l := "2ngSfpc2FbVmi2PtuRt8ZqnQGYNc6Y9ys6EwA6xYLzWZMPQeyt6dSBJbUdnbFg5ETMUr8gS9Dc3o4noPojSrz3VsJQRTGTzdt9JsNzzEmgJSk4Km93B9paNjzcjpnkB3f9XTAZS4T7aMh8xoCxejzdcxp9C5ybFr6RXwNs"
 	s := IsValidLicense(l)
+	if s == ValidTrue{
+		fmt.Println("license have been used")
+	}else if s == ValidFalse{
+		fmt.Println("license is valid")
+	}else{
+		fmt.Println(s)
+	}
 
-	fmt.Println(s)
 }

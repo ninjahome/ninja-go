@@ -170,7 +170,7 @@ const (
 	LicenseDBKeyHead = "LicenseDbKey_0"
 	LicenseDBKeyEnd  = "LicenseDbKey_1"
 
-	AccessBlockChainTimeInterval = 300 //5 minutes
+	AccessBlockChainTimeInterval = 20 //5 minutes
 )
 
 type LicenseCache struct {
