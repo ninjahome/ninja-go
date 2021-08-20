@@ -78,7 +78,7 @@ func TransferLicense(fromAddr, toAddr [32]byte, nDays int, privKey *ecdsa.Privat
 		return nil, err
 	}
 	var txs *types.Transaction
-	txs, err = ncl.TransferLicnese(transactOpts, fromAddr, toAddr, uint32(nDays))
+	txs, err = ncl.TransferLicense(transactOpts, fromAddr, toAddr, uint32(nDays))
 	if err != nil {
 		return nil, err
 	}
