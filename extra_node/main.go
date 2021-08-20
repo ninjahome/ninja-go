@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/ninjahome/bls-wallet/bls"
 	"github.com/ninjahome/ninja-go/extra_node/cmd"
 	"github.com/ninjahome/ninja-go/extra_node/config"
 	"github.com/ninjahome/ninja-go/extra_node/ethwallet"
@@ -78,6 +79,9 @@ func mainRun(_ *cobra.Command, _ []string) {
 	if err = w.Open(param.passwd); err != nil {
 		panic(err)
 	}
+
+	bls.Init(bls.BLS12_381)
+	bls.SetETHmode(bls.EthModeDraft07)
 
 	go webserver.StartWebDaemon(w)
 
