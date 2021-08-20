@@ -7,6 +7,7 @@ const (
 	ParseJsonErr
 	ConnectionErr
 	CallContractErr
+	SigNatureNotCorrectErr
 	OtherErr
 )
 
@@ -37,9 +38,9 @@ func LicenseResultPack(code int32, msg string, tx []byte) []byte {
 }
 
 type TransferLicense struct {
-	From []byte `json:"from"`
-	To []byte `json:"to"`
-	NDays int `json:"n_days"`
+	From      []byte `json:"from"`
+	To        []byte `json:"to"`
+	NDays     int    `json:"n_days"`
 	Signature []byte `json:"signature"`
 }
 

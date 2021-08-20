@@ -50,3 +50,40 @@ func Bind(issueAddr common.Address, userAddr [32]byte, randomId [32]byte, nDays 
 
 	return hash[:], nil
 }
+
+func TransferLicense(fromAddr, toAddr [32]byte, nDays int, privKey *ecdsa.PrivateKey) (tx []byte, err error) {
+	c := config.GetExtraConfig()
+	var cli *ethclient.Client
+	cli, err = ethclient.Dial(c.EthUrl)
+	if err != nil {
+		return nil, err
+	}
+	defer cli.Close()
+
+	var ncl *contract.NinjaChatLicense
+	ncl, err = contract.NewNinjaChatLicense(common.HexToAddress(c.LicenseContract), cli)
+	if err != nil {
+		return nil, err
+	}
+
+	var nid *big.Int
+	nid, err = cli.ChainID(context.TODO())
+	if err != nil {
+		return nil, err
+	}
+
+	var transactOpts *bind.TransactOpts
+	transactOpts, err = bind.NewKeyedTransactorWithChainID(privKey, nid)
+	if err != nil {
+		return nil, err
+	}
+	var txs *types.Transaction
+	txs, err = ncl.TransferLicnese(transactOpts, fromAddr, toAddr, uint32(nDays))
+	if err != nil {
+		return nil, err
+	}
+
+	hash := txs.Hash()
+
+	return hash[:], nil
+}

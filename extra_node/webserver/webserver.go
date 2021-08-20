@@ -2,11 +2,13 @@ package webserver
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/ethereum/go-ethereum/common"
-
+	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ninjahome/bls-wallet/bls"
 	"github.com/ninjahome/ninja-go/extra_node/config"
 	"github.com/ninjahome/ninja-go/extra_node/ethwallet"
 	"github.com/ninjahome/ninja-go/extra_node/webmsg"
@@ -19,9 +21,9 @@ import (
 )
 
 const (
-	LicenseAddPath = "/license/add"
+	LicenseAddPath      = "/license/add"
 	LicenseTransferPath = "/license/transfer"
-	PushMessage    = "/ipush"
+	PushMessage         = "/ipush"
 )
 
 type WebProxyServer struct {
@@ -77,7 +79,7 @@ func (ws *WebProxyServer) init() *WebProxyServer {
 
 	rh.HandleFunc(LicenseAddPath, ws.addLicense)
 	rh.HandleFunc(PushMessage, ws.pushMessage)
-	rh.HandleFunc(LicenseTransferPath,ws.transferLicense)
+	rh.HandleFunc(LicenseTransferPath, ws.transferLicense)
 
 	server := &http.Server{
 		Handler: rh,
@@ -130,26 +132,31 @@ func (ws *WebProxyServer) transferLicense(writer http.ResponseWriter, request *h
 			return
 		}
 
-		fmt.Println("from:","0x"+hex.EncodeToString(tl.From))
-		fmt.Println("to:","0x"+hex.EncodeToString(tl.To))
-		fmt.Println("nDays:",tl.NDays)
-		fmt.Println("sig:","0x"+hex.EncodeToString(tl.Signature))
+		fmt.Println("from:", "0x"+hex.EncodeToString(tl.From))
+		fmt.Println("to:", "0x"+hex.EncodeToString(tl.To))
+		fmt.Println("nDays:", tl.NDays)
+		fmt.Println("sig:", "0x"+hex.EncodeToString(tl.Signature))
 
-		//var tx []byte
-		//tx, err = ws.bind(lb)
-		//if err != nil {
-		//	fmt.Println("tx err", err)
-		//	writer.WriteHeader(200)
-		//	writer.Write(webmsg.LicenseResultPack(webmsg.CallContractErr, "call contract error", nil))
-		//	return
-		//}
+		if b := ws.verifySignature(tl); !b {
+			err = errors.New("sig not correct")
+			writer.WriteHeader(200)
+			writer.Write(webmsg.LicenseResultPack(webmsg.SigNatureNotCorrectErr, "signature not correct", nil))
+			return
+		}
+
+		var tx []byte
+		tx, err = ws._transferLicense(tl)
+		if err != nil {
+			fmt.Println("tx err", err)
+			writer.WriteHeader(200)
+			writer.Write(webmsg.LicenseResultPack(webmsg.CallContractErr, "call contract error", nil))
+			return
+		}
 
 		writer.WriteHeader(200)
-		//writer.Write(webmsg.LicenseResultPack(webmsg.Success, "success", tx))
-
+		writer.Write(webmsg.LicenseResultPack(webmsg.Success, "success", tx))
 	}
 }
-
 
 func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.Request) {
 	if request.Method != "POST" {
@@ -196,7 +203,6 @@ func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.R
 	}
 }
 
-
 func (ws *WebProxyServer) bind(lb *webmsg.LicenseBind) (tx []byte, err error) {
 	var (
 		issueAddr common.Address
@@ -210,7 +216,38 @@ func (ws *WebProxyServer) bind(lb *webmsg.LicenseBind) (tx []byte, err error) {
 	return Bind(issueAddr, userAddr, randomId, lb.NDays, lb.Signature, ws.wallet.SignKey())
 }
 
+func (ws *WebProxyServer) verifySignature(tl *webmsg.TransferLicense) bool {
 
+	msg := make([]byte, 1024)
+	n := copy(msg, tl.From)
+	n += copy(msg[n:], tl.To)
+	binary.BigEndian.PutUint32(msg[n:], uint32(tl.NDays))
+	n += 4
+
+	sig := &bls.Sign{}
+
+	if err := sig.Deserialize(tl.Signature); err != nil {
+		return false
+	}
+	p := &bls.PublicKey{}
+	if err := p.Deserialize(tl.From); err != nil {
+		fmt.Println(err)
+		return false
+	}
+
+	return sig.VerifyByte(p, msg[:n])
+}
+
+func (ws *WebProxyServer) _transferLicense(tl *webmsg.TransferLicense) (tx []byte, err error) {
+	var (
+		from, to [32]byte
+	)
+
+	copy(from[:], tl.From)
+	copy(to[:], tl.To)
+
+	return TransferLicense(from, to, tl.NDays, ws.wallet.SignKey())
+}
 
 func (ws *WebProxyServer) Start() error {
 	if l, err := net.Listen("tcp4", ws.listenAddr); err != nil {

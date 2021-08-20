@@ -285,7 +285,6 @@ func bootNode2HttpAddrTransfer(addr string) string {
 	return "http://" + arr[0] + ":" + strconv.Itoa(proxy.ProxyListenPort) + webserver.LicenseTransferPath
 }
 
-
 func NinjaAddr2LicenseAddr(addr string) string {
 	if naddr, err := ncom.HexToAddress(addr); err != nil {
 		fmt.Println(err)
@@ -298,34 +297,34 @@ func NinjaAddr2LicenseAddr(addr string) string {
 	}
 }
 
-func TransferLicense(toAddr string, nDays int) string  {
+func TransferLicense(toAddr string, nDays int) string {
 	if !(_inst.key != nil && _inst.key.IsOpen()) {
 		fmt.Println(errors.New("wallet not opened"))
 		return ""
 	}
 
 	var (
-		to ncom.Address
+		to  ncom.Address
 		err error
 	)
 
-	buf:=make([]byte,1024)
+	buf := make([]byte, 1024)
 
 	n := copy(buf, _inst.key.Address[:])
 
-	if to,err = ncom.HexToAddress(toAddr);err!=nil{
+	if to, err = ncom.HexToAddress(toAddr); err != nil {
 		return ""
 	}
 
-	n += copy(buf[n:],to[:])
+	n += copy(buf[n:], to[:])
 
-	binary.BigEndian.PutUint32(buf[n:],uint32(nDays))
+	binary.BigEndian.PutUint32(buf[n:], uint32(nDays))
 
 	n += 4
 
 	sig := _inst.key.SignData(buf[:n])
 
-	tl:=&webmsg.TransferLicense{
+	tl := &webmsg.TransferLicense{
 		From:      _inst.key.Address[:],
 		To:        to[:],
 		NDays:     nDays,
@@ -334,15 +333,14 @@ func TransferLicense(toAddr string, nDays int) string  {
 
 	var j []byte
 
-	if j,err=json.Marshal(*tl);err!=nil{
+	if j, err = json.Marshal(*tl); err != nil {
 		return ""
 	}
-
 
 	fmt.Println(string(j))
 
 	var (
-		ret string
+		ret  string
 		code int
 	)
 
