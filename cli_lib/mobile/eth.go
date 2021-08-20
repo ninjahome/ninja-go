@@ -325,8 +325,6 @@ func TransferLicense(toAddr string, nDays int) string {
 
 	sig := _inst.key.SignData(buf[:n])
 
-
-
 	tl := &webmsg.TransferLicense{
 		From:      _inst.key.Address[:],
 		To:        to[:],
@@ -347,6 +345,12 @@ func TransferLicense(toAddr string, nDays int) string {
 		ret  string
 		code int
 	)
+
+	fmt.Println("from:",hex.EncodeToString(_inst.key.Address[:]))
+	fmt.Println("to:",hex.EncodeToString(to[:]))
+	fmt.Println("nDays:",nDays)
+	fmt.Println("sig:",hex.EncodeToString(sig))
+
 
 	srvs := RandomSrvList()
 	for i := 0; i < len(srvs); i++ {
