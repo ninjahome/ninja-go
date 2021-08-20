@@ -35,3 +35,12 @@ func LicenseResultPack(code int32, msg string, tx []byte) []byte {
 
 	return j
 }
+
+type TransferLicense struct {
+	From []byte `json:"from"`
+	To []byte `json:"to"`
+	NDays int `json:"n_days"`
+	Signature []byte `json:"signature"`
+}
+
+type TransferLicenseResult LicenseResult

@@ -20,6 +20,7 @@ import (
 
 const (
 	LicenseAddPath = "/license/add"
+	LicenseTransferPath = "/license/transfer"
 	PushMessage    = "/ipush"
 )
 
@@ -76,6 +77,7 @@ func (ws *WebProxyServer) init() *WebProxyServer {
 
 	rh.HandleFunc(LicenseAddPath, ws.addLicense)
 	rh.HandleFunc(PushMessage, ws.pushMessage)
+	rh.HandleFunc(LicenseTransferPath,ws.transferLicense)
 
 	server := &http.Server{
 		Handler: rh,
@@ -103,6 +105,51 @@ func (ws *WebProxyServer) pushMessage(writer http.ResponseWriter, request *http.
 	}
 	return
 }
+
+func (ws *WebProxyServer) transferLicense(writer http.ResponseWriter, request *http.Request) {
+	if request.Method != "POST" {
+		writer.WriteHeader(500)
+		fmt.Fprintf(writer, "not a post request")
+		return
+	}
+
+	if contents, err := ioutil.ReadAll(request.Body); err != nil {
+		writer.WriteHeader(500)
+		fmt.Fprintf(writer, "read http body error")
+		return
+	} else {
+
+		fmt.Println(string(contents))
+
+		tl := &webmsg.TransferLicense{}
+
+		err = json.Unmarshal(contents, tl)
+		if err != nil {
+			writer.WriteHeader(200)
+			writer.Write(webmsg.LicenseResultPack(webmsg.ParseJsonErr, "parse json error", nil))
+			return
+		}
+
+		fmt.Println("from:","0x"+hex.EncodeToString(tl.From))
+		fmt.Println("to:","0x"+hex.EncodeToString(tl.To))
+		fmt.Println("nDays:",tl.NDays)
+		fmt.Println("sig:","0x"+hex.EncodeToString(tl.Signature))
+
+		//var tx []byte
+		//tx, err = ws.bind(lb)
+		//if err != nil {
+		//	fmt.Println("tx err", err)
+		//	writer.WriteHeader(200)
+		//	writer.Write(webmsg.LicenseResultPack(webmsg.CallContractErr, "call contract error", nil))
+		//	return
+		//}
+
+		writer.WriteHeader(200)
+		//writer.Write(webmsg.LicenseResultPack(webmsg.Success, "success", tx))
+
+	}
+}
+
 
 func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.Request) {
 	if request.Method != "POST" {
@@ -149,6 +196,7 @@ func (ws *WebProxyServer) addLicense(writer http.ResponseWriter, request *http.R
 	}
 }
 
+
 func (ws *WebProxyServer) bind(lb *webmsg.LicenseBind) (tx []byte, err error) {
 	var (
 		issueAddr common.Address
@@ -161,6 +209,8 @@ func (ws *WebProxyServer) bind(lb *webmsg.LicenseBind) (tx []byte, err error) {
 
 	return Bind(issueAddr, userAddr, randomId, lb.NDays, lb.Signature, ws.wallet.SignKey())
 }
+
+
 
 func (ws *WebProxyServer) Start() error {
 	if l, err := net.Listen("tcp4", ws.listenAddr); err != nil {

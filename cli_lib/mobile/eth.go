@@ -132,7 +132,7 @@ func ImportLicense(licenseB58 string) string {
 
 	srvs := RandomSrvList()
 	for i := 0; i < len(srvs); i++ {
-		url := bootNode2HttpAddr(srvs[i])
+		url := bootNode2HttpAddrAdd(srvs[i])
 		ret, code, err = httputil.NewHttpPost(nil, false, 2, 120).
 			ProtectPost(url, string(j))
 		if err != nil {
@@ -273,11 +273,18 @@ func IsValidLicense(licenseB58 string) int {
 	}
 }
 
-func bootNode2HttpAddr(addr string) string {
+func bootNode2HttpAddrAdd(addr string) string {
 	arr := strings.Split(addr, ":")
 
 	return "http://" + arr[0] + ":" + strconv.Itoa(proxy.ProxyListenPort) + webserver.LicenseAddPath
 }
+
+func bootNode2HttpAddrTransfer(addr string) string {
+	arr := strings.Split(addr, ":")
+
+	return "http://" + arr[0] + ":" + strconv.Itoa(proxy.ProxyListenPort) + webserver.LicenseTransferPath
+}
+
 
 func NinjaAddr2LicenseAddr(addr string) string {
 	if naddr, err := ncom.HexToAddress(addr); err != nil {
@@ -289,4 +296,75 @@ func NinjaAddr2LicenseAddr(addr string) string {
 
 		return "0x" + hex.EncodeToString(caddr[:])
 	}
+}
+
+func TransferLicense(toAddr string, nDays int) string  {
+	if !(_inst.key != nil && _inst.key.IsOpen()) {
+		fmt.Println(errors.New("wallet not opened"))
+		return ""
+	}
+
+	var (
+		to ncom.Address
+		err error
+	)
+
+	buf:=make([]byte,1024)
+
+	n := copy(buf, _inst.key.Address[:])
+
+	if to,err = ncom.HexToAddress(toAddr);err!=nil{
+		return ""
+	}
+
+	n += copy(buf[n:],to[:])
+
+	binary.BigEndian.PutUint32(buf[n:],uint32(nDays))
+
+	n += 4
+
+	sig := _inst.key.SignData(buf[:n])
+
+	tl:=&webmsg.TransferLicense{
+		From:      _inst.key.Address[:],
+		To:        to[:],
+		NDays:     nDays,
+		Signature: sig,
+	}
+
+	var j []byte
+
+	if j,err=json.Marshal(*tl);err!=nil{
+		return ""
+	}
+
+
+	fmt.Println(string(j))
+
+	var (
+		ret string
+		code int
+	)
+
+	srvs := RandomSrvList()
+	for i := 0; i < len(srvs); i++ {
+		url := bootNode2HttpAddrTransfer(srvs[i])
+		ret, code, err = httputil.NewHttpPost(nil, false, 2, 120).
+			ProtectPost(url, string(j))
+		if err != nil {
+			fmt.Println(url, err)
+			continue
+		}
+
+		if code != 200 {
+			fmt.Println(url, "post failed", ret)
+			continue
+		}
+
+		fmt.Println(url, "post success")
+
+		return ret
+	}
+
+	return ""
 }
