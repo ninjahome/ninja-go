@@ -19,9 +19,8 @@ import (
 
 const (
 	infuraUrl   = "https://kovan.infura.io/v3/d64d364124684359ace20feae1f9ac20"
-	contactAddr = "0x7B133a9BD10F7AE52fa9528b8Bc0f3c34612674c"
+	contactAddr = "0x0848abeD6000396fE5852E07ABD468fCafb4f44b"
 	tokenAddr   = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
-
 )
 
 var _ethWallet ethwallet.Wallet
@@ -125,20 +124,20 @@ func toPubKeyString(priv *ecdsa.PrivateKey) string {
 	return crypto.PubkeyToAddress(pubkey).String()
 }
 
-func generateLicense(nDays int) (rid [32]byte,txh common.Hash, err error) {
-	if _ethWallet == nil{
+func generateLicense(nDays int) (rid [32]byte, txh common.Hash, err error) {
+	if _ethWallet == nil {
 		err = errors.New("wallet have not been opened")
 		return
 	}
 	var (
-		cli *ethclient.Client
-		ncl *contract.NinjaChatLicense
-		nid *big.Int
+		cli          *ethclient.Client
+		ncl          *contract.NinjaChatLicense
+		nid          *big.Int
 		transactOpts *bind.TransactOpts
-		tx *types.Transaction
+		tx           *types.Transaction
 	)
-	cli,err=ethclient.Dial(infuraUrl)
-	if err!=nil{
+	cli, err = ethclient.Dial(infuraUrl)
+	if err != nil {
 		return
 	}
 	defer cli.Close()
@@ -169,4 +168,3 @@ func generateLicense(nDays int) (rid [32]byte,txh common.Hash, err error) {
 
 	return
 }
-

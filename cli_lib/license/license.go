@@ -20,36 +20,36 @@ import (
 )
 
 type GenLicenseResult struct {
-	NDays int `json:"n_days"`
+	NDays    int    `json:"n_days"`
 	RandomId string `json:"random_id"`
-	Tx string `json:"tx"`
+	Tx       string `json:"tx"`
 }
 
 func GenLicense(nDays int) string {
-	rid,txh,err:=generateLicense(nDays)
-	if err!=nil{
+	rid, txh, err := generateLicense(nDays)
+	if err != nil {
 		fmt.Println(err)
 		return ""
 	}
 
 	glr := &GenLicenseResult{
-		NDays: nDays,
-		RandomId: "0x"+hex.EncodeToString(rid[:]),
-		Tx: txh.String(),
+		NDays:    nDays,
+		RandomId: "0x" + hex.EncodeToString(rid[:]),
+		Tx:       txh.String(),
 	}
 
-	j,_:=json.Marshal(*glr)
+	j, _ := json.Marshal(*glr)
 
 	return string(j)
 }
 
-func decodeHex(hexstr string) ([]byte,error)  {
-	if hexstr == ""{
-		return nil,errors.New("string is empty")
+func decodeHex(hexstr string) ([]byte, error) {
+	if hexstr == "" {
+		return nil, errors.New("string is empty")
 	}
 
-	if len(hexstr) >=2{
-		if hexstr[:2] == "0x"{
+	if len(hexstr) >= 2 {
+		if hexstr[:2] == "0x" {
 			hexstr = hexstr[2:]
 		}
 	}
@@ -69,20 +69,19 @@ func CreateLicense(randomId string, nDays int) string {
 			{Type: abiByte32Type},
 			{Type: abiUint32Type},
 		}
-
 	)
 
-	if randomId == "" || nDays == 0{
+	if randomId == "" || nDays == 0 {
 		fmt.Println("parameter error")
 		return ""
 	}
 
 	var (
 		ridb []byte
-		err error
+		err  error
 	)
 
-	if ridb,err = decodeHex(randomId);err!=nil{
+	if ridb, err = decodeHex(randomId); err != nil {
 		fmt.Println(err)
 		return ""
 	}
@@ -91,7 +90,6 @@ func CreateLicense(randomId string, nDays int) string {
 
 	ca := common.HexToAddress(contactAddr)
 	issue := _ethWallet.MainAddress()
-
 
 	licenseBytes, err := abiLicenseDataArgs.Pack(
 		ca,
@@ -141,7 +139,7 @@ func CreateLicense(randomId string, nDays int) string {
 	n += copy(buf[n:], buint)
 	copy(buf[n:], signature)
 
-	b58:= base58.Encode(buf)
+	b58 := base58.Encode(buf)
 
 	fmt.Println("License for load:", b58)
 
@@ -149,8 +147,8 @@ func CreateLicense(randomId string, nDays int) string {
 }
 
 type ChargeUserResult struct {
-	Result bool `json:"result"`
-	Tx string `json:"tx"`
+	Result bool   `json:"result"`
+	Tx     string `json:"tx"`
 }
 
 func ChargeUserLicense(nDays int, userAddr string) string {
@@ -183,18 +181,18 @@ func ChargeUserLicense(nDays int, userAddr string) string {
 	}
 
 	var ua ncom.Address
-	if ua,err = ncom.HexToAddress(userAddr);err!=nil{
+	if ua, err = ncom.HexToAddress(userAddr); err != nil {
 		fmt.Println(err)
 		return ""
 	}
 	var cua [32]byte
-	if cua,err = ncom.Naddr2ContractAddr(ua);err!=nil{
+	if cua, err = ncom.Naddr2ContractAddr(ua); err != nil {
 		fmt.Println(err)
 		return ""
 	}
 
 	var tx *types.Transaction
-	tx, err = ncl.ChargeUser(transactOpts, cua,  uint32(nDays))
+	tx, err = ncl.ChargeUser(transactOpts, cua, uint32(nDays))
 	if err != nil {
 		fmt.Println(err)
 		return ""
@@ -202,12 +200,12 @@ func ChargeUserLicense(nDays int, userAddr string) string {
 
 	cur := &ChargeUserResult{
 		Result: true,
-		Tx: tx.Hash().String(),
+		Tx:     tx.Hash().String(),
 	}
 
 	fmt.Println(tx.Hash().String())
 
-	j,_:=json.Marshal(*cur)
+	j, _ := json.Marshal(*cur)
 
 	return string(j)
 }

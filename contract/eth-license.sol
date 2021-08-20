@@ -151,6 +151,8 @@ contract NinjaChatLicense is owned{
     }
 
     function TransferLicense(bytes32 from, bytes32 to, uint32 nDays) external{
+
+        require(nDays > 0,"nDays must large than 0");
         bool find = false;
         for (uint i=0;i<WhiteLists.length;i++){
             if (WhiteLists[i] == msg.sender){
@@ -160,19 +162,20 @@ contract NinjaChatLicense is owned{
         }
         require(find == true,"not a valid address");
 
-        UserData memory ud = UserLicenses[from];
-
+        UserData memory udfrom = UserLicenses[from];
         uint curTime = block.timestamp;
-        uint udnDays = (ud.EndDays - curTime)/86400;
 
-        require(udnDays > nDays,"day time not enough");
+        require(udfrom.EndDays > curTime,"End day must large than curTime");
+        uint udfromnDays = (udfrom.EndDays - curTime)/86400;
 
-        UserLicenses[from] = UserData(ud.EndDays-(nDays*86400),ud.TotalCoins-nDays);
+        require(udfromnDays > nDays,"day time not enough");
+
+        UserLicenses[from] = UserData(udfrom.EndDays-(nDays*86400),udfrom.TotalCoins-nDays);
 
         if (curTime  >  UserLicenses[to].EndDays){
-            UserLicenses[to] = UserData(uint64(curTime+(86400*nDays)),ud.TotalCoins+nDays);
+            UserLicenses[to] = UserData(uint64(curTime+(86400*nDays)),UserLicenses[to].TotalCoins+nDays);
         }else{
-            UserLicenses[to] = UserData(uint64(ud.EndDays+(86400*nDays)),ud.TotalCoins+nDays);
+            UserLicenses[to] = UserData(uint64(UserLicenses[to].EndDays+(86400*nDays)),UserLicenses[to].TotalCoins+nDays);
         }
         emit TransferLicenseEvent(msg.sender, from, to, nDays);
     }

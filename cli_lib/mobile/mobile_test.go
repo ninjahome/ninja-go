@@ -84,11 +84,11 @@ func TestGetExpireTime(t *testing.T) {
 func TestIsValidLicense(t *testing.T) {
 	l := "2ngSfpc2FbVmi2PtuRt8ZqnQGYNc6Y9ys6EwA6xYLzWZMPQeyt6dSBJbUdnbFg5ETMUr8gS9Dc3o4noPojSrz3VsJQRTGTzdt9JsNzzEmgJSk4Km93B9paNjzcjpnkB3f9XTAZS4T7aMh8xoCxejzdcxp9C5ybFr6RXwNs"
 	s := IsValidLicense(l)
-	if s == ValidTrue{
+	if s == ValidTrue {
 		fmt.Println("license have been used")
-	}else if s == ValidFalse{
+	} else if s == ValidFalse {
 		fmt.Println("license is valid")
-	}else{
+	} else {
 		fmt.Println(s)
 	}
 

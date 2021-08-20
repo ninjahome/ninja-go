@@ -28,8 +28,8 @@ import (
 )
 
 const (
-	//contactAddr = "0x52996249f64d760ac02c6b82866d92b9e7d02f06"
-	contactAddr               = "0x7B133a9BD10F7AE52fa9528b8Bc0f3c34612674c"
+	contactAddr = "0x0848abeD6000396fE5852E07ABD468fCafb4f44b"
+	//contactAddr               = "0x7B133a9BD10F7AE52fa9528b8Bc0f3c34612674c"
 	tokenAddr                 = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
 	dialerAddr         string = "https://kovan.infura.io/v3/e01a4005bf8b42cca32875c2dc438dba"
 	MetaMaskHashPrefix        = "\x19Ethereum Signed Message:\n32"
@@ -226,7 +226,7 @@ func TestCreateLicense(t *testing.T) {
 		//}
 	)
 
-	*randId = "200b75c80f13ab1b403efa1bcf06a8543f478369e1c540d0ad844eb5d9cff059"
+	*randId = "4e8e71cdd0f03643dd802aa8f265f9e168edb1a991109b254e5f300a8b4dee51"
 
 	if randId == nil {
 		fmt.Println("please input random id")
@@ -303,14 +303,14 @@ func TestCreateLicense(t *testing.T) {
 //go test -v -run TestBindLicense -randomId="xx" -nDays=5 -sig="xxx" -uAddr="xx"
 func TestBindLicense(t *testing.T) {
 
-	*randId = "200b75c80f13ab1b403efa1bcf06a8543f478369e1c540d0ad844eb5d9cff059"
+	*randId = "4e8e71cdd0f03643dd802aa8f265f9e168edb1a991109b254e5f300a8b4dee51"
 
 	if *randId == "" {
 		fmt.Println("please input random id")
 		return
 	}
 
-	*sig = "2e782782fc49f59d976d70bcb5db962ad81c63fa2554463566c0bcdf1f79259471b39fe1265f55ea07d6321494ac388cd496006ecc7f5e44881cda32f2e3da8001"
+	*sig = "fa89e9c3427c046e3fa121acc4497de6b190e80252ed37f2f29d366dcc65ab791f989f0ac2eba4b44a356be73c4b8ff77ce6f57b410f8cf1d3575c821980ee4b1b"
 
 	if *sig == "" {
 		fmt.Println("please input signature...")
@@ -426,5 +426,60 @@ func TestUint32(t *testing.T) {
 
 	l := base58.Decode("2ngSfpc2FbVmi2PtuRt8ZqnQGYNcReyHaWuwXm7cHgyw9KgQHWhiPHAVeAEXEqLzBVvAqxdx18SEtUbXXkoDnqMGPGzKNwmj42WyS3t7Cb2XwX9uud6CvPxiufd6Hhfazsuzf8yS1aEsMK1oNymzXjkiXskVwTxBUcdSki")
 	fmt.Println(hex.EncodeToString(l))
+
+}
+
+func TestTransferLicense(t *testing.T) {
+	from := "681059833bd247686c6bc0316b73959d0fe6a8dca5c7f2a7b390effbf02dbc35"
+	to := "4e8e71cdd0f03643dd802aa8f265f9e168edb1a991109b254e5f300a8b4dee51"
+
+	nDays := 20
+
+	cli, err := ethclient.Dial(dialerAddr)
+	if err != nil {
+		panic(err)
+	}
+	defer cli.Close()
+
+	var ncl *contract.NinjaChatLicense
+	ncl, err = contract.NewNinjaChatLicense(common.HexToAddress(contactAddr), cli)
+	if err != nil {
+		panic(err)
+	}
+
+	var nid *big.Int
+	nid, err = cli.ChainID(context.TODO())
+	if err != nil {
+		panic(err)
+	}
+
+	var transactOpts *bind.TransactOpts
+
+	transactOpts, err = bind.NewKeyedTransactorWithChainID(GetPrivKey(), nid)
+	if err != nil {
+		panic(err)
+	}
+
+	var (
+		fromAddr [32]byte
+		toAddr   [32]byte
+	)
+	fromb, _ := hex.DecodeString(from)
+	tob, _ := hex.DecodeString(to)
+	copy(fromAddr[:], fromb)
+	copy(toAddr[:], tob)
+
+	var tx *types.Transaction
+	tx, err = ncl.TransferLicnese(transactOpts, fromAddr, toAddr, uint32(nDays))
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("from:", from)
+	fmt.Println("to:", to)
+	fmt.Println("nDays:", nDays)
+	fmt.Println("tx:", tx.Hash().String())
+	fmt.Println("contract:", contactAddr)
+	fmt.Println("userAddr:", toPubKeyString(GetPrivKey()))
 
 }
