@@ -150,7 +150,7 @@ contract NinjaChatLicense is owned{
         emit BindLicenseEvent(issueAddr, recvAddr, id, nDays);
     }
 
-    function TransferLicnese(bytes32 from, bytes32 to, uint32 nDays) external{
+    function TransferLicense(bytes32 from, bytes32 to, uint32 nDays) external{
         bool find = false;
         for (uint i=0;i<WhiteLists.length;i++){
             if (WhiteLists[i] == msg.sender){
