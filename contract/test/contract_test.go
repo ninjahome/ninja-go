@@ -226,7 +226,7 @@ func TestCreateLicense(t *testing.T) {
 		//}
 	)
 
-	*randId = "4e8e71cdd0f03643dd802aa8f265f9e168edb1a991109b254e5f300a8b4dee51"
+	*randId = "3be96c49791814dcdebd6a06494200744aec36fb19d256763faa57429f206bd3"
 
 	if randId == nil {
 		fmt.Println("please input random id")
@@ -303,14 +303,14 @@ func TestCreateLicense(t *testing.T) {
 //go test -v -run TestBindLicense -randomId="xx" -nDays=5 -sig="xxx" -uAddr="xx"
 func TestBindLicense(t *testing.T) {
 
-	*randId = "4e8e71cdd0f03643dd802aa8f265f9e168edb1a991109b254e5f300a8b4dee51"
+	*randId = "3be96c49791814dcdebd6a06494200744aec36fb19d256763faa57429f206bd3"
 
 	if *randId == "" {
 		fmt.Println("please input random id")
 		return
 	}
 
-	*sig = "fa89e9c3427c046e3fa121acc4497de6b190e80252ed37f2f29d366dcc65ab791f989f0ac2eba4b44a356be73c4b8ff77ce6f57b410f8cf1d3575c821980ee4b1b"
+	*sig = "61625fdf52775bbe19cbffdc08bc8ab7d201dfef647af0ab4f5dc07bfb33522649d6be9d67d57b0c51b5c305897d80d7c31d34b72d64bcb22e3d31767623b1561b"
 
 	if *sig == "" {
 		fmt.Println("please input signature...")
@@ -431,9 +431,9 @@ func TestUint32(t *testing.T) {
 
 func TestTransferLicense(t *testing.T) {
 	from := "681059833bd247686c6bc0316b73959d0fe6a8dca5c7f2a7b390effbf02dbc35"
-	to := "4e8e71cdd0f03643dd802aa8f265f9e168edb1a991109b254e5f300a8b4dee51"
+	to := "3be96c49791814dcdebd6a06494200744aec36fb19d256763faa57429f206bd3"
 
-	nDays := 20
+	nDays := 10
 
 	cli, err := ethclient.Dial(dialerAddr)
 	if err != nil {
@@ -469,8 +469,10 @@ func TestTransferLicense(t *testing.T) {
 	copy(fromAddr[:], fromb)
 	copy(toAddr[:], tob)
 
+	fmt.Println("userAddr:",toPubKeyString(GetPrivKey()))
+
 	var tx *types.Transaction
-	tx, err = ncl.TransferLicnese(transactOpts, fromAddr, toAddr, uint32(nDays))
+	tx, err = ncl.TransferLicense(transactOpts, fromAddr, toAddr, uint32(nDays))
 	if err != nil {
 		panic(err)
 	}
