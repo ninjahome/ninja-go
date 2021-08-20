@@ -1,7 +1,9 @@
 package chatLib
 
 import (
+	"encoding/hex"
 	"fmt"
+	ncom "github.com/ninjahome/ninja-go/common"
 	"github.com/ninjahome/ninja-go/wallet"
 	"testing"
 	"time"
@@ -75,7 +77,13 @@ func TestGetExpireTime(t *testing.T) {
 	}
 	_inst.key = key
 
+	addr,_:=ncom.Naddr2ContractAddr(key.Address)
+
+	fmt.Println(hex.EncodeToString(addr[:]))
+
 	expireTime := GetExpireTime()
+
+	fmt.Println(expireTime)
 
 	fmt.Println(time.Unix(expireTime, 0).String())
 
@@ -92,4 +100,13 @@ func TestIsValidLicense(t *testing.T) {
 		fmt.Println(s)
 	}
 
+}
+func TestTransferLicense(t *testing.T)  {
+	key, err := wallet.LoadKeyFromJsonStr(__cipherTxt, "123")
+	if err != nil {
+		panic(err)
+	}
+	_inst.key = key
+	ret:=TransferLicense("0xb1d6e0c4a0c3a0c74d2c9e13cfa8bc5cfb349c8a5f4746a2c143483a3f352544c72bc87871a7696bd135f42fc076e5aa",5)
+	fmt.Println(ret)
 }

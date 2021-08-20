@@ -24,7 +24,7 @@ import (
 
 const (
 	infuraUrl   = "https://kovan.infura.io/v3/d64d364124684359ace20feae1f9ac20"
-	contactAddr = "0x7B133a9BD10F7AE52fa9528b8Bc0f3c34612674c"
+	contactAddr = "0x0848abeD6000396fE5852E07ABD468fCafb4f44b"
 	tokenAddr   = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
 )
 
@@ -313,6 +313,7 @@ func TransferLicense(toAddr string, nDays int) string {
 	n := copy(buf, _inst.key.Address[:])
 
 	if to, err = ncom.HexToAddress(toAddr); err != nil {
+		fmt.Println(err)
 		return ""
 	}
 
@@ -324,6 +325,8 @@ func TransferLicense(toAddr string, nDays int) string {
 
 	sig := _inst.key.SignData(buf[:n])
 
+
+
 	tl := &webmsg.TransferLicense{
 		From:      _inst.key.Address[:],
 		To:        to[:],
@@ -334,6 +337,7 @@ func TransferLicense(toAddr string, nDays int) string {
 	var j []byte
 
 	if j, err = json.Marshal(*tl); err != nil {
+		fmt.Println(err)
 		return ""
 	}
 
