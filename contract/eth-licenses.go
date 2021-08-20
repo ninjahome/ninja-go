@@ -27,7 +27,7 @@ var (
 )
 
 // NinjaChatLicenseABI is the input ABI used to generate the binding from.
-const NinjaChatLicenseABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tAddr\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nAddr\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"issueAddr\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"recvAddr\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"BindLicenseEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"payerAddr\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"userAddr\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"ChargeUserEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"issueAddr\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"GenerateLicenseEvent\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"issueAddr\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"recvAddr\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"BindLicense\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"userAddr\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"ChargeUser\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"GenerateLicense\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"GetSettings\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"userAddr\",\"type\":\"bytes32\"}],\"name\":\"GetUserLicense\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"Licenses\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"used\",\"type\":\"bool\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"nAddr\",\"type\":\"address\"}],\"name\":\"SetNinjaAddr\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tAddr\",\"type\":\"address\"}],\"name\":\"SetTokenAddr\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tAddr\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nAddr\",\"type\":\"address\"}],\"name\":\"Setting\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"UserLicenses\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"EndDays\",\"type\":\"uint64\"},{\"internalType\":\"uint32\",\"name\":\"TotalCoins\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"ninjaAddr\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"token\",\"outputs\":[{\"internalType\":\"contractNinjaToken\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+const NinjaChatLicenseABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tAddr\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nAddr\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"issueAddr\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"recvAddr\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"BindLicenseEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"payerAddr\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"userAddr\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"ChargeUserEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"issueAddr\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"GenerateLicenseEvent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"executeAddr\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"from\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"to\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"TransferLicenseEvent\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"executeAddr\",\"type\":\"address\"}],\"name\":\"AddWhiteListAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"issueAddr\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"recvAddr\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"BindLicense\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"userAddr\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"ChargeUser\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"executeAddr\",\"type\":\"address\"}],\"name\":\"DelWhiteListAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"GenerateLicense\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"GetSettings\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"userAddr\",\"type\":\"bytes32\"}],\"name\":\"GetUserLicense\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"},{\"internalType\":\"uint32\",\"name\":\"\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"Licenses\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"used\",\"type\":\"bool\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"nAddr\",\"type\":\"address\"}],\"name\":\"SetNinjaAddr\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tAddr\",\"type\":\"address\"}],\"name\":\"SetTokenAddr\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"tAddr\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"nAddr\",\"type\":\"address\"}],\"name\":\"Setting\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"from\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"to\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"nDays\",\"type\":\"uint32\"}],\"name\":\"TransferLicnese\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"UserLicenses\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"EndDays\",\"type\":\"uint64\"},{\"internalType\":\"uint32\",\"name\":\"TotalCoins\",\"type\":\"uint32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"WhiteLists\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"ninjaAddr\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"token\",\"outputs\":[{\"internalType\":\"contractNinjaToken\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
 
 // NinjaChatLicense is an auto generated Go binding around an Ethereum contract.
 type NinjaChatLicense struct {
@@ -319,6 +319,37 @@ func (_NinjaChatLicense *NinjaChatLicenseCallerSession) UserLicenses(arg0 [32]by
 	return _NinjaChatLicense.Contract.UserLicenses(&_NinjaChatLicense.CallOpts, arg0)
 }
 
+// WhiteLists is a free data retrieval call binding the contract method 0x76072a5e.
+//
+// Solidity: function WhiteLists(uint256 ) view returns(address)
+func (_NinjaChatLicense *NinjaChatLicenseCaller) WhiteLists(opts *bind.CallOpts, arg0 *big.Int) (common.Address, error) {
+	var out []interface{}
+	err := _NinjaChatLicense.contract.Call(opts, &out, "WhiteLists", arg0)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// WhiteLists is a free data retrieval call binding the contract method 0x76072a5e.
+//
+// Solidity: function WhiteLists(uint256 ) view returns(address)
+func (_NinjaChatLicense *NinjaChatLicenseSession) WhiteLists(arg0 *big.Int) (common.Address, error) {
+	return _NinjaChatLicense.Contract.WhiteLists(&_NinjaChatLicense.CallOpts, arg0)
+}
+
+// WhiteLists is a free data retrieval call binding the contract method 0x76072a5e.
+//
+// Solidity: function WhiteLists(uint256 ) view returns(address)
+func (_NinjaChatLicense *NinjaChatLicenseCallerSession) WhiteLists(arg0 *big.Int) (common.Address, error) {
+	return _NinjaChatLicense.Contract.WhiteLists(&_NinjaChatLicense.CallOpts, arg0)
+}
+
 // NinjaAddr is a free data retrieval call binding the contract method 0xbfe0f294.
 //
 // Solidity: function ninjaAddr() view returns(address)
@@ -412,6 +443,27 @@ func (_NinjaChatLicense *NinjaChatLicenseCallerSession) Token() (common.Address,
 	return _NinjaChatLicense.Contract.Token(&_NinjaChatLicense.CallOpts)
 }
 
+// AddWhiteListAddress is a paid mutator transaction binding the contract method 0xf62a861d.
+//
+// Solidity: function AddWhiteListAddress(address executeAddr) returns()
+func (_NinjaChatLicense *NinjaChatLicenseTransactor) AddWhiteListAddress(opts *bind.TransactOpts, executeAddr common.Address) (*types.Transaction, error) {
+	return _NinjaChatLicense.contract.Transact(opts, "AddWhiteListAddress", executeAddr)
+}
+
+// AddWhiteListAddress is a paid mutator transaction binding the contract method 0xf62a861d.
+//
+// Solidity: function AddWhiteListAddress(address executeAddr) returns()
+func (_NinjaChatLicense *NinjaChatLicenseSession) AddWhiteListAddress(executeAddr common.Address) (*types.Transaction, error) {
+	return _NinjaChatLicense.Contract.AddWhiteListAddress(&_NinjaChatLicense.TransactOpts, executeAddr)
+}
+
+// AddWhiteListAddress is a paid mutator transaction binding the contract method 0xf62a861d.
+//
+// Solidity: function AddWhiteListAddress(address executeAddr) returns()
+func (_NinjaChatLicense *NinjaChatLicenseTransactorSession) AddWhiteListAddress(executeAddr common.Address) (*types.Transaction, error) {
+	return _NinjaChatLicense.Contract.AddWhiteListAddress(&_NinjaChatLicense.TransactOpts, executeAddr)
+}
+
 // BindLicense is a paid mutator transaction binding the contract method 0xf5cb29ac.
 //
 // Solidity: function BindLicense(address issueAddr, bytes32 recvAddr, bytes32 id, uint32 nDays, bytes signature) returns()
@@ -452,6 +504,27 @@ func (_NinjaChatLicense *NinjaChatLicenseSession) ChargeUser(userAddr [32]byte, 
 // Solidity: function ChargeUser(bytes32 userAddr, uint32 nDays) returns()
 func (_NinjaChatLicense *NinjaChatLicenseTransactorSession) ChargeUser(userAddr [32]byte, nDays uint32) (*types.Transaction, error) {
 	return _NinjaChatLicense.Contract.ChargeUser(&_NinjaChatLicense.TransactOpts, userAddr, nDays)
+}
+
+// DelWhiteListAddress is a paid mutator transaction binding the contract method 0x9d83e1b7.
+//
+// Solidity: function DelWhiteListAddress(address executeAddr) returns()
+func (_NinjaChatLicense *NinjaChatLicenseTransactor) DelWhiteListAddress(opts *bind.TransactOpts, executeAddr common.Address) (*types.Transaction, error) {
+	return _NinjaChatLicense.contract.Transact(opts, "DelWhiteListAddress", executeAddr)
+}
+
+// DelWhiteListAddress is a paid mutator transaction binding the contract method 0x9d83e1b7.
+//
+// Solidity: function DelWhiteListAddress(address executeAddr) returns()
+func (_NinjaChatLicense *NinjaChatLicenseSession) DelWhiteListAddress(executeAddr common.Address) (*types.Transaction, error) {
+	return _NinjaChatLicense.Contract.DelWhiteListAddress(&_NinjaChatLicense.TransactOpts, executeAddr)
+}
+
+// DelWhiteListAddress is a paid mutator transaction binding the contract method 0x9d83e1b7.
+//
+// Solidity: function DelWhiteListAddress(address executeAddr) returns()
+func (_NinjaChatLicense *NinjaChatLicenseTransactorSession) DelWhiteListAddress(executeAddr common.Address) (*types.Transaction, error) {
+	return _NinjaChatLicense.Contract.DelWhiteListAddress(&_NinjaChatLicense.TransactOpts, executeAddr)
 }
 
 // GenerateLicense is a paid mutator transaction binding the contract method 0x47795697.
@@ -536,6 +609,27 @@ func (_NinjaChatLicense *NinjaChatLicenseSession) Setting(tAddr common.Address, 
 // Solidity: function Setting(address tAddr, address nAddr) returns()
 func (_NinjaChatLicense *NinjaChatLicenseTransactorSession) Setting(tAddr common.Address, nAddr common.Address) (*types.Transaction, error) {
 	return _NinjaChatLicense.Contract.Setting(&_NinjaChatLicense.TransactOpts, tAddr, nAddr)
+}
+
+// TransferLicnese is a paid mutator transaction binding the contract method 0x61b953b2.
+//
+// Solidity: function TransferLicnese(bytes32 from, bytes32 to, uint32 nDays) returns()
+func (_NinjaChatLicense *NinjaChatLicenseTransactor) TransferLicnese(opts *bind.TransactOpts, from [32]byte, to [32]byte, nDays uint32) (*types.Transaction, error) {
+	return _NinjaChatLicense.contract.Transact(opts, "TransferLicnese", from, to, nDays)
+}
+
+// TransferLicnese is a paid mutator transaction binding the contract method 0x61b953b2.
+//
+// Solidity: function TransferLicnese(bytes32 from, bytes32 to, uint32 nDays) returns()
+func (_NinjaChatLicense *NinjaChatLicenseSession) TransferLicnese(from [32]byte, to [32]byte, nDays uint32) (*types.Transaction, error) {
+	return _NinjaChatLicense.Contract.TransferLicnese(&_NinjaChatLicense.TransactOpts, from, to, nDays)
+}
+
+// TransferLicnese is a paid mutator transaction binding the contract method 0x61b953b2.
+//
+// Solidity: function TransferLicnese(bytes32 from, bytes32 to, uint32 nDays) returns()
+func (_NinjaChatLicense *NinjaChatLicenseTransactorSession) TransferLicnese(from [32]byte, to [32]byte, nDays uint32) (*types.Transaction, error) {
+	return _NinjaChatLicense.Contract.TransferLicnese(&_NinjaChatLicense.TransactOpts, from, to, nDays)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
@@ -992,6 +1086,153 @@ func (_NinjaChatLicense *NinjaChatLicenseFilterer) WatchGenerateLicenseEvent(opt
 func (_NinjaChatLicense *NinjaChatLicenseFilterer) ParseGenerateLicenseEvent(log types.Log) (*NinjaChatLicenseGenerateLicenseEvent, error) {
 	event := new(NinjaChatLicenseGenerateLicenseEvent)
 	if err := _NinjaChatLicense.contract.UnpackLog(event, "GenerateLicenseEvent", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// NinjaChatLicenseTransferLicenseEventIterator is returned from FilterTransferLicenseEvent and is used to iterate over the raw logs and unpacked data for TransferLicenseEvent events raised by the NinjaChatLicense contract.
+type NinjaChatLicenseTransferLicenseEventIterator struct {
+	Event *NinjaChatLicenseTransferLicenseEvent // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *NinjaChatLicenseTransferLicenseEventIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(NinjaChatLicenseTransferLicenseEvent)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(NinjaChatLicenseTransferLicenseEvent)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *NinjaChatLicenseTransferLicenseEventIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *NinjaChatLicenseTransferLicenseEventIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// NinjaChatLicenseTransferLicenseEvent represents a TransferLicenseEvent event raised by the NinjaChatLicense contract.
+type NinjaChatLicenseTransferLicenseEvent struct {
+	ExecuteAddr common.Address
+	From        [32]byte
+	To          [32]byte
+	NDays       uint32
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterTransferLicenseEvent is a free log retrieval operation binding the contract event 0xe478af6fa4b78143de955b29c5300b90ea8d087a7f9b265336c95019aede87da.
+//
+// Solidity: event TransferLicenseEvent(address indexed executeAddr, bytes32 from, bytes32 to, uint32 nDays)
+func (_NinjaChatLicense *NinjaChatLicenseFilterer) FilterTransferLicenseEvent(opts *bind.FilterOpts, executeAddr []common.Address) (*NinjaChatLicenseTransferLicenseEventIterator, error) {
+
+	var executeAddrRule []interface{}
+	for _, executeAddrItem := range executeAddr {
+		executeAddrRule = append(executeAddrRule, executeAddrItem)
+	}
+
+	logs, sub, err := _NinjaChatLicense.contract.FilterLogs(opts, "TransferLicenseEvent", executeAddrRule)
+	if err != nil {
+		return nil, err
+	}
+	return &NinjaChatLicenseTransferLicenseEventIterator{contract: _NinjaChatLicense.contract, event: "TransferLicenseEvent", logs: logs, sub: sub}, nil
+}
+
+// WatchTransferLicenseEvent is a free log subscription operation binding the contract event 0xe478af6fa4b78143de955b29c5300b90ea8d087a7f9b265336c95019aede87da.
+//
+// Solidity: event TransferLicenseEvent(address indexed executeAddr, bytes32 from, bytes32 to, uint32 nDays)
+func (_NinjaChatLicense *NinjaChatLicenseFilterer) WatchTransferLicenseEvent(opts *bind.WatchOpts, sink chan<- *NinjaChatLicenseTransferLicenseEvent, executeAddr []common.Address) (event.Subscription, error) {
+
+	var executeAddrRule []interface{}
+	for _, executeAddrItem := range executeAddr {
+		executeAddrRule = append(executeAddrRule, executeAddrItem)
+	}
+
+	logs, sub, err := _NinjaChatLicense.contract.WatchLogs(opts, "TransferLicenseEvent", executeAddrRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(NinjaChatLicenseTransferLicenseEvent)
+				if err := _NinjaChatLicense.contract.UnpackLog(event, "TransferLicenseEvent", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseTransferLicenseEvent is a log parse operation binding the contract event 0xe478af6fa4b78143de955b29c5300b90ea8d087a7f9b265336c95019aede87da.
+//
+// Solidity: event TransferLicenseEvent(address indexed executeAddr, bytes32 from, bytes32 to, uint32 nDays)
+func (_NinjaChatLicense *NinjaChatLicenseFilterer) ParseTransferLicenseEvent(log types.Log) (*NinjaChatLicenseTransferLicenseEvent, error) {
+	event := new(NinjaChatLicenseTransferLicenseEvent)
+	if err := _NinjaChatLicense.contract.UnpackLog(event, "TransferLicenseEvent", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
