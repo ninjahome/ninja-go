@@ -24,7 +24,7 @@ import (
 
 const (
 	infuraUrl   = "https://kovan.infura.io/v3/d64d364124684359ace20feae1f9ac20"
-	contactAddr = "0x0848abeD6000396fE5852E07ABD468fCafb4f44b"
+	contactAddr = "0x291F8A7353E460416095602e7BEc53a12cb5F0cC"
 	tokenAddr   = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
 )
 
@@ -346,11 +346,10 @@ func TransferLicense(toAddr string, nDays int) string {
 		code int
 	)
 
-	fmt.Println("from:",hex.EncodeToString(_inst.key.Address[:]))
-	fmt.Println("to:",hex.EncodeToString(to[:]))
-	fmt.Println("nDays:",nDays)
-	fmt.Println("sig:",hex.EncodeToString(sig))
-
+	fmt.Println("from:", hex.EncodeToString(_inst.key.Address[:]))
+	fmt.Println("to:", hex.EncodeToString(to[:]))
+	fmt.Println("nDays:", nDays)
+	fmt.Println("sig:", hex.EncodeToString(sig))
 
 	srvs := RandomSrvList()
 	for i := 0; i < len(srvs); i++ {

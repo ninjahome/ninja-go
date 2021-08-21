@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	contactAddr = "0x0848abeD6000396fE5852E07ABD468fCafb4f44b"
+	contactAddr = "0x291F8A7353E460416095602e7BEc53a12cb5F0cC"
 	//contactAddr               = "0x7B133a9BD10F7AE52fa9528b8Bc0f3c34612674c"
 	tokenAddr                 = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
 	dialerAddr         string = "https://kovan.infura.io/v3/e01a4005bf8b42cca32875c2dc438dba"
@@ -469,7 +469,7 @@ func TestTransferLicense(t *testing.T) {
 	copy(fromAddr[:], fromb)
 	copy(toAddr[:], tob)
 
-	fmt.Println("userAddr:",toPubKeyString(GetPrivKey()))
+	fmt.Println("userAddr:", toPubKeyString(GetPrivKey()))
 
 	var tx *types.Transaction
 	tx, err = ncl.TransferLicense(transactOpts, fromAddr, toAddr, uint32(nDays))

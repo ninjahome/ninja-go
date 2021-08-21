@@ -58,15 +58,13 @@ func (a *Address) SetBytes(b []byte) error {
 
 func HexToAddress(s string) (addr Address, err error) {
 
-	if len(s)<2{
-		return addr,errors.New("address not correct")
-	}else{
-		if s[:2] == "0x"{
+	if len(s) < 2 {
+		return addr, errors.New("address not correct")
+	} else {
+		if s[:2] == "0x" {
 			s = s[2:]
 		}
 	}
-
-
 
 	bts, err := hex.DecodeString(s)
 	if err != nil {

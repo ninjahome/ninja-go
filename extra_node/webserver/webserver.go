@@ -242,23 +242,23 @@ func (ws *WebProxyServer) verifySignature(tl *webmsg.TransferLicense) bool {
 func (ws *WebProxyServer) _transferLicense(tl *webmsg.TransferLicense) (tx []byte, err error) {
 	var (
 		fromAddr, toAddr ncom.Address
-		from, to [32]byte
+		from, to         [32]byte
 	)
 
 	copy(fromAddr[:], tl.From)
 	copy(toAddr[:], tl.To)
 
-	from,err = ncom.Naddr2ContractAddr(fromAddr)
-	if err!=nil{
+	from, err = ncom.Naddr2ContractAddr(fromAddr)
+	if err != nil {
 		return nil, err
 	}
-	to,err = ncom.Naddr2ContractAddr(toAddr)
-	if err!=nil{
+	to, err = ncom.Naddr2ContractAddr(toAddr)
+	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println("from:",hex.EncodeToString(from[:]))
-	fmt.Println("to:",hex.EncodeToString(to[:]))
+	fmt.Println("from:", hex.EncodeToString(from[:]))
+	fmt.Println("to:", hex.EncodeToString(to[:]))
 
 	return TransferLicense(from, to, tl.NDays, ws.wallet.SignKey())
 }
