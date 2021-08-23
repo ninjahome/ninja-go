@@ -69,6 +69,10 @@ func RandomBootNode() string {
 func GetBootNode(bootId uint32) string {
 	idx:=int(bootId)%(len(DefaultBootWsService))
 
+	if idx <0 {
+		idx = -idx
+	}
+
 	return DefaultBootWsService[idx]
 }
 
