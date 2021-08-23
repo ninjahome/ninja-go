@@ -211,7 +211,7 @@ func ActiveWallet(cipherTxt, auth string, devtoken string) error {
 	}
 	_inst.websocket = ws
 
-	return ws.Online()
+	return nil
 }
 
 func WalletIsOpen() bool {
