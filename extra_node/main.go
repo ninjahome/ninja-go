@@ -81,7 +81,7 @@ func mainRun(_ *cobra.Command, _ []string) {
 	}
 
 	bls.Init(bls.BLS12_381)
-	bls.SetETHmode(bls.EthModeDraft07)
+	//bls.SetETHmode(bls.EthModeDraft07)
 
 	go webserver.StartWebDaemon(w)
 
