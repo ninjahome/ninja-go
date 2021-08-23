@@ -22,7 +22,7 @@ var (
 	DefaultBootWsService = []string{
 		"39.99.198.143:16666",
 		"47.113.87.58:16666",
-		"118.186.203.36:16666",
+		//"118.186.203.36:16666",
 	}
 
 	ErrUnknownMsg    = fmt.Errorf("unknown websocket message")
@@ -64,6 +64,12 @@ func RandomBootNode() string {
 	return DefaultBootWsService[idx]
 
 	//return DefaultBootWsService[0]
+}
+
+func GetBootNode(bootId uint32) string {
+	idx:=int(bootId)%(len(DefaultBootWsService))
+
+	return DefaultBootWsService[idx]
 }
 
 type CliCallBack interface {
