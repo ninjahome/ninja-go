@@ -143,7 +143,7 @@ func (u *wsUser) writing(stop chan struct{}) {
 }
 
 func (u *wsUser) writeToCli(msg *pbs.WsMsg) error {
-	u.msgToCliChan <- &WsMsgBuffer{messageType: websocket.TextMessage, data: msg}
+	u.msgToCliChan <- &WsMsgBuffer{messageType: websocket.BinaryMessage, data: msg}
 	return nil
 }
 
