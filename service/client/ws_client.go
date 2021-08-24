@@ -242,10 +242,18 @@ func (cc *WSClient) GWrite(to []string, body []byte) error {
 		return fmt.Errorf("please online yourself first")
 	}
 
+	fmt.Println("to......-->",to)
+
 	gekey, gkey, err := cc.groupEncryptKey(to)
 	if err != nil {
 		return err
 	}
+
+	for i:=0;i<len(gekey);i++{
+		k:=gekey[i]
+		fmt.Println("---->gekey:",k.MemberId)
+	}
+
 
 	from := cc.key.Address.String()
 
