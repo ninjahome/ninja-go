@@ -39,7 +39,7 @@ target:=mac
 mac:
 	GOOS=darwin go build -ldflags '-w -s' -o $(BINDIR)/$(NAME).mac
 arm:
-	GOOS=linux GOARM=7 GOARCH=arm go build -ldflags '-w -s' -o $(BINDIR)/$(NAME).arm
+	CC=aarch64-linux-gnu-gcc CGO_ENABLED=1 GOOS=linux GOARM=7 GOARCH=arm64 go build -ldflags '-w -s' -o $(BINDIR)/$(NAME).arm
 linux:
 	GOOS=linux GOARCH=amd64 go build -ldflags '-w -s' -o $(BINDIR)/$(NAME).lnx
 win:
