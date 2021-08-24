@@ -112,7 +112,7 @@ func (u *wsUser) writing(stop chan struct{}) {
 				msg = message.data.(*pbs.WsMsg)
 			}
 
-			w, err := u.cliWsConn.NextWriter(websocket.BinaryMessage)
+			w, err := u.cliWsConn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				utils.LogInst().Warn().Str("WS get next writer ", err.Error()).Send()
 				return
@@ -143,7 +143,7 @@ func (u *wsUser) writing(stop chan struct{}) {
 }
 
 func (u *wsUser) writeToCli(msg *pbs.WsMsg) error {
-	u.msgToCliChan <- &WsMsgBuffer{messageType: websocket.BinaryMessage, data: msg}
+	u.msgToCliChan <- &WsMsgBuffer{messageType: websocket.TextMessage, data: msg}
 	return nil
 }
 

@@ -150,7 +150,7 @@ func (cc *WSClient) PullUnreadMsg(startSeq int64) error {
 		Typ:     pbs.WsMsgType_PullUnread,
 		Payload: &pbs.WsMsg_Unread{Unread: request},
 	}
-	return cc.wsConn.WriteMessage(websocket.BinaryMessage, msgWrap.Data())
+	return cc.wsConn.WriteMessage(websocket.TextMessage, msgWrap.Data())
 }
 
 func (cc *WSClient) getAesKey(to string) ([]byte, error) {
@@ -259,7 +259,7 @@ func (cc *WSClient) GWrite(to []string, body []byte) error {
 
 	msgWrap := &pbs.WsMsg{}
 
-	if err := cc.wsConn.WriteMessage(websocket.BinaryMessage,
+	if err := cc.wsConn.WriteMessage(websocket.TextMessage,
 		msgWrap.AesCryptGData(from, gekey, body, gkey)); err != nil {
 		return err
 	}
@@ -278,7 +278,7 @@ func (cc *WSClient) Write(to string, body []byte) error {
 	from := cc.key.Address.String()
 	msgWrap := &pbs.WsMsg{}
 
-	if err := cc.wsConn.WriteMessage(websocket.BinaryMessage,
+	if err := cc.wsConn.WriteMessage(websocket.TextMessage,
 		msgWrap.AesCryptData(from, to, body, key)); err != nil {
 		return err
 	}
