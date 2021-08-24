@@ -104,7 +104,7 @@ func CreateLicense(randomId string, nDays int) string {
 	h := crypto.Keccak256Hash(licenseBytes)
 
 	buf := make([]byte, 128)
-	//MetaMaskHashPrefix        = "\x19Ethereum Signed Message:\n32"
+
 	n := copy(buf, []byte("\x19Ethereum Signed Message:\n32"))
 
 	n += copy(buf[n:], h[:])

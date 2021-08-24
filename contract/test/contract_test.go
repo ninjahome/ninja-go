@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	contactAddr = "0x0848abeD6000396fE5852E07ABD468fCafb4f44b"
+	contactAddr = "0x291F8A7353E460416095602e7BEc53a12cb5F0cC"
 	//contactAddr               = "0x7B133a9BD10F7AE52fa9528b8Bc0f3c34612674c"
 	tokenAddr                 = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
 	dialerAddr         string = "https://kovan.infura.io/v3/e01a4005bf8b42cca32875c2dc438dba"
@@ -226,7 +226,7 @@ func TestCreateLicense(t *testing.T) {
 		//}
 	)
 
-	*randId = "87efbd92518a02196aa552d4061ed3293c2a3948865df66de7648f1579c89de9"
+	*randId = "fba338a8dc8772c31f617ed4979df339f8b594c91e096995076c29eda7a60a48"
 
 	if randId == nil {
 		fmt.Println("please input random id")
@@ -303,14 +303,14 @@ func TestCreateLicense(t *testing.T) {
 //go test -v -run TestBindLicense -randomId="xx" -nDays=5 -sig="xxx" -uAddr="xx"
 func TestBindLicense(t *testing.T) {
 
-	*randId = "3be96c49791814dcdebd6a06494200744aec36fb19d256763faa57429f206bd3"
+	*randId = "fba338a8dc8772c31f617ed4979df339f8b594c91e096995076c29eda7a60a48"
 
 	if *randId == "" {
 		fmt.Println("please input random id")
 		return
 	}
 
-	*sig = "61625fdf52775bbe19cbffdc08bc8ab7d201dfef647af0ab4f5dc07bfb33522649d6be9d67d57b0c51b5c305897d80d7c31d34b72d64bcb22e3d31767623b1561b"
+	*sig = "cb07e248ca533e364437d0a91d1f25b6cc224b698f751554d4c1627286b853613498ac4710598a26ccbfaff815e2f0f7acb742d99a324b9ba12fbbd5da432aaa1c"
 
 	if *sig == "" {
 		fmt.Println("please input signature...")
@@ -469,7 +469,7 @@ func TestTransferLicense(t *testing.T) {
 	copy(fromAddr[:], fromb)
 	copy(toAddr[:], tob)
 
-	fmt.Println("userAddr:",toPubKeyString(GetPrivKey()))
+	fmt.Println("userAddr:", toPubKeyString(GetPrivKey()))
 
 	var tx *types.Transaction
 	tx, err = ncl.TransferLicense(transactOpts, fromAddr, toAddr, uint32(nDays))

@@ -11,6 +11,7 @@ contract NinjaChatLicense is owned{
     NinjaToken public token;
     address public ninjaAddr;
     address[] public WhiteLists;
+    bool public pauseFlag;
 
     struct LicenseData {
          bool used;
@@ -41,6 +42,12 @@ contract NinjaChatLicense is owned{
     constructor(address tAddr, address nAddr) {
         token = NinjaToken(tAddr);
         ninjaAddr = nAddr;
+        pauseFlag = false;
+    }
+
+    modifier notPaused {
+        require(pauseFlag == false,"contract have been paused");
+        _;
     }
 
     function AddWhiteListAddress(address executeAddr) external onlyOwner{
@@ -84,11 +91,15 @@ contract NinjaChatLicense is owned{
         ninjaAddr = nAddr;
     }
 
+    function SetPauseFlag(bool pflag) external onlyOwner{
+        pauseFlag = pflag;
+    }
+
     function GetSettings() external view returns(address, address){
         return (address(token),ninjaAddr);
     }
 
-    function GenerateLicense(bytes32 id, uint32 nDays) external {
+    function GenerateLicense(bytes32 id, uint32 nDays) external notPaused{
 
         require(nDays > 0,"time must large than 0");
 
@@ -108,7 +119,7 @@ contract NinjaChatLicense is owned{
         return (ud.EndDays,ud.TotalCoins);
     }
 
-    function ChargeUser(bytes32 userAddr, uint32 nDays) external{
+    function ChargeUser(bytes32 userAddr, uint32 nDays) external notPaused{
          require(nDays > 0,"time must large than 0");
 
          token.transferFrom(msg.sender,ninjaAddr, nDays*10**(token.decimals()));
@@ -126,7 +137,7 @@ contract NinjaChatLicense is owned{
          emit ChargeUserEvent(msg.sender, userAddr, nDays);
     }
 
-    function BindLicense(address issueAddr, bytes32 recvAddr, bytes32 id, uint32 nDays, bytes memory signature) external{
+    function BindLicense(address issueAddr, bytes32 recvAddr, bytes32 id, uint32 nDays, bytes memory signature) external notPaused{
         LicenseData memory ld = Licenses[issueAddr][id];
         require(ld.used == false, "id is used");
         require(ld.nDays == nDays, "nDays not matched");
@@ -150,7 +161,7 @@ contract NinjaChatLicense is owned{
         emit BindLicenseEvent(issueAddr, recvAddr, id, nDays);
     }
 
-    function TransferLicense(bytes32 from, bytes32 to, uint32 nDays) external{
+    function TransferLicense(bytes32 from, bytes32 to, uint32 nDays) external notPaused{
 
         require(nDays > 0,"nDays must large than 0");
         bool find = false;

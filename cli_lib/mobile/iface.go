@@ -2,6 +2,7 @@ package chatLib
 
 import (
 	"encoding/base64"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/ninjahome/ninja-go/cli_lib/clientMsg/multicast"
@@ -189,9 +190,9 @@ type UnicastCallBack interface {
 
 func ConfigApp(addr string, unicast UnicastCallBack, multicast MulticastCallBack) {
 
-	if addr == "" {
-		addr = client.RandomBootNode()
-	}
+	//if addr == "" {
+	//	addr = client.RandomBootNode()
+	//}
 	//fmt.Println("======>", addr)
 	_inst.wsEnd = addr
 	_inst.unicast = unicast
@@ -205,13 +206,29 @@ func ActiveWallet(cipherTxt, auth string, devtoken string) error {
 		return err
 	}
 	_inst.key = key
+
+	if _inst.wsEnd == ""{
+		addr:=key.Address
+		var nCount uint32
+		for i:=0;i<len(addr)/4;i++{
+			if i == 0{
+				nCount = binary.BigEndian.Uint32(addr[i*4:])
+			}else{
+				nCount = nCount ^ binary.BigEndian.Uint32(addr[i*4:])
+			}
+		}
+
+		addrs := client.GetBootNode(nCount)
+		_inst.wsEnd = addrs
+	}
+
 	ws, err := client.NewWSClient(devtoken, _inst.wsEnd, websocket.DevTypeAndroid, key, _inst) //202.182.101.145//167.179.78.33//127.0.0.1//
 	if err != nil {
 		return err
 	}
 	_inst.websocket = ws
 
-	return ws.Online()
+	return nil
 }
 
 func WalletIsOpen() bool {

@@ -337,6 +337,8 @@ func WriteGroupMessage(to string, groupId, plainTxt string) error {
 		return err
 	}
 
+	fmt.Println("js2slice---->",to)
+
 	err = _inst.websocket.GWrite(utils.JStr2Slice(to), rawData)
 	if err != nil {
 		return err

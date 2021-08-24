@@ -90,10 +90,13 @@ func (ws *Service) _procMulticastIM(msg *pbs.WsMsg) error {
 	)
 
 	for i := 0; i < len(gim.To); i++ {
+		fmt.Println("member Id",gim.To[i].MemberId)
 		if gim.To[i].MemberId == gim.From {
+			fmt.Println("from Id",gim.From)
 			continue
 		}
 		if !ws.onlineSet.contains(gim.To[i].MemberId) {
+			fmt.Println("not cotains:",gim.To[i].MemberId)
 			if allonline {
 				allonline = false
 				groupKey, err = SaveGroupMsg(ws.dataBase, gim)
@@ -107,8 +110,10 @@ func (ws *Service) _procMulticastIM(msg *pbs.WsMsg) error {
 				return err
 			}
 		} else if user, ok := ws.userTable.get(gim.To[i].MemberId); ok {
+			fmt.Println("in table:",gim.To[i].MemberId)
 			return user.writeToCli(msg)
 		} else {
+			fmt.Println("in other node:",gim.To[i].MemberId)
 			otherNode = true
 		}
 	}
