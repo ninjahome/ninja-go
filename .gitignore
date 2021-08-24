@@ -14,7 +14,7 @@ cli_lib/bin/chatLib-sources.jar
 cli_lib/bin/chatLib.aar
 cli_lib/utils/test/test
 cli_lib/mobile/test/test
-
+cli_lib/mobile/test/sigver
 # Dependency directories (remove the comment below to include it)
 # vendor/
 /.idea/.gitignore
