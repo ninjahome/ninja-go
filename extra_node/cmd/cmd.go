@@ -128,6 +128,6 @@ func showWallet(cmd *cobra.Command, args []string) {
 	fmt.Println("wallet address:", w.MainAddress().String())
 	//todo...
 
-	fmt.Println("Eth Balance: %.5f",config.GetBalance(w.MainAddress()))
+	fmt.Printf("Eth Balance: %.5f\r\n",config.GetBalance(w.MainAddress()))
 
 }
