@@ -248,6 +248,8 @@ func WSOnline() error {
 		return fmt.Errorf("init application first please")
 	}
 
+	fmt.Println("force online->:.......")
+
 	return _inst.websocket.Online()
 }
 

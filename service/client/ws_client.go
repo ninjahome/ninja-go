@@ -115,11 +115,13 @@ func (cc *WSClient) Online() error {
 
 	wsConn, _, err := dialer.Dial(u.String(), nil)
 	if err != nil {
+		fmt.Println("dialer error->:",err)
 		return err
 	}
 
 	onlineMsg := &pbs.WsMsg{}
 	if err := onlineMsg.Online(wsConn, cc.key, cc.DeviceToken, cc.DevTyp); err != nil {
+		fmt.Println("online error->:",err)
 		return err
 	}
 
