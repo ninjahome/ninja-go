@@ -1,9 +1,14 @@
 package config
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/kprc/libeth/wallet"
 	"github.com/ninjahome/ninja-go/tools"
+	"math/big"
 	"path"
 	"strconv"
 )
@@ -115,4 +120,20 @@ func GetExtraConfig() *Config {
 		}
 	}
 	return extra_config
+}
+
+func GetBalance(addr common.Address) float64  {
+	cli,err:=ethclient.Dial(infuraUrl)
+	if err!=nil{
+		return 0
+	}
+	defer cli.Close()
+
+	var b *big.Int
+	b,err=cli.BalanceAt(context.TODO(),addr,nil)
+	if err!=nil{
+		return 0
+	}
+
+	return wallet.BalanceHuman(b)
 }
