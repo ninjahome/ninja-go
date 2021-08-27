@@ -239,10 +239,10 @@ func WSIsOnline() bool {
 	return _inst.websocket != nil && _inst.websocket.IsOnline
 }
 
-func WSOnline() error {
-	if WSIsOnline() {
-		return nil
-	}
+func WSOnline(force bool) error {
+	//if WSIsOnline() {
+	//	return nil
+	//}
 
 	if _inst.websocket == nil {
 		return fmt.Errorf("init application first please")
