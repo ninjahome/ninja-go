@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/ninjahome/bls-wallet/bls"
 	ncom "github.com/ninjahome/ninja-go/common"
+	"github.com/ninjahome/ninja-go/contract"
 	"github.com/ninjahome/ninja-go/wallet"
 	"testing"
 	"time"
@@ -177,5 +178,28 @@ func TestVerifySign(t *testing.T) {
 	b := sig.VerifyByte(p, buf[:n])
 
 	fmt.Println(b)
+
+}
+
+func TestGetBootsTrapList(t *testing.T)  {
+	lst,err:=contract.GetBootsTrapList()
+	if err!=nil{
+		panic(err)
+	}
+
+	for i:=0;i<len(lst);i++{
+		fmt.Println(lst[i].WSHostString())
+	}
+}
+
+func TestGetEthConfig(t *testing.T)  {
+	ta,c,u,err:=contract.GetEthConfig()
+	if err!=nil{
+		panic(err)
+	}
+
+	fmt.Println(ta.String())
+	fmt.Println(c.String())
+	fmt.Println(string(u))
 
 }

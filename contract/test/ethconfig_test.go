@@ -140,7 +140,7 @@ func TestAddBootstrapNode(t *testing.T)  {
 		panic(err)
 	}
 
-	ip:="39.99.198.143"
+	ip:="18.183.238.197"
 	var port1 uint16 = 16666
 	var port2 uint16 = 19999
 	var port3 uint16 = 18088
@@ -215,7 +215,14 @@ func TestDelBootsTrapNode(t *testing.T)  {
 	if err!= nil{
 		panic(err)
 	}
+
+	ipaddr:="47.113.87.58"
+	ipb:=net.ParseIP(ipaddr).To4()
+
 	var ip [4]byte
+
+	copy(ip[:],ipb)
+
 	tx,err:=elc.DelBootsTrap(transopt,ip)
 	if err!=nil{
 		panic(err)
