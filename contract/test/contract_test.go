@@ -36,26 +36,45 @@ const (
 )
 
 var _cipherTxt = `{
-		"cipher": "aes-128-ctr",
-		"ciphertext": "3f84fa9dcf9637ee531cd972fa7fcda976e1361f9cee6ee9f5222e2b3d59807d",
-		"cipherparams": {
-			"iv": "308f21f38eb5f3379168664f1b6a278e"
+		"cipher":"aes-128-ctr",
+		"ciphertext":"c79da2f1df233563b0c1c993a2a8209a4834d8f3452cadab0cbb398cde30973d",
+		"cipherparams":{
+			"iv":"8fe749bfec3d41d05b980b01255bf87c"
 		},
-		"kdf": "scrypt",
-		"kdfparams": {
-			"dklen": 32,
-			"n": 262144,
-			"p": 1,
-			"r": 8,
-			"salt": "e770746f6cf346bd1150b83d5c0a915a9bd6a5e4a6dff4506c6befa97fc5c3d6"
+		"kdf":"scrypt",
+		"kdfparams":{
+			"dklen":32,
+			"n":262144,
+			"p":1,
+			"r":8,
+			"salt":"9e2d547fd6eafe616d522c7b18960795847ba96c5d0ba3c2f1c4c093cb181fd3"
 		},
-		"mac": "c0881f242b339a17ab71eca7bb4556f1b7e07e8d3fefe16c2af5494841b241ab"
-	}`
+		"mac":"65db7be298d916ca9ef27d9f5377b708059f76366c0a78311074b1187cc870a4"
+	}
+`
+
+//var _cipherTxt = `{
+//		"cipher": "aes-128-ctr",
+//		"ciphertext": "3f84fa9dcf9637ee531cd972fa7fcda976e1361f9cee6ee9f5222e2b3d59807d",
+//		"cipherparams": {
+//			"iv": "308f21f38eb5f3379168664f1b6a278e"
+//		},
+//		"kdf": "scrypt",
+//		"kdfparams": {
+//			"dklen": 32,
+//			"n": 262144,
+//			"p": 1,
+//			"r": 8,
+//			"salt": "e770746f6cf346bd1150b83d5c0a915a9bd6a5e4a6dff4506c6befa97fc5c3d6"
+//		},
+//		"mac": "c0881f242b339a17ab71eca7bb4556f1b7e07e8d3fefe16c2af5494841b241ab"
+//	}`
 
 func GetPrivKey() *ecdsa.PrivateKey {
 	j := &keystore.CryptoJSON{}
 	json.Unmarshal([]byte(_cipherTxt), j)
-	key, err := keystore.DecryptDataV3(*j, "123")
+	//key, err := keystore.DecryptDataV3(*j, "123")
+	key, err := keystore.DecryptDataV3(*j, "1qaz2wsx")
 	if err != nil {
 		fmt.Println("err is ", err)
 		return nil

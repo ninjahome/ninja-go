@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/forgoer/openssl"
 	"github.com/gorilla/websocket"
+	"github.com/ninjahome/ninja-go/contract"
 	pbs "github.com/ninjahome/ninja-go/pbs/websocket"
 	websocket2 "github.com/ninjahome/ninja-go/service/websocket"
 	"github.com/ninjahome/ninja-go/utils/thread"
@@ -18,12 +19,34 @@ import (
 	"time"
 )
 
-var (
-	DefaultBootWsService = []string{
-		"39.99.198.143:16666",
-		"47.113.87.58:16666",
-		"118.186.203.36:16666",
+
+type BootsConfig struct {
+	nodes []*contract.BootsTrapNode
+}
+
+func (bc *BootsConfig)WsServiceNodes() []string  {
+	var nodes []string
+	for i:=0;i<len(bc.nodes);i++{
+		nodes = append(nodes,bc.nodes[i].WSHostString())
 	}
+	return nodes
+}
+
+func (bc *BootsConfig)HttpServiceNodes() []string  {
+	var nodes []string
+	for i:=0;i<len(bc.nodes);i++{
+		nodes = append(nodes,bc.nodes[i].HttpHostString())
+	}
+	return nodes
+}
+
+var (
+
+	DefaultBootsConfig *BootsConfig
+
+	DefaultBootWsService  []string
+
+	DefaultBootHttpServer []string
 
 	ErrUnknownMsg    = fmt.Errorf("unknown websocket message")
 	ErrNoMsgCallback = fmt.Errorf("no message reciver")
@@ -33,6 +56,24 @@ const (
 	DevType_IOS     = 1
 	DevType_Android = 2
 )
+
+func InitDefaultBootsNode() error  {
+	bts,err:=contract.GetBootsTrapList()
+	if err!=nil{
+		return err
+	}
+
+
+	DefaultBootsConfig = &BootsConfig{
+		nodes: bts,
+	}
+
+	DefaultBootWsService = DefaultBootsConfig.WsServiceNodes()
+	DefaultBootHttpServer = DefaultBootsConfig.HttpServiceNodes()
+
+	return nil
+
+}
 
 type SafeWriteConn struct {
 	*websocket.Conn

@@ -190,16 +190,20 @@ type UnicastCallBack interface {
 
 func ConfigApp(addr string, unicast UnicastCallBack, multicast MulticastCallBack) {
 
-	//if addr == "" {
-	//	addr = client.RandomBootNode()
-	//}
-	//fmt.Println("======>", addr)
 	_inst.wsEnd = addr
 	_inst.unicast = unicast
 	_inst.multicast = multicast
 }
 
 func ActiveWallet(cipherTxt, auth string, devtoken string) error {
+
+	if err:=InitEth();err!=nil{
+		return err
+	}
+
+	if err:=client.InitDefaultBootsNode();err!=nil{
+		return err
+	}
 
 	key, err := wallet.LoadKeyFromJsonStr(cipherTxt, auth)
 	if err != nil {

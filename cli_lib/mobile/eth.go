@@ -14,19 +14,29 @@ import (
 	"github.com/ninjahome/ninja-go/extra_node/webmsg"
 	"github.com/ninjahome/ninja-go/extra_node/webserver"
 	"github.com/ninjahome/ninja-go/service/client"
-	"github.com/ninjahome/ninja-go/service/proxy"
 	"github.com/ninjahome/ninja-go/service/proxy/httputil"
 	"math/rand"
-	"strconv"
-	"strings"
 	"time"
 )
 
-const (
-	infuraUrl   = "https://kovan.infura.io/v3/d64d364124684359ace20feae1f9ac20"
-	contactAddr = "0x291F8A7353E460416095602e7BEc53a12cb5F0cC"
-	tokenAddr   = "0x122938b76c071142ea6b39c34ffc38e5711cada1"
+var (
+	accessUrl string
+	contactAddr string
+	tokenAddr string
 )
+
+func InitEth() error  {
+	t,c,u,err:=contract.GetEthConfig()
+	if err!=nil{
+		return err
+	}
+
+	accessUrl = string(u)
+	contactAddr = c.String()
+	tokenAddr = t.String()
+
+	return nil
+}
 
 func GetExpireTime() int64 {
 
@@ -48,7 +58,7 @@ func GetExpireTime() int64 {
 		return 0
 	}
 
-	if c, err = ethclient.Dial(infuraUrl); err != nil {
+	if c, err = ethclient.Dial(accessUrl); err != nil {
 		fmt.Println(err)
 		return 0
 	}
@@ -157,7 +167,7 @@ func ImportLicense(licenseB58 string) string {
 
 func RandomSrvList() []string {
 
-	lenboots := len(client.DefaultBootWsService)
+	lenboots := len(client.DefaultBootHttpServer)
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -168,7 +178,7 @@ func RandomSrvList() []string {
 	for i := 0; i < lenboots; i++ {
 		idx := (n + i) % lenboots
 
-		boots = append(boots, client.DefaultBootWsService[idx])
+		boots = append(boots, client.DefaultBootHttpServer[idx])
 	}
 
 	return boots
@@ -241,7 +251,7 @@ func IsValidLicense(licenseB58 string) int {
 		return DecodeLicenseErr
 	}
 
-	if c, err = ethclient.Dial(infuraUrl); err != nil {
+	if c, err = ethclient.Dial(accessUrl); err != nil {
 		fmt.Println(err)
 		return ConnectionErr
 	}
@@ -276,15 +286,11 @@ func IsValidLicense(licenseB58 string) int {
 }
 
 func bootNode2HttpAddrAdd(addr string) string {
-	arr := strings.Split(addr, ":")
-
-	return "http://" + arr[0] + ":" + strconv.Itoa(proxy.ProxyListenPort) + webserver.LicenseAddPath
+	return "http://" + addr + webserver.LicenseAddPath
 }
 
 func bootNode2HttpAddrTransfer(addr string) string {
-	arr := strings.Split(addr, ":")
-
-	return "http://" + arr[0] + ":" + strconv.Itoa(proxy.ProxyListenPort) + webserver.LicenseTransferPath
+	return "http://" + addr + webserver.LicenseTransferPath
 }
 
 func NinjaAddr2LicenseAddr(addr string) string {

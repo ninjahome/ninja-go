@@ -4,10 +4,12 @@ SHELL=PATH='$(PATH)' /bin/sh
 all:
 	abigen --abi eth-licenses/NinjaChatLicense.abi --pkg contract --type NinjaChatLicense --out eth-licenses.go
 	abigen --abi eth-licenses/NinjaToken.abi --pkg contract --type NinjaToken --out ninja-token.go
+	abigen --abi eth-licenses/NinjaConfig.abi --pkg contract --type NinjaConfig --out ethconfig.go
 
 abi:
 	solc --abi --overwrite eth-license.sol -o ./eth-licenses
 	solc --abi --overwrite ninja-token.sol -o ./eth-licenses
+	solc --abi --overwrite ethconfig.sol -o ./eth-licenses
 
 clean:
 #	rm -f *.abi
