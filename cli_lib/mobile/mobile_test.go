@@ -7,6 +7,7 @@ import (
 	"github.com/ninjahome/bls-wallet/bls"
 	ncom "github.com/ninjahome/ninja-go/common"
 	"github.com/ninjahome/ninja-go/contract"
+	"github.com/ninjahome/ninja-go/service/client"
 	"github.com/ninjahome/ninja-go/wallet"
 	"testing"
 	"time"
@@ -43,12 +44,13 @@ var __cipherTxt = `
 `
 
 func TestImportLicense(t *testing.T) {
+	client.InitDefaultBootsNode()
 	key, err := wallet.LoadKeyFromJsonStr(__cipherTxt, "123")
 	if err != nil {
 		panic(err)
 	}
 	_inst.key = key
-	s := ImportLicense("2ngSfpc2FbVmi2PtuRt8ZqnQGYNcQMoF8X65diPmpZfRzLKmtAjPAyN6VW3tEi7wWjD1QSHXERKxh2k7wjzQLGFxWetZBdhLTrMwJTiudyXYgA5UF3YJb2DDUuz7EELeKnogJhCxsJSm1mvLpTuR7Pw6jK6nt3o5kjWqL7")
+	s := ImportLicense("2ngSfpc2FbVmi2PtuRt8ZqnQGYNcTAqF4pbgiKePX8vPJQWJQFM75CFkZHXN8euyLsBSk5ozeMg5mTtYZpETo5DDRqPjBRaUt6VfE5qRBnEayPLD4sZWDbYc3g4HspDVW5tfJH4S1MJGdZhb83pATvFF4SMjYihmtnycbC")
 	fmt.Println(s)
 }
 
@@ -58,6 +60,9 @@ func TestNewWallet(t *testing.T) {
 }
 
 func TestRandomSrvList(t *testing.T) {
+
+	client.InitDefaultBootsNode()
+
 	srvs := RandomSrvList()
 
 	for i := 0; i < len(srvs); i++ {
@@ -84,6 +89,8 @@ func TestGetExpireTime(t *testing.T) {
 
 	fmt.Println(hex.EncodeToString(addr[:]))
 
+	InitEth()
+
 	expireTime := GetExpireTime()
 
 	fmt.Println(expireTime)
@@ -93,7 +100,8 @@ func TestGetExpireTime(t *testing.T) {
 }
 
 func TestIsValidLicense(t *testing.T) {
-	l := "2ngSfpc2FbVmi2PtuRt8ZqnQGYNc6Y9ys6EwA6xYLzWZMPQeyt6dSBJbUdnbFg5ETMUr8gS9Dc3o4noPojSrz3VsJQRTGTzdt9JsNzzEmgJSk4Km93B9paNjzcjpnkB3f9XTAZS4T7aMh8xoCxejzdcxp9C5ybFr6RXwNs"
+	InitEth()
+	l := "2ngSfpc2FbVmi2PtuRt8ZqnQGYNcTAqF4pbgiKePX8vPJQWJQFM75CFkZHXN8euyLsBSk5ozeMg5mTtYZpETo5DDRqPjBRaUt6VfE5qRBnEayPLD4sZWDbYc3g4HspDVW5tfJH4S1MJGdZhb83pATvFF4SMjYihmtnycbC"
 	s := IsValidLicense(l)
 	if s == ValidTrue {
 		fmt.Println("license have been used")
@@ -105,6 +113,7 @@ func TestIsValidLicense(t *testing.T) {
 
 }
 func TestTransferLicense(t *testing.T) {
+	client.InitDefaultBootsNode()
 	key, err := wallet.LoadKeyFromJsonStr(__cipherTxt, "123")
 	if err != nil {
 		panic(err)

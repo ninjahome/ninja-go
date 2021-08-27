@@ -35,46 +35,46 @@ const (
 	MetaMaskHashPrefix        = "\x19Ethereum Signed Message:\n32"
 )
 
-var _cipherTxt = `{
-		"cipher":"aes-128-ctr",
-		"ciphertext":"c79da2f1df233563b0c1c993a2a8209a4834d8f3452cadab0cbb398cde30973d",
-		"cipherparams":{
-			"iv":"8fe749bfec3d41d05b980b01255bf87c"
-		},
-		"kdf":"scrypt",
-		"kdfparams":{
-			"dklen":32,
-			"n":262144,
-			"p":1,
-			"r":8,
-			"salt":"9e2d547fd6eafe616d522c7b18960795847ba96c5d0ba3c2f1c4c093cb181fd3"
-		},
-		"mac":"65db7be298d916ca9ef27d9f5377b708059f76366c0a78311074b1187cc870a4"
-	}
-`
-
 //var _cipherTxt = `{
-//		"cipher": "aes-128-ctr",
-//		"ciphertext": "3f84fa9dcf9637ee531cd972fa7fcda976e1361f9cee6ee9f5222e2b3d59807d",
-//		"cipherparams": {
-//			"iv": "308f21f38eb5f3379168664f1b6a278e"
+//		"cipher":"aes-128-ctr",
+//		"ciphertext":"c79da2f1df233563b0c1c993a2a8209a4834d8f3452cadab0cbb398cde30973d",
+//		"cipherparams":{
+//			"iv":"8fe749bfec3d41d05b980b01255bf87c"
 //		},
-//		"kdf": "scrypt",
-//		"kdfparams": {
-//			"dklen": 32,
-//			"n": 262144,
-//			"p": 1,
-//			"r": 8,
-//			"salt": "e770746f6cf346bd1150b83d5c0a915a9bd6a5e4a6dff4506c6befa97fc5c3d6"
+//		"kdf":"scrypt",
+//		"kdfparams":{
+//			"dklen":32,
+//			"n":262144,
+//			"p":1,
+//			"r":8,
+//			"salt":"9e2d547fd6eafe616d522c7b18960795847ba96c5d0ba3c2f1c4c093cb181fd3"
 //		},
-//		"mac": "c0881f242b339a17ab71eca7bb4556f1b7e07e8d3fefe16c2af5494841b241ab"
-//	}`
+//		"mac":"65db7be298d916ca9ef27d9f5377b708059f76366c0a78311074b1187cc870a4"
+//	}
+//`
+
+var _cipherTxt = `{
+		"cipher": "aes-128-ctr",
+		"ciphertext": "3f84fa9dcf9637ee531cd972fa7fcda976e1361f9cee6ee9f5222e2b3d59807d",
+		"cipherparams": {
+			"iv": "308f21f38eb5f3379168664f1b6a278e"
+		},
+		"kdf": "scrypt",
+		"kdfparams": {
+			"dklen": 32,
+			"n": 262144,
+			"p": 1,
+			"r": 8,
+			"salt": "e770746f6cf346bd1150b83d5c0a915a9bd6a5e4a6dff4506c6befa97fc5c3d6"
+		},
+		"mac": "c0881f242b339a17ab71eca7bb4556f1b7e07e8d3fefe16c2af5494841b241ab"
+	}`
 
 func GetPrivKey() *ecdsa.PrivateKey {
 	j := &keystore.CryptoJSON{}
 	json.Unmarshal([]byte(_cipherTxt), j)
-	//key, err := keystore.DecryptDataV3(*j, "123")
-	key, err := keystore.DecryptDataV3(*j, "1qaz2wsx")
+	key, err := keystore.DecryptDataV3(*j, "123")
+	//key, err := keystore.DecryptDataV3(*j, "1qaz2wsx")
 	if err != nil {
 		fmt.Println("err is ", err)
 		return nil
@@ -112,6 +112,11 @@ func TestAbi(t *testing.T) {
 	}
 
 }
+
+func TestAccountAddress(t *testing.T)  {
+	fmt.Println(toPubKeyString(GetPrivKey()))
+}
+
 
 func BalanceEth(balance float64) *big.Int {
 	fbalance := new(big.Float)
@@ -151,7 +156,7 @@ func TestApprove(t *testing.T) {
 	}
 
 	var tx *types.Transaction
-	tx, err = nToken.Approve(transactOpts, common.HexToAddress(contactAddr), BalanceEth(100))
+	tx, err = nToken.Approve(transactOpts, common.HexToAddress(contactAddr), BalanceEth(1000000))
 	if err != nil {
 		panic(err)
 	}
@@ -245,7 +250,7 @@ func TestCreateLicense(t *testing.T) {
 		//}
 	)
 
-	*randId = "fba338a8dc8772c31f617ed4979df339f8b594c91e096995076c29eda7a60a48"
+	*randId = "9852b8a87c457050da9a850d4e8bededfd27500ec77e27de57c1d96bb8ff2af3"
 
 	if randId == nil {
 		fmt.Println("please input random id")
@@ -322,14 +327,14 @@ func TestCreateLicense(t *testing.T) {
 //go test -v -run TestBindLicense -randomId="xx" -nDays=5 -sig="xxx" -uAddr="xx"
 func TestBindLicense(t *testing.T) {
 
-	*randId = "fba338a8dc8772c31f617ed4979df339f8b594c91e096995076c29eda7a60a48"
+	*randId = "801ac44329556ae02af3f80a131bd07d7d79063d5df8b1e01057f424be57eebc"
 
 	if *randId == "" {
 		fmt.Println("please input random id")
 		return
 	}
 
-	*sig = "cb07e248ca533e364437d0a91d1f25b6cc224b698f751554d4c1627286b853613498ac4710598a26ccbfaff815e2f0f7acb742d99a324b9ba12fbbd5da432aaa1c"
+	*sig = "b668a8e2b784e7bae7534eca57d4f4cfb036e45cfddfd048de341d6d810789e438823e346e95d4d6cf9a6e60f37d9d7722f4926dee3af1a8dfdb5f22697cf9bc1c"
 
 	if *sig == "" {
 		fmt.Println("please input signature...")
