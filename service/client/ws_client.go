@@ -21,8 +21,8 @@ import (
 var (
 	DefaultBootWsService = []string{
 		"39.99.198.143:16666",
-		//"47.113.87.58:16666",
-		//"118.186.203.36:16666",
+		"47.113.87.58:16666",
+		"118.186.203.36:16666",
 	}
 
 	ErrUnknownMsg    = fmt.Errorf("unknown websocket message")
@@ -150,7 +150,7 @@ func (cc *WSClient) PullUnreadMsg(startSeq int64) error {
 		Typ:     pbs.WsMsgType_PullUnread,
 		Payload: &pbs.WsMsg_Unread{Unread: request},
 	}
-	return cc.wsConn.WriteMessage(websocket.TextMessage, msgWrap.Data())
+	return cc.wsConn.WriteMessage(websocket.BinaryMessage, msgWrap.Data())
 }
 
 func (cc *WSClient) getAesKey(to string) ([]byte, error) {
@@ -242,16 +242,11 @@ func (cc *WSClient) GWrite(to []string, body []byte) error {
 		return fmt.Errorf("please online yourself first")
 	}
 
-	fmt.Println("to......-->",to)
+
 
 	gekey, gkey, err := cc.groupEncryptKey(to)
 	if err != nil {
 		return err
-	}
-
-	for i:=0;i<len(gekey);i++{
-		k:=gekey[i]
-		fmt.Println("---->gekey:",k.MemberId)
 	}
 
 
@@ -259,7 +254,7 @@ func (cc *WSClient) GWrite(to []string, body []byte) error {
 
 	msgWrap := &pbs.WsMsg{}
 
-	if err := cc.wsConn.WriteMessage(websocket.TextMessage,
+	if err := cc.wsConn.WriteMessage(websocket.BinaryMessage,
 		msgWrap.AesCryptGData(from, gekey, body, gkey)); err != nil {
 		return err
 	}
@@ -278,7 +273,7 @@ func (cc *WSClient) Write(to string, body []byte) error {
 	from := cc.key.Address.String()
 	msgWrap := &pbs.WsMsg{}
 
-	if err := cc.wsConn.WriteMessage(websocket.TextMessage,
+	if err := cc.wsConn.WriteMessage(websocket.BinaryMessage,
 		msgWrap.AesCryptData(from, to, body, key)); err != nil {
 		return err
 	}

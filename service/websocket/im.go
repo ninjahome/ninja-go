@@ -84,6 +84,7 @@ func (ws *Service) _procMulticastIM(msg *pbs.WsMsg) error {
 
 	allonline := true
 	otherNode := false
+	messageSaved:=false
 	var (
 		groupKey string
 		err      error
@@ -101,8 +102,13 @@ func (ws *Service) _procMulticastIM(msg *pbs.WsMsg) error {
 				allonline = false
 				groupKey, err = SaveGroupMsg(ws.dataBase, gim)
 				if err != nil {
-					return err
+					continue
 				}
+				messageSaved =true
+			}
+
+			if !messageSaved{
+				continue
 			}
 
 			err = SaveReceiverGroupMsg(ws.dataBase, gim.To[i].MemberId, []byte(groupKey), gim.UnixTime)
@@ -111,7 +117,7 @@ func (ws *Service) _procMulticastIM(msg *pbs.WsMsg) error {
 			}
 		} else if user, ok := ws.userTable.get(gim.To[i].MemberId); ok {
 			fmt.Println("in table:",gim.To[i].MemberId)
-			return user.writeToCli(msg)
+			user.writeToCli(msg)
 		} else {
 			fmt.Println("in other node:",gim.To[i].MemberId)
 			otherNode = true

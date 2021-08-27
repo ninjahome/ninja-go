@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/forgoer/openssl"
 	"github.com/gorilla/websocket"
@@ -70,7 +69,7 @@ func (x *WsMsg) ReadOnlineFromCli(conn *websocket.Conn) (olMsg *WSOnline, messag
 	if err != nil {
 		return
 	}
-	return olMsg, message, conn.WriteMessage(websocket.TextMessage, ackData)
+	return olMsg, message, conn.WriteMessage(websocket.BinaryMessage, ackData)
 }
 
 func (x *WsMsg) AesCryptData(from, to string, body, key []byte) []byte {
@@ -108,9 +107,6 @@ func (x *WsMsg) AesCryptGData(from string, to []*GroupEncryptKey, body, key []by
 
 	data, _ := proto.Marshal(x)
 
-
-	fmt.Println("send---->:",hex.EncodeToString(data))
-
 	return data
 
 }
@@ -141,7 +137,7 @@ func (x *WsMsg) Online(conn *websocket.Conn, key *wallet.Key, devToken string, d
 		return err
 	}
 
-	err = conn.WriteMessage(websocket.TextMessage, xData)
+	err = conn.WriteMessage(websocket.BinaryMessage, xData)
 	if err != nil {
 		return err
 	}

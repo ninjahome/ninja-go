@@ -152,7 +152,7 @@ func test1() {
 		case <-done:
 			return
 		case t := <-ticker.C:
-			err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
+			err := c.WriteMessage(websocket.BinaryMessage, []byte(t.String()))
 			if err != nil {
 				fmt.Println("write:", err)
 				return
