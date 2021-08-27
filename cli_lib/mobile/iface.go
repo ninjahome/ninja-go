@@ -239,7 +239,7 @@ func WSIsOnline() bool {
 	return _inst.websocket != nil && _inst.websocket.IsOnline
 }
 
-func WSOnline(force bool) error {
+func WSOnline() error {
 	//if WSIsOnline() {
 	//	return nil
 	//}
