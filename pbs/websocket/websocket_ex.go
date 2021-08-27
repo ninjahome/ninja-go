@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/forgoer/openssl"
 	"github.com/gorilla/websocket"
@@ -106,6 +107,9 @@ func (x *WsMsg) AesCryptGData(from string, to []*GroupEncryptKey, body, key []by
 	}
 
 	data, _ := proto.Marshal(x)
+
+
+	fmt.Println("send---->:",hex.EncodeToString(data))
 
 	return data
 

@@ -70,6 +70,8 @@ func GetExpireTime() int64 {
 	return int64(deadline)
 }
 
+
+
 type ChatLicenseContent struct {
 	IssueAddr string `json:"issue_addr"`
 	RandomId  string `json:"random_id"`
