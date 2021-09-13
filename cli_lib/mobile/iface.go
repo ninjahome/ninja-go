@@ -39,6 +39,7 @@ type MobileAPP struct {
 	websocket *client.WSClient
 	unreadSeq int64
 	dbPath    string
+	devType   int
 }
 
 func (a MobileAPP) OnlineSuccess() {
@@ -190,12 +191,13 @@ type UnicastCallBack interface {
 	WebSocketClosed()
 }
 
-func ConfigApp(addr string, unicast UnicastCallBack, multicast MulticastCallBack, dbPath string) {
+func ConfigApp(addr string, unicast UnicastCallBack, multicast MulticastCallBack, dbPath string, devType int) {
 
 	_inst.wsEnd = addr
 	_inst.unicast = unicast
 	_inst.multicast = multicast
 	_inst.dbPath = dbPath
+	_inst.devType = devType
 }
 
 func ActiveWallet(cipherTxt, auth string, devtoken string) error {
@@ -229,7 +231,13 @@ func ActiveWallet(cipherTxt, auth string, devtoken string) error {
 		_inst.wsEnd = addrs
 	}
 
-	ws, err := client.NewWSClient(devtoken, _inst.wsEnd, websocket.DevTypeAndroid, key, _inst) //202.182.101.145//167.179.78.33//127.0.0.1//
+	devType := websocket.DevTypeAndroid
+
+	if _inst.devType > 0{
+		devType = _inst.devType
+	}
+
+	ws, err := client.NewWSClient(devtoken, _inst.wsEnd, devType, key, _inst) //202.182.101.145//167.179.78.33//127.0.0.1//
 	if err != nil {
 		return err
 	}
