@@ -122,16 +122,16 @@ func GetExtraConfig() *Config {
 	return extra_config
 }
 
-func GetBalance(addr common.Address) float64  {
-	cli,err:=ethclient.Dial(infuraUrl)
-	if err!=nil{
+func GetBalance(addr common.Address) float64 {
+	cli, err := ethclient.Dial(infuraUrl)
+	if err != nil {
 		return 0
 	}
 	defer cli.Close()
 
 	var b *big.Int
-	b,err=cli.BalanceAt(context.TODO(),addr,nil)
-	if err!=nil{
+	b, err = cli.BalanceAt(context.TODO(), addr, nil)
+	if err != nil {
 		return 0
 	}
 

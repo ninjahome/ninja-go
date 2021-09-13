@@ -134,13 +134,13 @@ func (x *WsMsg) Online(conn *websocket.Conn, key *wallet.Key, devToken string, d
 
 	xData, err := proto.Marshal(x)
 	if err != nil {
-		fmt.Println("marshal error->:",err)
+		fmt.Println("marshal error->:", err)
 		return err
 	}
 
 	err = conn.WriteMessage(websocket.BinaryMessage, xData)
 	if err != nil {
-		fmt.Println("write message error->:",err)
+		fmt.Println("write message error->:", err)
 		return err
 	}
 

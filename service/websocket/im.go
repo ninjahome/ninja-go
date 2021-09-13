@@ -84,30 +84,30 @@ func (ws *Service) _procMulticastIM(msg *pbs.WsMsg) error {
 
 	allonline := true
 	otherNode := false
-	messageSaved:=false
+	messageSaved := false
 	var (
 		groupKey string
 		err      error
 	)
 
 	for i := 0; i < len(gim.To); i++ {
-		fmt.Println("member Id",gim.To[i].MemberId)
+		fmt.Println("member Id", gim.To[i].MemberId)
 		if gim.To[i].MemberId == gim.From {
-			fmt.Println("from Id",gim.From)
+			fmt.Println("from Id", gim.From)
 			continue
 		}
 		if !ws.onlineSet.contains(gim.To[i].MemberId) {
-			fmt.Println("not cotains:",gim.To[i].MemberId)
+			fmt.Println("not cotains:", gim.To[i].MemberId)
 			if allonline {
 				allonline = false
 				groupKey, err = SaveGroupMsg(ws.dataBase, gim)
 				if err != nil {
 					continue
 				}
-				messageSaved =true
+				messageSaved = true
 			}
 
-			if !messageSaved{
+			if !messageSaved {
 				continue
 			}
 
@@ -116,10 +116,10 @@ func (ws *Service) _procMulticastIM(msg *pbs.WsMsg) error {
 				return err
 			}
 		} else if user, ok := ws.userTable.get(gim.To[i].MemberId); ok {
-			fmt.Println("in table:",gim.To[i].MemberId)
+			fmt.Println("in table:", gim.To[i].MemberId)
 			user.writeToCli(msg)
 		} else {
-			fmt.Println("in other node:",gim.To[i].MemberId)
+			fmt.Println("in other node:", gim.To[i].MemberId)
 			otherNode = true
 		}
 	}

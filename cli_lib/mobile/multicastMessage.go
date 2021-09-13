@@ -38,7 +38,7 @@ type MulticastCallBack interface {
 	FileMessage(from, groupId string, payload []byte, size int, name string) error
 }
 
-func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
+func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg, encrypted []byte) error {
 	groupMessage := &multicast.GroupMessage{}
 	if err := proto.Unmarshal(msg.PayLoad, groupMessage); err != nil {
 		return err
@@ -90,6 +90,8 @@ func (i MobileAPP) multicastMsg(to []string, msg *pbs.WSCryptoGroupMsg) error {
 	case multicast.GroupMessageType_ChatMessageT:
 		chatMessage := groupMessage.Payload.(*multicast.GroupMessage_ChatMsg)
 		chatMsg := chatMessage.ChatMsg
+
+		//todo ... save chat message
 		return i.multicastChatMsg(msg.From, chatMsg, msg.UnixTime)
 
 	case multicast.GroupMessageType_DismisGroupT:
@@ -337,7 +339,7 @@ func WriteGroupMessage(to string, groupId, plainTxt string) error {
 		return err
 	}
 
-	fmt.Println("js2slice---->",to)
+	fmt.Println("js2slice---->", to)
 
 	err = _inst.websocket.GWrite(utils.JStr2Slice(to), rawData)
 	if err != nil {
@@ -450,18 +452,3 @@ func NewGroupId() string {
 
 	return base64.StdEncoding.EncodeToString(buf)
 }
-
-//
-//func GroupInfo2Str(groupId, groupName, owner string, memberIds, nickNames []string) string {
-//	gi:=&GroupInfo{
-//		GroupId: groupId,
-//		GroupName: groupName,
-//		OwnerId: owner,
-//		MemberId: memberIds,
-//		NickName: nickNames,
-//	}
-//
-//	j,_:=json.Marshal(*gi)
-//
-//	return string(j)
-//}

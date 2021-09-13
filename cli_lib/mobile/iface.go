@@ -38,6 +38,7 @@ type MobileAPP struct {
 	wsEnd     string
 	websocket *client.WSClient
 	unreadSeq int64
+	dbPath    string
 }
 
 func (a MobileAPP) OnlineSuccess() {
@@ -46,14 +47,15 @@ func (a MobileAPP) OnlineSuccess() {
 	}
 }
 
-func (a MobileAPP) ImmediateMessage(msg *pbs.WSCryptoMsg) error {
+func (a MobileAPP) ImmediateMessage(msg *pbs.WSCryptoMsg, encrypted []byte) error {
 	if msg == nil {
 		return errors.New("msg is nil")
 	}
+	//todo... save chat message
 	return a.unicastMsg(msg)
 }
 
-func (a MobileAPP) ImmediateGMessage(msg *pbs.WSCryptoGroupMsg) error {
+func (a MobileAPP) ImmediateGMessage(msg *pbs.WSCryptoGroupMsg, encrypted []byte) error {
 	if msg == nil {
 		return errors.New("msg is nil")
 	}
@@ -63,7 +65,7 @@ func (a MobileAPP) ImmediateGMessage(msg *pbs.WSCryptoGroupMsg) error {
 		to = append(to, msg.To[i].MemberId)
 	}
 
-	return a.multicastMsg(to, msg)
+	return a.multicastMsg(to, msg, encrypted)
 }
 
 func (a MobileAPP) WebSocketClosed() {
@@ -188,20 +190,21 @@ type UnicastCallBack interface {
 	WebSocketClosed()
 }
 
-func ConfigApp(addr string, unicast UnicastCallBack, multicast MulticastCallBack) {
+func ConfigApp(addr string, unicast UnicastCallBack, multicast MulticastCallBack, dbPath string) {
 
 	_inst.wsEnd = addr
 	_inst.unicast = unicast
 	_inst.multicast = multicast
+	_inst.dbPath = dbPath
 }
 
 func ActiveWallet(cipherTxt, auth string, devtoken string) error {
 
-	if err:=InitEth();err!=nil{
+	if err := InitEth(); err != nil {
 		return err
 	}
 
-	if err:=client.InitDefaultBootsNode();err!=nil{
+	if err := client.InitDefaultBootsNode(); err != nil {
 		return err
 	}
 
@@ -211,13 +214,13 @@ func ActiveWallet(cipherTxt, auth string, devtoken string) error {
 	}
 	_inst.key = key
 
-	if _inst.wsEnd == ""{
-		addr:=key.Address
+	if _inst.wsEnd == "" {
+		addr := key.Address
 		var nCount uint32
-		for i:=0;i<len(addr)/4;i++{
-			if i == 0{
+		for i := 0; i < len(addr)/4; i++ {
+			if i == 0 {
 				nCount = binary.BigEndian.Uint32(addr[i*4:])
-			}else{
+			} else {
 				nCount = nCount ^ binary.BigEndian.Uint32(addr[i*4:])
 			}
 		}

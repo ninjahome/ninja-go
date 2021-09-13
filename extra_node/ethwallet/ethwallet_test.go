@@ -11,18 +11,18 @@ import (
 )
 
 func TestNewWalletFromPrivateBytes(t *testing.T) {
-	priv:="a23da23da23da23d37fa472ad5e9769515ea8d80ad136a2a725e5a3db717130f99536394a69c5301"
-	auth:="1qaz2wsx"
+	priv := "a23da23da23da23d37fa472ad5e9769515ea8d80ad136a2a725e5a3db717130f99536394a69c5301"
+	auth := "1qaz2wsx"
 
-	w,err:=NewWalletFromPrivateBytes(auth,priv[16:])
-	if err!=nil{
+	w, err := NewWalletFromPrivateBytes(auth, priv[16:])
+	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println(w.String())
 }
 
-func TestPrintEthAddr(t *testing.T)  {
+func TestPrintEthAddr(t *testing.T) {
 	fmt.Println(toPubKeyString(GetPrivKey()))
 }
 

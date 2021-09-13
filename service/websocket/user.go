@@ -72,7 +72,7 @@ func (u *wsUser) reading(_ chan struct{}) {
 			return
 		}
 
-		fmt.Println("message----->:",hex.EncodeToString(message))
+		fmt.Println("message----->:", hex.EncodeToString(message))
 
 		msg := &pbs.WsMsg{}
 		if err := proto.Unmarshal(message, msg); err != nil {

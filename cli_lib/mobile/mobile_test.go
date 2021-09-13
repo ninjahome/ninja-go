@@ -1,9 +1,12 @@
 package chatLib
 
 import (
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"github.com/forgoer/openssl"
 	"github.com/ninjahome/bls-wallet/bls"
 	ncom "github.com/ninjahome/ninja-go/common"
 	"github.com/ninjahome/ninja-go/contract"
@@ -14,7 +17,7 @@ import (
 )
 
 func TestDecodeBase58(t *testing.T) {
-	s := DecodeLicense("22FVcbpbffH7R7xzJgZBL1imo4WXphCudeCSFM48voSgwCD9pXWu4qQcSkxeoTH5JGegTQUED4bT7nmwGRHuwyckGZKtbVECtp3sCkC3ECCuwGKy1DsLJvHfLdVwsmS7okLmbCE3aoThbGzPE4BW2dkiorb42rbv3Nh8ca")
+	s := DecodeLicense("2ds8ttQErMP2CaiakrW27hpJhaco6cnvAHrrcWL8Zx9k64KHntagAqH1avqGdDRNCvS2Hdr7fS5e3MG8kTF6GYKmbYtCLtujp6T4pq85JoBMKULkmN4dqKh6NV1dhVF3g4y3GpmqRYxYCFJdwNDhGhzBxppUzd1kY7BV1U")
 
 	fmt.Println(s)
 }
@@ -101,7 +104,7 @@ func TestGetExpireTime(t *testing.T) {
 
 func TestIsValidLicense(t *testing.T) {
 	InitEth()
-	l := "2ngSfpc2FbVmi2PtuRt8ZqnQGYNcTAqF4pbgiKePX8vPJQWJQFM75CFkZHXN8euyLsBSk5ozeMg5mTtYZpETo5DDRqPjBRaUt6VfE5qRBnEayPLD4sZWDbYc3g4HspDVW5tfJH4S1MJGdZhb83pATvFF4SMjYihmtnycbC"
+	l := "2ds8ttQErMP2CaiakrW27hpJhaco6cnvAHrrcWL8Zx9k64KHntagAqH1avqGdDRNCvS2Hdr7fS5e3MG8kTF6GYKmbYtCLtujp6T4pq85JoBMKULkmN4dqKh6NV1dhVF3g4y3GpmqRYxYCFJdwNDhGhzBxppUzd1kY7BV1U"
 	s := IsValidLicense(l)
 	if s == ValidTrue {
 		fmt.Println("license have been used")
@@ -190,25 +193,67 @@ func TestVerifySign(t *testing.T) {
 
 }
 
-func TestGetBootsTrapList(t *testing.T)  {
-	lst,err:=contract.GetBootsTrapList()
-	if err!=nil{
+func TestGetBootsTrapList(t *testing.T) {
+	lst, err := contract.GetBootsTrapList()
+	if err != nil {
 		panic(err)
 	}
 
-	for i:=0;i<len(lst);i++{
+	for i := 0; i < len(lst); i++ {
 		fmt.Println(lst[i].WSHostString())
 	}
 }
 
-func TestGetEthConfig(t *testing.T)  {
-	ta,c,u,err:=contract.GetEthConfig()
-	if err!=nil{
+func TestGetEthConfig(t *testing.T) {
+	ta, c, u, err := contract.GetEthConfig()
+	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println(ta.String())
 	fmt.Println(c.String())
 	fmt.Println(string(u))
+
+}
+
+var _groupInfo = `
+{"group_name":"嘿嘿",
+"owner_id":"a656a1a460f39b9c147ac5ac92c4829182c142e5f59b12b9f918feb30e5d07129a908ed2c1f22ab6b06649d49b740560",
+"group_id":"HMn9j\/KRjWZvzTzF7ISGhek+p1sZf1e8Ews\/bIDlzok=",
+"ban_talking":false,"nick_name":["🎈 8","xxf","豆豆","晓芙"],"member_id":["93e82eb21e558bd0192c1866071bf0e2aff57e2bd6b1128ffefa52889a25a338c573e6b3b7fcc52b9b98fbf3eee39a34","8c8aae805033609b279ab903e6f2dcaddb153ca64fb2c455166f01d08f65c7556a0b6e68f55c778023d81f8e79ff8b0d","a3eb5e8f0fba490cb65296e7a863fd85cdf6ab846aca283cb6e120ab4ca4ba09db1a424e3b5c1ea11d69f75bdc895067","a656a1a460f39b9c147ac5ac92c4829182c142e5f59b12b9f918feb30e5d07129a908ed2c1f22ab6b06649d49b740560"]}
+`
+
+func TestDecodeGroupInfo(t *testing.T) {
+	gi := &GroupInfo{}
+	if err := json.Unmarshal([]byte(_groupInfo), gi); err != nil {
+		panic(err)
+	}
+	if j, err := json.MarshalIndent(*gi, "", "\t"); err != nil {
+		panic(err)
+	} else {
+		fmt.Println(string(j))
+	}
+
+}
+
+func TestEncrypt(t *testing.T) {
+	src := "hello,world"
+
+	key := []byte("12345123451234512345123451234512")
+
+	dst, err := openssl.AesECBEncrypt([]byte(src), key, openssl.PKCS7_PADDING)
+	if err != nil {
+		panic(err)
+	}
+
+	src1 := dst
+
+	fmt.Println(base64.StdEncoding.EncodeToString(dst))
+
+	dst, err = openssl.AesECBDecrypt(src1, key, openssl.PKCS7_PADDING)
+
+	fmt.Println(string(dst))
+
+	fmt.Println(base64.StdEncoding.EncodeToString(src1))
 
 }

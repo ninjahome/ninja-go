@@ -19,32 +19,30 @@ import (
 	"time"
 )
 
-
 type BootsConfig struct {
 	nodes []*contract.BootsTrapNode
 }
 
-func (bc *BootsConfig)WsServiceNodes() []string  {
+func (bc *BootsConfig) WsServiceNodes() []string {
 	var nodes []string
-	for i:=0;i<len(bc.nodes);i++{
-		nodes = append(nodes,bc.nodes[i].WSHostString())
+	for i := 0; i < len(bc.nodes); i++ {
+		nodes = append(nodes, bc.nodes[i].WSHostString())
 	}
 	return nodes
 }
 
-func (bc *BootsConfig)HttpServiceNodes() []string  {
+func (bc *BootsConfig) HttpServiceNodes() []string {
 	var nodes []string
-	for i:=0;i<len(bc.nodes);i++{
-		nodes = append(nodes,bc.nodes[i].HttpHostString())
+	for i := 0; i < len(bc.nodes); i++ {
+		nodes = append(nodes, bc.nodes[i].HttpHostString())
 	}
 	return nodes
 }
 
 var (
-
 	DefaultBootsConfig *BootsConfig
 
-	DefaultBootWsService  []string
+	DefaultBootWsService []string
 
 	DefaultBootHttpServer []string
 
@@ -57,12 +55,11 @@ const (
 	DevType_Android = 2
 )
 
-func InitDefaultBootsNode() error  {
-	bts,err:=contract.GetBootsTrapList()
-	if err!=nil{
+func InitDefaultBootsNode() error {
+	bts, err := contract.GetBootsTrapList()
+	if err != nil {
 		return err
 	}
-
 
 	DefaultBootsConfig = &BootsConfig{
 		nodes: bts,
@@ -108,9 +105,9 @@ func RandomBootNode() string {
 }
 
 func GetBootNode(bootId uint32) string {
-	idx:=int(bootId)%(len(DefaultBootWsService))
+	idx := int(bootId) % (len(DefaultBootWsService))
 
-	if idx <0 {
+	if idx < 0 {
 		idx = -idx
 	}
 
@@ -118,8 +115,8 @@ func GetBootNode(bootId uint32) string {
 }
 
 type CliCallBack interface {
-	ImmediateMessage(*pbs.WSCryptoMsg) error
-	ImmediateGMessage(msg *pbs.WSCryptoGroupMsg) error
+	ImmediateMessage(msg *pbs.WSCryptoMsg, encrypted []byte) error
+	ImmediateGMessage(msg *pbs.WSCryptoGroupMsg, encrypted []byte) error
 	WebSocketClosed()
 	//UnreadMsg(*pbs.WSUnreadAck) error
 	OnlineSuccess()
@@ -156,13 +153,13 @@ func (cc *WSClient) Online() error {
 
 	wsConn, _, err := dialer.Dial(u.String(), nil)
 	if err != nil {
-		fmt.Println("dialer error->:",err)
+		fmt.Println("dialer error->:", err)
 		return err
 	}
 
 	onlineMsg := &pbs.WsMsg{}
 	if err := onlineMsg.Online(wsConn, cc.key, cc.DeviceToken, cc.DevTyp); err != nil {
-		fmt.Println("online error->:",err)
+		fmt.Println("online error->:", err)
 		return err
 	}
 
@@ -285,13 +282,10 @@ func (cc *WSClient) GWrite(to []string, body []byte) error {
 		return fmt.Errorf("please online yourself first")
 	}
 
-
-
 	gekey, gkey, err := cc.groupEncryptKey(to)
 	if err != nil {
 		return err
 	}
-
 
 	from := cc.key.Address.String()
 
@@ -361,9 +355,10 @@ func (cc *WSClient) procMsgFromServer() error {
 			if err != nil {
 				return err
 			}
+			encrypted := msg.PayLoad
 			dst, _ := openssl.AesECBDecrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
 			msg.PayLoad = dst
-			if err := cc.callback.ImmediateMessage(msg); err != nil {
+			if err := cc.callback.ImmediateMessage(msg, encrypted); err != nil {
 				return err
 			}
 		case *pbs.WsMsg_GroupMessage:
@@ -377,10 +372,10 @@ func (cc *WSClient) procMsgFromServer() error {
 			if err != nil {
 				return err
 			}
-
+			encrypted := msg.PayLoad
 			dst, _ := openssl.AesECBDecrypt(msg.PayLoad, key, openssl.PKCS7_PADDING)
 			msg.PayLoad = dst
-			if err := cc.callback.ImmediateGMessage(msg); err != nil {
+			if err := cc.callback.ImmediateGMessage(msg, encrypted); err != nil {
 				return err
 			}
 		default:
@@ -403,9 +398,10 @@ func (cc *WSClient) procMsgFromServer() error {
 				if err != nil {
 					continue
 				}
+				encrypted := msg.Payload.PayLoad
 				dst, _ := openssl.AesECBDecrypt(msg.Payload.PayLoad, key, openssl.PKCS7_PADDING)
 				msg.Payload.PayLoad = dst
-				if err := cc.callback.ImmediateMessage(msg.Payload); err != nil {
+				if err := cc.callback.ImmediateMessage(msg.Payload, encrypted); err != nil {
 					continue
 				}
 			case *pbs.WsUnreadAckMsg_GPayload:
@@ -416,10 +412,10 @@ func (cc *WSClient) procMsgFromServer() error {
 				if err != nil {
 					continue
 				}
-
+				encrypted := gpayload.PayLoad
 				dst, _ := openssl.AesECBDecrypt(gpayload.PayLoad, key, openssl.PKCS7_PADDING)
 				gpayload.PayLoad = dst
-				if err := cc.callback.ImmediateGMessage(gpayload); err != nil {
+				if err := cc.callback.ImmediateGMessage(gpayload, encrypted); err != nil {
 					continue
 				}
 			}

@@ -113,10 +113,9 @@ func TestAbi(t *testing.T) {
 
 }
 
-func TestAccountAddress(t *testing.T)  {
+func TestAccountAddress(t *testing.T) {
 	fmt.Println(toPubKeyString(GetPrivKey()))
 }
-
 
 func BalanceEth(balance float64) *big.Int {
 	fbalance := new(big.Float)
@@ -250,7 +249,7 @@ func TestCreateLicense(t *testing.T) {
 		//}
 	)
 
-	*randId = "9852b8a87c457050da9a850d4e8bededfd27500ec77e27de57c1d96bb8ff2af3"
+	*randId = "c0b65ac2f5b96977895b764b1b863b74a73d488aaa2268e2bee311b7648ada29"
 
 	if randId == nil {
 		fmt.Println("please input random id")

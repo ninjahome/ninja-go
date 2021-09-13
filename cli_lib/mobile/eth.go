@@ -20,14 +20,14 @@ import (
 )
 
 var (
-	accessUrl string
+	accessUrl   string
 	contactAddr string
-	tokenAddr string
+	tokenAddr   string
 )
 
-func InitEth() error  {
-	t,c,u,err:=contract.GetEthConfig()
-	if err!=nil{
+func InitEth() error {
+	t, c, u, err := contract.GetEthConfig()
+	if err != nil {
 		return err
 	}
 
@@ -79,8 +79,6 @@ func GetExpireTime() int64 {
 
 	return int64(deadline)
 }
-
-
 
 type ChatLicenseContent struct {
 	IssueAddr string `json:"issue_addr"`
