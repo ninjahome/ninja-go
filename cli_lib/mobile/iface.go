@@ -40,6 +40,7 @@ type MobileAPP struct {
 	unreadSeq int64
 	dbPath    string
 	devType   int
+	chatStore     *client.ChatHistoryStore
 }
 
 func (a MobileAPP) OnlineSuccess() {
@@ -53,6 +54,8 @@ func (a MobileAPP) ImmediateMessage(msg *pbs.WSCryptoMsg, encrypted []byte) erro
 		return errors.New("msg is nil")
 	}
 	//todo... save chat message
+
+
 	return a.unicastMsg(msg)
 }
 
@@ -198,6 +201,12 @@ func ConfigApp(addr string, unicast UnicastCallBack, multicast MulticastCallBack
 	_inst.multicast = multicast
 	_inst.dbPath = dbPath
 	_inst.devType = devType
+	if store,err:=client.NewStore(dbPath,"");err!=nil{
+		panic(err)
+	}else{
+		_inst.chatStore = store
+	}
+
 }
 
 func ActiveWallet(cipherTxt, auth string, devtoken string) error {
@@ -215,6 +224,8 @@ func ActiveWallet(cipherTxt, auth string, devtoken string) error {
 		return err
 	}
 	_inst.key = key
+
+	_inst.chatStore.SetWalletAddr(_inst.key.Address.String())
 
 	if _inst.wsEnd == "" {
 		addr := key.Address

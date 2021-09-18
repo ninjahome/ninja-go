@@ -20,3 +20,22 @@ func RecoverMsg(msgCount int, to string, time int64) {
 func ClearMsg(startTime, endTime int64, id string) error {
 	return nil
 }
+
+
+//one hour = 3600
+//one day = 86400
+//one week = 604800
+//one month = 2592000
+//3 month = 7776000
+//half year = 15552000
+//one year = 31104000
+//-1 for ever
+func SaveTimeInterval(seconds int64)  {
+	_inst.chatStore.SetHistoryInterval(seconds)
+}
+
+func DeleteUser(addr string) error {
+	return nil
+}
+
+
